@@ -464,7 +464,7 @@
                         @php
                             $isDone = in_array($module->id, $completedModuleIds);
                         @endphp
-                        <div class="module-action-row">
+                        <div class="module-action-row" id="module-{{ $module->id }}">
                             <div>
                                 <div class="module-action-title">{{ $i + 1 }}. {{ $module->title }}</div>
                                 @if ($module->description)
@@ -627,7 +627,7 @@
 @endphp
 
 @if ($postTest)
-    <div style="
+    <div id="post-test-section" style="
         margin-top:14px;
         background:#edf2f7;
         border-radius:8px;
@@ -714,7 +714,7 @@
 @endif
 
 {{-- Final Hands-On Test --}}
-<div style="
+<div id="hands-on-section" style="
     margin-top:10px;
     background:#edf2f7;
     border-radius:8px;
@@ -763,7 +763,7 @@
     </div>
 
     {{-- Certificate --}}
-<div style="
+<div id="certificate-section" style="
     margin-top:20px;
     padding:18px;
     border:1px solid #dfe7e2;

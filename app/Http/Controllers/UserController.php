@@ -1786,6 +1786,14 @@ public function storeHandsOnEvaluation(Request $request)
         'remarks' => 'nullable|string',
     ]);
 
+    $studentEnrolled = \App\Models\Enrollment_tbl::where('user_id', $request->user_id)
+    ->where('course_id', $course->id)
+    ->exists();
+
+    if (!$studentEnrolled) {
+        return back()->with('error', 'This student is not enrolled in your course.');
+    }
+
 HandsOnEvaluation::updateOrCreate(
     [
         'user_id'   => $request->user_id,
@@ -2254,6 +2262,7 @@ private function validateAnnouncement(Request $request): array
             'certificate'
         ));
     }
+    
     public function updateCourseDescription(Request $request, $id)
     {
         $request->validate([

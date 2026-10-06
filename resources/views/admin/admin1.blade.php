@@ -3083,7 +3083,7 @@
                   <td class="action-icons">
                     <button type="button" class="btn-icon"
                       title="View Certificate"
-                      onclick="openCertModal('{{ addslashes($fullName) }}', '{{ addslashes($courseTitle) }}', '{{ $cert->certificate_no }}', '{{ $issueDate }}', '{{ $cert->status }}', '{{ $cert->grade ?? '94%' }}', '{{ $cert->document_type ?? 'completion' }}')">
+                      onclick="openCertModal('{{ addslashes($fullName) }}', '{{ addslashes($courseTitle) }}', '{{ $cert->certificate_no }}', '{{ $issueDate }}', '{{ $cert->status }}', '{{ $cert->grade ?? '94%' }}', '{{ $cert->document_type ?? 'completion' }}','{{ $cert->course->training_id ?? '' }}')">
                       <i class="fas fa-eye" aria-hidden="true"></i>
                       <span class="sr-only">View Certificate</span>
                     </button>
@@ -3200,7 +3200,7 @@
 
               <footer class="cert-serial-footer">
                 <span id="vID">CERT. NO.: [ID]</span>
-                <span id="vTrainingID">TRAINING ID: NCIIDRM-26-032</span>
+                <span id="vTrainingID">TRAINING ID: [ID]</span>
               </footer>
             </div>
           </div>
@@ -3319,9 +3319,10 @@
                       $traineeCourse =
                           $trainee->course_title ?? 'General Training';
                     @endphp
-                    <option value="{{ $trainee->id }}"
-                      data-name="{{ $traineeName }}"
-                      data-course="{{ $traineeCourse }}">
+                      <option value="{{ $trainee->id }}"
+                        data-name="{{ $traineeName }}"
+                        data-course="{{ $traineeCourse }}"
+                        data-training-id="{{ $trainee->training_id ?? '' }}">
                       {{ $trainee->lastname ?? '' }},
                       {{ $trainee->firstname ?? '' }} — {{ $traineeCourse }}
                     </option>
@@ -3405,7 +3406,7 @@
 
               <footer class="cert-serial-footer">
                 <span id="pID">CERT. NO.: [ID]</span>
-                <span>TRAINING ID: NCIIDRM-26-032</span>
+                <span id="pTrainingID">TRAINING ID: [ID]</span>
               </footer>
             </div>
           </div>
@@ -8307,14 +8308,16 @@ document.getElementById('facilityForm').onsubmit = function(e) {
     // ==========================================
     // 1. MODAL CONTROLLERS (OPEN / CLOSE)
     // ==========================================
-    function openCertModal(name, course, certId, issueDate = 'April 3, 2026',
-      status = 'Pending', grade = '94%', docType = 'completion') {
+      function openCertModal(name, course, certId, issueDate = 'April 3, 2026',
+        status = 'Pending', grade = '94%', docType = 'completion',
+        trainingId = '') {
       const modal = document.getElementById('certificateModal');
       if (!modal) return;
 
       document.getElementById('vName').textContent = name;
       document.getElementById('vCourse').textContent = course.toUpperCase();
       document.getElementById('vID').textContent = `CERT. NO.: ${certId}`;
+      document.getElementById('vTrainingID').textContent = `TRAINING ID: ${trainingId || '[ID]'}`;
 
       const docTitle = document.getElementById('vDocTitle');
       if (docTitle) {
@@ -8398,12 +8401,20 @@ document.getElementById('facilityForm').onsubmit = function(e) {
         const selectedOption = traineeSelect.options[traineeSelect.selectedIndex];
         let rawText = selectedOption.getAttribute('data-name') || selectedOption
           .text.split(' (')[0].trim();
-        const course = selectedOption.getAttribute('data-course') ||
-          'TRAINING PROGRAM';
+        const course = selectedOption.getAttribute('data-course') ||'TRAINING PROGRAM';
+        const trainingId = selectedOption.getAttribute('data-training-id') || '';
 
         // Applies proper Title Case instead of lowercase
         pName.textContent = toTitleCase(rawText);
         pCourse.textContent = course.toUpperCase();
+        
+        const pTrainingID = document.getElementById('pTrainingID');
+
+      if (pTrainingID) {
+        pTrainingID.textContent = trainingId
+          ? `TRAINING ID: ${trainingId}`
+          : 'TRAINING ID: [ID]';
+      }
       } else {
         pName.textContent = '[Recipient Name]';
         pCourse.textContent = '[COURSE NAME]';

@@ -995,7 +995,15 @@
                         <span>Unit {{ $unitNum }}</span>
                         <i class="fa fa-chevron-down" style="font-size:10px;"></i>
                     </div>
-                    <div class="index-sub-menu" id="unit{{ $unitNum }}Sub"></div>
+                    <div class="index-sub-menu" id="unit{{ $unitNum }}Sub">
+                    @foreach ($modules->where('unit_number', $unitNum) as $module)
+                        <span
+                            class="index-sub-link"
+                            onclick="showUnitScreen({{ $unitNum }}); setTimeout(() => document.getElementById('module-{{ $module->id }}')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);">
+                            • {{ $module->title }}
+                        </span>
+                    @endforeach
+                    </div>
                 @endforeach
 
                 {{-- Completion --}}
@@ -1003,7 +1011,25 @@
                     <span>Completion</span>
                     <i class="fa fa-chevron-down" style="font-size:10px;"></i>
                 </div>
-                <div class="index-sub-menu" id="completionSub"></div>
+            <div class="index-sub-menu" id="completionSub">
+                <span
+                    class="index-sub-link"
+                    onclick="showCompletionScreen(); setTimeout(() => document.getElementById('post-test-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);">
+                    • Post-Test
+                </span>
+
+                <span
+                    class="index-sub-link"
+                    onclick="showCompletionScreen(); setTimeout(() => document.getElementById('hands-on-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);">
+                    • Hands-On Evaluation
+                </span>
+
+                <span
+                    class="index-sub-link"
+                    onclick="showCompletionScreen(); setTimeout(() => document.getElementById('certificate-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);">
+                    • Certificate
+                </span>
+            </div>
             </div>
             @endif
 
