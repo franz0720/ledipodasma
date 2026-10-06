@@ -769,6 +769,7 @@ public function deleteFacility(Request $request)
 {
     $request->validate([
         'course_code' => 'required|string|max:50',
+        'training_id'  => 'required|string|max:100',
         'title'       => 'required|string|max:255',
         'duration'    => 'required|string',
         'slots'       => 'required|integer',
@@ -778,6 +779,7 @@ public function deleteFacility(Request $request)
     $course = Course_tbl::findOrFail($id);
     $course->update([
         'course_code' => $request->course_code,
+        'training_id' => $request->training_id,
         'title'       => $request->title,
         'duration'    => $request->duration,
         'slots'       => $request->slots,

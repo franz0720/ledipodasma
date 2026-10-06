@@ -2603,6 +2603,7 @@
                 {{ $course->slots }},
                 {{ $course->trainer_id ?? 'null' }},
                 '{{ addslashes($trainerName ?? '') }}',
+                '{{ addslashes($course->training_id ?? '') }}',
                 '{{ $course->status }}'
               )">
                     Course Details
@@ -3470,13 +3471,18 @@
             </div>
           </div>
 
-          <div>
-        <label>Training ID</label>
-        <input
-        type="text"
-        name="training_id"
-        placeholder="e.g. NCIIDRM-26-032">
-        </div>  
+          <div class="input-field">
+            <label for="editTrainingId">Training ID</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-id-card"></i>
+              <input
+                type="text"
+                id="editTrainingId"
+                name="training_id"
+                placeholder="e.g. NCIIDRM-26-032"
+                required>
+            </div>
+          </div>
 
           <div class="input-field">
             <label for="editStatus">Course Status</label>
@@ -5334,8 +5340,8 @@ function _confirmYes() {
       document.getElementById('logout-form').submit();
     }
 
-    function openCourseModal(id, code, name, duration, slots, trainerId,
-      trainerName, status = 'active') {
+      function openCourseModal(id, code, name, duration, slots, trainerId,
+      trainerName, trainingId, status = 'active') {
       currentCourseId = id;
       document.getElementById('courseModal').style.display = 'block';
       document.querySelector('#courseModal h3').innerHTML =
@@ -5346,6 +5352,7 @@ function _confirmYes() {
 
       document.getElementById('editCourseId').value = id;
       document.getElementById('editCourseCode').value = code || '';
+      document.getElementById('editTrainingId').value = trainingId || '';
       document.getElementById('editCourseName').value = name;
       document.getElementById('editDuration').value = duration;
       document.getElementById('editSlots').value = slots;
@@ -5831,6 +5838,7 @@ function deleteFacility() {
 
       const courseId = document.getElementById('editCourseId').value;
       const courseCode = document.getElementById('editCourseCode').value.trim();
+      const trainingId = document.getElementById('editTrainingId').value.trim();
       const title = document.getElementById('editCourseName').value.trim();
       const duration = document.getElementById('editDuration').value.trim();
       const slots = document.getElementById('editSlots').value;
@@ -5848,13 +5856,14 @@ function deleteFacility() {
             'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
           },
-          body: JSON.stringify({
-            course_code: courseCode,
-            title: title,
-            duration: duration,
-            slots: slots,
-            status: status
-          })
+        body: JSON.stringify({
+          course_code: courseCode,
+          training_id: trainingId,
+          title: title,
+          duration: duration,
+          slots: slots,
+          status: status
+        })
         })
         .then(async r => {
           const text = await r.text();
