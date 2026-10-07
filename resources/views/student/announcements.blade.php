@@ -320,8 +320,8 @@
       </div>
     </div>
 
-    {{-- Announcements Feed --}}
-    <div class="announcements-feed" id="announcementFeed">
+    <<<<<<< HEAD {{-- Announcements Feed --}} <div class="announcements-feed"
+      id="announcementFeed">
       @forelse($announcements ?? [] as $announcement)
         @php
           $dateTimestamp =
@@ -367,35 +367,98 @@
               <div class="role-time">
                 Posted {{ $timeAgo }} &bull; {{ $formattedDate }}
               </div>
-            </div>
-          </div>
+              =======
+              {{-- Announcement Stream --}}
+              <div class="announcements-feed" id="announcementFeed">
 
-          {{-- Content --}}
-          <h2 class="announcement-title">{{ $announcement->title }}</h2>
-          <div class="announcement-body">{{ $announcement->message }}</div>
+                @forelse ($announcements as $announcement)
 
-          {{-- Footer --}}
-          <div class="announcement-footer">
-            <div class="footer-actions">
-              <button class="action-btn"
-                onclick="copyDirectLink('{{ $announcement->id }}', this)">
-                <i class="fa fa-share"></i> <span>Share</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      @empty
-        <div class="empty-state">
-          <i class="fa fa-bullhorn"></i>
-          <p>No announcements found in the database.</p>
-        </div>
+                  @php
+                    $type = strtolower($announcement->type ?? 'notice');
+
+                    // Map Admin announcement types to the Student page categories
+                    if ($type === 'urgent') {
+                        $category = 'urgent';
+                        $categoryLabel = 'Urgent Reminder';
+                        $badgeClass = 'badge-urgent';
+                    } elseif ($type === 'reminder') {
+                        $category = 'schedule';
+                        $categoryLabel = 'Schedule Notice';
+                        $badgeClass = 'badge-schedule';
+                    } else {
+                        $category = 'general';
+                        $categoryLabel = 'General';
+                        $badgeClass = 'badge-general';
+                    }
+
+                    $audienceLabel = match (
+                        $announcement->audience ?? 'general'
+                    ) {
+                        'student' => 'Students',
+                        'trainer' => 'Trainers',
+                        default => 'All Users',
+                    };
+                  @endphp
+
+                  <div class="announcement-card"
+                    data-category="{{ $category }}">
+
+                    {{-- Category --}}
+                    <span class="category-badge {{ $badgeClass }}">
+                      {{ $categoryLabel }}
+                    </span>
+
+                    {{-- Author --}}
+                    <div class="author-meta-row">
+
+                      <div class="author-avatar">
+                        LD
+                      </div>
+
+                      <div class="author-info">
+
+                        <div class="name">
+                          LEDIPO Main Office
+                        </div>
+
+                        <div class="role-time">
+                          Administrator • Posted
+                          {{ $announcement->created_at?->format('M j, Y') }}
+                        </div>
+
+                      </div>
+
+                      >>>>>>> 384453d6cf3600e14902e811c88999cfb75c91ce
+                    </div>
+                  </div>
+
+                  {{-- Content --}}
+                  <h2 class="announcement-title">{{ $announcement->title }}</h2>
+                  <div class="announcement-body">{{ $announcement->message }}
+                  </div>
+
+                  {{-- Footer --}}
+                  <div class="announcement-footer">
+                    <div class="footer-actions">
+                      <button class="action-btn"
+                        onclick="copyDirectLink('{{ $announcement->id }}', this)">
+                        <i class="fa fa-share"></i> <span>Share</span>
+                      </button>
+                    </div>
+                  </div>
+              </div>
+            @empty
+              <div class="empty-state">
+                <i class="fa fa-bullhorn"></i>
+                <p>No announcements found in the database.</p>
+              </div>
       @endforelse
 
       <div id="noSearchResults" class="empty-state" style="display: none;">
         <i class="fa fa-search"></i>
         <p>No announcements match your search criteria.</p>
       </div>
-    </div>
+  </div>
 
   </div>
 @endsection
@@ -466,3 +529,4 @@
     }
   </script>
 @endsection
+

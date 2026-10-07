@@ -383,16 +383,32 @@
     }
 
     .a4-cert-container {
-      width: 780px;
-      max-width: 95vw;
-      background: #ffffff;
-      border-radius: 16px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+      box-shadow: none !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+
+    .a4-cert-sheet {
+      width: 100% !important;
+      height: 100vh !important;
+      padding: 20mm 25mm !important;
+    }
+
+    @page {
+      size: A4 landscape;
+      margin: 0;
+    }
+    }
+
+    /* ==========================================================
+   STUDENT NOTIFICATION BELL
+   ========================================================== */
+    .notification-wrapper {
       position: relative;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      overflow: hidden;
+      flex-shrink: 0;
+      margin-right: 10px;
     }
 
     .a4-cert-sheet {
@@ -663,6 +679,331 @@
         margin: 0;
       }
     }
+
+    /* ==========================================================
+   STUDENT NOTIFICATION BELL
+   ========================================================== */
+    .notification-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      margin-right: 10px;
+    }
+
+    .notification-btn {
+      position: relative;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent;
+      color: #ffffff;
+      font-size: 18px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .notification-btn:hover {
+      background: rgba(2, 86, 40, 0.08);
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: 0;
+      right: -1px;
+      min-width: 17px;
+      height: 17px;
+      padding: 0 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+      background: #D4D120;
+      color: #025628;
+      border: 2px solid #ffffff;
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    /* ==========================================================
+   NOTIFICATION DROPDOWN
+   ========================================================== */
+    .notification-dropdown {
+      position: absolute;
+      top: calc(100% + 12px);
+      right: 0;
+      width: 360px;
+      max-width: calc(100vw - 24px);
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow:
+        0 14px 35px rgba(0, 0, 0, 0.18),
+        0 3px 10px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e7e7e7;
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition:
+        opacity 0.2s ease,
+        transform 0.2s ease,
+        visibility 0.2s ease;
+      z-index: 2000;
+    }
+
+    .notification-dropdown.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .notification-header {
+      padding: 17px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .notification-header h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 800;
+      color: #025628;
+    }
+
+    .notification-header span {
+      display: block;
+      margin-top: 3px;
+      font-size: 11px;
+      color: #777;
+    }
+
+    .notification-header-icon {
+      font-size: 18px;
+      color: #025628;
+    }
+
+    .notification-divider {
+      height: 1px;
+      background: #eeeeee;
+    }
+
+    /* ==========================================================
+   NOTIFICATION ITEMS
+   ========================================================== */
+    .notification-list {
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .notification-item {
+      display: flex;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.2s ease;
+    }
+
+    .notification-item:hover {
+      background: #f8faf8;
+    }
+
+    /* ==========================================================
+   READ / UNREAD VISUAL STATE
+   ========================================================== */
+    .notification-item.notification-unread {
+      background: #f3faf6;
+      box-shadow: inset 4px 0 0 #025628;
+    }
+
+    .notification-item.notification-unread .notification-item-title {
+      font-weight: 900;
+      color: #025628;
+    }
+
+    .notification-item:not(.notification-unread) .notification-item-title {
+      font-weight: 500;
+      color: #555;
+    }
+
+    .notification-item:not(.notification-unread) .notification-item-message {
+      color: #888;
+    }
+
+    .notification-item:not(.notification-unread) .notification-item-icon {
+      opacity: 0.65;
+    }
+
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+
+    .notification-item-icon {
+      flex: 0 0 36px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e6f4eb;
+      color: #025628;
+      font-size: 14px;
+    }
+
+    .notification-type-urgent {
+      background: #fff0f0;
+      color: #c62828;
+    }
+
+    .notification-type-reminder {
+      background: #fff8df;
+      color: #8a6d00;
+    }
+
+    .notification-item-content {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .notification-item-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #222;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .notification-item-message {
+      margin-top: 3px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #666;
+    }
+
+    .notification-item-meta {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 7px;
+      font-size: 10px;
+      color: #8a8a8a;
+    }
+
+    /* ==========================================================
+   EMPTY STATE
+   ========================================================== */
+    .notification-empty {
+      padding: 35px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .notification-empty-icon {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #f1f5f2;
+      color: #777;
+      font-size: 18px;
+    }
+
+    .notification-empty strong {
+      font-size: 13px;
+      color: #333;
+    }
+
+    .notification-empty span {
+      margin-top: 4px;
+      font-size: 11px;
+      color: #888;
+    }
+
+    /* ==========================================================
+   FOOTER
+   ========================================================== */
+    .notification-footer {
+      padding: 12px 16px;
+      border-top: 1px solid #eeeeee;
+      background: #fafafa;
+      text-align: center;
+    }
+
+    .notification-footer a {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #025628;
+      font-size: 12px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .notification-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .notification-footer i {
+      font-size: 10px;
+    }
+
+    /* ==========================================================
+   TOPBAR ALIGNMENT
+   ========================================================== */
+    .topbar-right {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: nowrap;
+    }
+
+    .topbar-right .avatar-btn {
+      flex-shrink: 0;
+    }
+
+    /* Keep profile dropdown anchored to the right */
+    .topbar-right .dropdown {
+      position: absolute !important;
+      top: calc(100% + 10px) !important;
+      right: 0 !important;
+      left: auto !important;
+      margin: 0 !important;
+      z-index: 3000 !important;
+    }
+
+    /* ==========================================================
+   MOBILE
+   ========================================================== */
+    @media (max-width: 600px) {
+      .notification-dropdown {
+        position: fixed;
+        top: 70px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+        max-width: none;
+      }
+
+      .notification-item.notification-unread {
+        background: #f7fbf8;
+      }
+
+      .notification-item.notification-unread .notification-item-title {
+        font-weight: 800;
+      }
+    }
   </style>
 </head>
 
@@ -677,52 +1018,371 @@
         <span></span>
       </button>
 
-      <a href="{{ route('homepage') }}" class="topbar-brand">
+      <<<<<<< HEAD <a href="{{ route('homepage') }}" class="topbar-brand">
         <img src="{{ asset('images/logo.png') }}" alt="logo"
           class="topbar-logo">
         <span>LEDIPO</span>
-      </a>
+        </a>
+        =======
+        <a href="{{ route('homepage') }}" class="topbar-brand">
+          <img src="{{ asset('images/logo.png') }}" alt="logo"
+            class="topbar-logo">
+          <span>LEDIPO</span>
+        </a>
     </div>
 
     <div class="topbar-right">
-      {{-- Updated Profile Trigger & Container --}}
-      <div class="landing-profile">
-        <button class="landing-avatar-btn" id="avatarBtn"
-          aria-label="Open profile menu">
-          {{ strtoupper(substr(Auth::user()->firstname ?? 'M', 0, 1)) }}{{ strtoupper(substr(Auth::user()->lastname ?? 'B', 0, 1)) }}
+
+      <!-- Notification Bell -->
+      <div class="notification-wrapper" id="notificationWrapper">
+
+        <button type="button" class="notification-btn" id="notificationBtn"
+          aria-label="Open notifications" aria-expanded="false">
+
+          <i class="fa-solid fa-bell"></i>
+
+          @php
+            // Student receives General and Student announcements.
+            $notificationAllAnnouncements = \App\Models\Announcement::where(
+                'is_active',
+                1,
+            )
+                ->whereIn('audience', ['general', 'student'])
+                ->latest()
+                ->get();
+
+            // Read announcements for the currently logged-in Student.
+            $notificationReadIds = \DB::table('announcement_reads')
+                ->where('user_id', \Auth::id())
+                ->whereIn(
+                    'announcement_id',
+                    $notificationAllAnnouncements->pluck('id'),
+                )
+                ->pluck('announcement_id')
+                ->toArray();
+
+            /*
+    |--------------------------------------------------------------------------
+    | Student Notification Dropdown
+    |--------------------------------------------------------------------------
+    | Show the latest 5 announcements PLUS any older unread
+    | announcements so unread notifications are never hidden.
+    |--------------------------------------------------------------------------
+    */
+
+            $notificationLatest = $notificationAllAnnouncements->take(5);
+
+            $notificationUnread = $notificationAllAnnouncements->whereNotIn(
+                'id',
+                $notificationReadIds,
+            );
+
+            $notificationAnnouncements = $notificationLatest
+                ->concat($notificationUnread)
+                ->unique('id')
+                ->sortByDesc('created_at')
+                ->values();
+
+            $notificationCount = $notificationUnread->count();
+          @endphp
+
+          @if ($notificationCount > 0)
+            <span class="notification-badge">
+              {{ $notificationCount > 99 ? '99+' : $notificationCount }}
+            </span>
+          @endif
+
         </button>
 
-        <div class="landing-profile-dropdown" id="dropdown">
-          <div class="landing-dropdown-header">
-            <div class="landing-dd-avatar">
-              {{ strtoupper(substr(Auth::user()->firstname ?? 'M', 0, 1)) }}{{ strtoupper(substr(Auth::user()->lastname ?? 'B', 0, 1)) }}
+        <!-- Notification Dropdown -->
+        <div class="notification-dropdown" id="notificationDropdown">
+
+          <div class="notification-header">
+            <div>
+              <h3>Notifications</h3>
+
+              <span>
+                {{ $notificationCount }} unread
+                notification{{ $notificationCount != 1 ? 's' : '' }}
+              </span>
             </div>
-            <div class="landing-user-info">
-              <div class="landing-dh-name">
-                {{ Auth::user()->firstname ?? 'Student' }}
-                {{ Auth::user()->lastname ?? '' }}</div>
-              <div class="landing-dh-role">
-                {{ ucfirst(Auth::user()->role ?? 'Student') }}</div>
-            </div>
+
+            <i class="fa-solid fa-bell notification-header-icon"></i>
           </div>
 
-          <div class="dd-items">
+          <div class="notification-divider"></div>
 
-            <a href="{{ Route::has('student.profile') ? route('student.profile') : '#' }}"
-              class="dd-item">
-              <i class="fa fa-user dd-icon"></i>
-              Profile
+          <div class="notification-list">
+
+            @forelse($notificationAnnouncements as $announcement)
+              <div
+                class="notification-item {{ in_array($announcement->id, $notificationReadIds, true) ? '' : 'notification-unread' }}"
+                data-announcement-id="{{ $announcement->id }}" role="button"
+                tabindex="0">
+
+                <div
+                  class="notification-item-icon
+                            notification-type-{{ strtolower($announcement->type) }}">
+
+                  @if (strtolower($announcement->type) === 'urgent')
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                  @elseif(strtolower($announcement->type) === 'reminder')
+                    <i class="fa-solid fa-clock"></i>
+                  @else
+                    <i class="fa-solid fa-bell"></i>
+                  @endif
+
+                </div>
+
+                <div class="notification-item-content">
+
+                  <div class="notification-item-title">
+                    {{ $announcement->title }}
+                  </div>
+
+                  <div class="notification-item-message">
+                    {{ \Illuminate\Support\Str::limit($announcement->message, 75) }}
+                  </div>
+
+                  <div class="notification-item-meta">
+                    <span>
+                      {{ ucfirst($announcement->type) }}
+                    </span>
+
+                    <span>•</span>
+
+                    <span>
+                      {{ $announcement->created_at?->diffForHumans() }}
+                    </span>
+                  </div>
+
+                </div>
+
+              </div>
+
+            @empty
+
+              <div class="notification-empty">
+
+                <div class="notification-empty-icon">
+                  <i class="fa-regular fa-bell-slash"></i>
+                </div>
+
+                <strong>No notifications</strong>
+
+                <span>
+                  You're all caught up.
+                </span>
+
+              </div>
+            @endforelse
+
+          </div>
+
+          <div class="notification-footer">
+
+            <a
+              href="{{ Route::has('student.announcements') ? route('student.announcements') : '/student/announcements' }}">
+
+              View All Announcements
+
+              <i class="fa-solid fa-arrow-right"></i>
+
             </a>
 
-            <a href="{{ Route::has('homepage') ? route('homepage') : url('/homepage') }}"
-              class="dd-item">
-              <i class="fa fa-gauge-high dd-icon"></i>
-              Dashboard
-            </a>
+          </div>
 
-            <a href="{{ url('/') }}" class="dd-item">
-              <i class="fa fa-house dd-icon"></i>
-              Home
+        </div>
+
+      </div>
+
+      <!-- Student Profile -->
+      <button class="avatar-btn" id="avatarBtn" aria-label="Open profile menu">
+
+        {{ strtoupper(substr(Auth::user()->firstname ?? 'M', 0, 1)) }}{{ strtoupper(substr(Auth::user()->lastname ?? 'B', 0, 1)) }}
+
+      </button>
+
+      <div class="dropdown" id="dropdown">
+
+        <div class="dropdown-header">
+
+          <div class="dd-avatar">
+
+            {{ strtoupper(substr(Auth::user()->firstname ?? 'M', 0, 1)) }}{{ strtoupper(substr(Auth::user()->lastname ?? 'B', 0, 1)) }}
+
+          </div>
+
+          <div>
+
+            <div class="dh-name">
+              {{ Auth::user()->firstname ?? 'Student' }}
+              {{ Auth::user()->lastname ?? '' }}
+            </div>
+
+            <div class="dh-role">
+              {{ ucfirst(Auth::user()->role ?? 'Student') }}
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="dd-items">
+
+          <a href="{{ Route::has('student.profile') ? route('student.profile') : '#' }}"
+            class="dd-item">
+
+            <i class="fa fa-user dd-icon"></i>
+
+            Profile
+
+          </a>
+
+          <div class="dd-divider"></div>
+
+          <a href="#" class="dd-item dd-logout"
+            onclick="event.preventDefault(); openLogoutModal();">
+
+            <i class="fa fa-right-from-bracket dd-icon"></i>
+
+            Log out
+
+          </a>
+
+        </div>
+
+        <form id="logout-form"
+          action="{{ Route::has('Logout') ? route('Logout') : '#' }}"
+          method="POST" style="display:none;">
+
+          @csrf
+
+        </form>
+
+      </div>
+
+    </div>
+  </nav>
+
+  <div id="logoutModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <p>Are you sure you want to log out?</p>
+
+      <div class="modal-actions-centered">
+        <button onclick="confirmLogout()" class="btn-modal-yes">Yes</button>
+        <button onclick="closeLogoutModal()"
+          class="btn-modal-no">Cancel</button>
+      </div>
+    </div>
+    >>>>>>> 384453d6cf3600e14902e811c88999cfb75c91ce
+  </div>
+
+  <div class="topbar-right">
+    {{-- Updated Profile Trigger & Container --}}
+    <div class="landing-profile">
+      <button class="landing-avatar-btn" id="avatarBtn"
+        aria-label="Open profile menu">
+        {{ strtoupper(substr(Auth::user()->firstname ?? 'M', 0, 1)) }}{{ strtoupper(substr(Auth::user()->lastname ?? 'B', 0, 1)) }}
+      </button>
+
+      <div class="landing-profile-dropdown" id="dropdown">
+        <div class="landing-dropdown-header">
+          <div class="landing-dd-avatar">
+            {{ strtoupper(substr(Auth::user()->firstname ?? 'M', 0, 1)) }}{{ strtoupper(substr(Auth::user()->lastname ?? 'B', 0, 1)) }}
+          </div>
+          <div class="landing-user-info">
+            <div class="landing-dh-name">
+              {{ Auth::user()->firstname ?? 'Student' }}
+              {{ Auth::user()->lastname ?? '' }}</div>
+            <div class="landing-dh-role">
+              {{ ucfirst(Auth::user()->role ?? 'Student') }}</div>
+          </div>
+        </div>
+
+        <div class="dd-items">
+
+          <a href="{{ Route::has('student.profile') ? route('student.profile') : '#' }}"
+            class="dd-item">
+            <i class="fa fa-user dd-icon"></i>
+            Profile
+          </a>
+
+          <a href="{{ Route::has('homepage') ? route('homepage') : url('/homepage') }}"
+            class="dd-item">
+            <i class="fa fa-gauge-high dd-icon"></i>
+            Dashboard
+          </a>
+
+          <<<<<<< HEAD <a href="{{ url('/') }}" class="dd-item">
+            <i class="fa fa-house dd-icon"></i>
+            Home
+            =======
+            {{-- ── INDEX DROPDOWN MENU ── --}}
+            @if (isset($unitNumbers) && $unitNumbers->isNotEmpty())
+              <div id="sidebarIndexMenu">
+                <div class="sidebar-index-title">INDEX</div>
+
+                {{-- Introduction --}}
+                <div class="index-item"
+                  onclick="toggleSubMenu('introSub'); if(typeof showIntroScreen === 'function') showIntroScreen();">
+                  <span>Introduction</span>
+                  <i class="fa fa-chevron-down" style="font-size:10px;"></i>
+                </div>
+                <div class="index-sub-menu show" id="introSub">
+                  <span
+                    onclick="if(typeof showIntroScreen === 'function') showIntroScreen()"
+                    class="index-sub-link active">• Welcome & Course
+                    Overview</span>
+                </div>
+
+                {{-- Real Units --}}
+                @foreach ($unitNumbers as $unitNum)
+                  <div class="index-item"
+                    onclick="toggleSubMenu('unit{{ $unitNum }}Sub'); if(typeof showUnitScreen === 'function') showUnitScreen({{ $unitNum }});">
+                    <span>Unit {{ $unitNum }}</span>
+                    <i class="fa fa-chevron-down" style="font-size:10px;"></i>
+                  </div>
+                  <div class="index-sub-menu"
+                    id="unit{{ $unitNum }}Sub">
+                    @foreach ($modules->where('unit_number', $unitNum) as $module)
+                      <span class="index-sub-link"
+                        onclick="showUnitScreen({{ $unitNum }}); setTimeout(() => document.getElementById('module-{{ $module->id }}')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);">
+                        • {{ $module->title }}
+                      </span>
+                    @endforeach
+                  </div>
+                @endforeach
+
+                {{-- Completion --}}
+                <div class="index-item"
+                  onclick="toggleSubMenu('completionSub'); if(typeof showCompletionScreen === 'function') showCompletionScreen();">
+                  <span>Completion</span>
+                  <i class="fa fa-chevron-down" style="font-size:10px;"></i>
+                </div>
+                <div class="index-sub-menu" id="completionSub">
+                  <span class="index-sub-link"
+                    onclick="showCompletionScreen(); setTimeout(() => document.getElementById('post-test-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);">
+                    • Post-Test
+                  </span>
+
+                  <span class="index-sub-link"
+                    onclick="showCompletionScreen(); setTimeout(() => document.getElementById('hands-on-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);">
+                    • Hands-On Evaluation
+                  </span>
+
+                  <span class="index-sub-link"
+                    onclick="showCompletionScreen(); setTimeout(() => document.getElementById('certificate-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);">
+                    • Certificate
+                  </span>
+                </div>
+              </div>
+            @endif
+
+            <a href="{{ Route::has('student.announcements') ? route('student.announcements') : '/student/announcements' }}"
+              class="nav-item {{ request()->routeIs('student.announcements') ? 'active' : '' }}">
+              <span>Announcement</span>
+              >>>>>>> 384453d6cf3600e14902e811c88999cfb75c91ce
             </a>
 
             <div class="dd-divider"></div>
@@ -732,16 +1392,16 @@
               <i class="fa fa-right-from-bracket dd-icon"></i>
               Log out
             </a>
-          </div>
-
-          <form id="logout-form"
-            action="{{ Route::has('Logout') ? route('Logout') : '#' }}"
-            method="POST" style="display:none;">
-            @csrf
-          </form>
         </div>
+
+        <form id="logout-form"
+          action="{{ Route::has('Logout') ? route('Logout') : '#' }}"
+          method="POST" style="display:none;">
+          @csrf
+        </form>
       </div>
     </div>
+  </div>
   </nav>
 
   <div id="logoutModal" class="modal" style="display:none;">
@@ -1025,12 +1685,150 @@
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
   </script>
 
+  <<<<<<< HEAD <script>
+    const hamburger = document.getElementById('hamburger');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const avatarBtn = document.getElementById('avatarBtn');
+    const dropdown = document.getElementById('dropdown'); ===
+    ===
+    =
+
+    <
+    script >
+      document.addEventListener('DOMContentLoaded', function() {
+
+        const notificationDropdown =
+          document.getElementById('notificationDropdown');
+
+        if (!notificationDropdown) return;
+
+        function markNotificationRead(item) {
+
+          if (!item) return;
+
+          if (item.dataset.read === '1') return;
+
+          const announcementId = item.dataset.announcementId;
+
+          if (!announcementId) {
+            console.error(
+              'Student notification is missing data-announcement-id.'
+            );
+            return;
+          }
+
+          fetch(
+              `{{ url('/notifications/announcements') }}/${announcementId}/read`, {
+                method: 'POST',
+                headers: {
+                  'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+              })
+            .then(response => {
+
+              if (!response.ok) {
+                throw new Error(
+                  `Notification read request failed: ${response.status}`
+                );
+              }
+
+              return response.json();
+            })
+            .then(data => {
+
+              if (!data || !data.success) {
+                throw new Error(
+                  'Server did not confirm the notification as read.'
+                );
+              }
+
+              item.dataset.read = '1';
+              item.classList.remove('notification-unread');
+
+              const notificationBadge =
+                document.querySelector('.notification-badge');
+
+              if (notificationBadge) {
+
+                const currentCount = parseInt(
+                  notificationBadge.textContent
+                  .replace('+', '')
+                  .trim(),
+                  10
+                ) || 0;
+
+                const nextCount = Math.max(currentCount - 1, 0);
+
+                if (nextCount === 0) {
+                  notificationBadge.remove();
+                } else {
+                  notificationBadge.textContent =
+                    nextCount > 99 ? '99+' : String(nextCount);
+                }
+              }
+
+              const unreadItems =
+                notificationDropdown.querySelectorAll(
+                  '.notification-item.notification-unread'
+                ).length;
+
+              const headerUnread =
+                document.querySelector(
+                  '.notification-header > div > span'
+                );
+
+              if (headerUnread) {
+                headerUnread.textContent =
+                  `${unreadItems} unread notification${unreadItems !== 1 ? 's' : ''}`;
+              }
+
+            })
+            .catch(error => {
+              console.error(
+                'Student notification read error:',
+                error
+              );
+            });
+        }
+
+        notificationDropdown
+          .querySelectorAll(
+            '.notification-item[data-announcement-id]'
+          )
+          .forEach(item => {
+
+            item.addEventListener('click', function() {
+              markNotificationRead(this);
+            });
+
+            item.addEventListener('keydown', function(event) {
+
+              if (event.key === 'Enter' || event.key === ' ') {
+
+                event.preventDefault();
+
+                markNotificationRead(this);
+              }
+            });
+          });
+
+      });
+  </script>
   <script>
     const hamburger = document.getElementById('hamburger');
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('overlay');
     const avatarBtn = document.getElementById('avatarBtn');
     const dropdown = document.getElementById('dropdown');
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationDropdown = document.getElementById(
+      'notificationDropdown'); >>>
+    >>>
+    > 384453 d6cf3600e14902e811c88999cfb75c91ce
 
     if (hamburger) {
       hamburger.addEventListener('click', function() {
@@ -1046,6 +1844,9 @@
       });
     }
 
+    <<
+    <<
+    << < HEAD
     if (avatarBtn) {
       avatarBtn.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -1064,7 +1865,78 @@
       if (el) {
         el.classList.toggle('show');
       }
+    } ===
+    ===
+    =
+    if (avatarBtn) {
+      avatarBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+
+        dropdown.classList.toggle('open');
+
+        // Close notification dropdown
+        if (notificationDropdown) {
+          notificationDropdown.classList.remove('open');
+        }
+
+        if (notificationBtn) {
+          notificationBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
     }
+
+    document.addEventListener('click', function(e) {
+
+      if (!e.target.closest('.topbar-right')) {
+
+        if (dropdown) {
+          dropdown.classList.remove('open');
+        }
+
+        if (notificationDropdown) {
+          notificationDropdown.classList.remove('open');
+        }
+
+        if (notificationBtn) {
+          notificationBtn.setAttribute('aria-expanded', 'false');
+        }
+
+      }
+
+    });
+
+    if (notificationBtn) {
+
+      notificationBtn.addEventListener('click', function(e) {
+
+        e.stopPropagation();
+
+        notificationDropdown.classList.toggle('open');
+
+        notificationBtn.setAttribute(
+          'aria-expanded',
+          notificationDropdown.classList.contains('open') ?
+          'true' :
+          'false'
+        );
+
+        // Close profile dropdown
+        if (dropdown) {
+          dropdown.classList.remove('open');
+        }
+
+      });
+
+    }
+
+    function toggleSubMenu(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.toggle('show');
+      }
+    } >>>
+    >>>
+    > 384453 d6cf3600e14902e811c88999cfb75c91ce
 
     /* ── Pre-test Modal Handlers ────────────────────────── */
     function openPretestSidebarModal() {

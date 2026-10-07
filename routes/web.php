@@ -54,6 +54,8 @@ Route::get('/registration/step2', [RegistrationController::class, 'showStep2'])-
 Route::get('/registration/step-2', [RegistrationController::class, 'showStep2']);
 Route::post('/registration/submit', [RegistrationController::class, 'store'])->name('registration.submit');
 
+Route::post('/notifications/announcements/{id}/read', [UserController::class, 'markAnnouncementRead'])->middleware('auth')->name('notifications.announcement.read');
+
 // ── ADMIN ROUTES ──────────────────────────────────────────────────────────────
 Route::middleware("admin")->group(function () {
     // Registrations
@@ -127,6 +129,7 @@ Route::middleware("admin")->group(function () {
     Route::get("/reports", [UserController::class, "reports"])->name("reports");
     Route::get("/settings", [UserController::class, "settings"])->name("settings");
     Route::get("/trainer/students", [UserController::class, "trainerStudents"])->name("trainer.students");
+    Route::post("/trainer/hands-on-evaluation", [UserController::class, "storeHandsOnEvaluation"])->name("trainer.hands-on.store");
     Route::get("/trainer/schedule", [UserController::class, "trainerSchedule"])->name("trainer.schedule");
     Route::get("/trainer/profile", [UserController::class, "trainerProfile"])->name("trainer.profile");
     Route::post("/trainer/profile/update", [UserController::class, "trainerProfileUpdate"])->name("trainer.profile.update");
@@ -164,6 +167,7 @@ Route::middleware("student")->group(function () {
     Route::post("/student/profile/update", [UserController::class, "studentProfileUpdate"])->name("student.profile.update");
     Route::post("/student/profile/password", [UserController::class, "studentProfilePassword"])->name("student.profile.password");
     Route::get("/student/modules", [UserController::class, "studentModules"])->name("student.modules");
+<<<<<<< HEAD
     Route::get('/student/announcements', function () {
     $announcements = DB::table('announcements')
         ->orderByRaw("FIELD(type, 'urgent', 'notice', 'reminder')")
@@ -172,6 +176,9 @@ Route::middleware("student")->group(function () {
 
     return view('student.announcements', compact('announcements'));
 })->name('student.announcements');
+=======
+    Route::get('/student/announcements', [UserController::class, 'studentAnnouncements'])->name('student.announcements');
+>>>>>>> 384453d6cf3600e14902e811c88999cfb75c91ce
     Route::post("/student/module/{id}/complete", [UserController::class, "markModuleDone"])->name("student.module.complete");
 });
 

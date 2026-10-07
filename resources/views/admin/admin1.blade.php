@@ -404,10 +404,116 @@
     #announcementModal .modal-footer {
       display: flex !important;
       justify-content: flex-end !important;
+      align-items: center !important;
       gap: 10px !important;
-      margin-top: 8px !important;
-      padding-top: 14px !important;
+
+      flex-shrink: 0 !important;
+
+      margin-top: 0 !important;
+      padding: 14px 20px !important;
+
+      background: #ffffff !important;
       border-top: 1px solid #eee !important;
+
+      box-sizing: border-box !important;
+    }
+
+    /* ========================================================== */
+    /* ANNOUNCEMENT MODAL - RESPONSIVE HEIGHT & VISIBLE FOOTER   */
+    /* ========================================================== */
+
+    #announcementModal {
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 16px !important;
+      box-sizing: border-box !important;
+      overflow-y: auto !important;
+      z-index: 1000 !important;
+    }
+
+    #announcementModal .modal-content.card {
+      max-width: 520px !important;
+      width: 95% !important;
+      max-height: 90vh !important;
+
+      display: flex !important;
+      flex-direction: column !important;
+
+      margin: auto !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    /* Form becomes the scrollable area */
+    #announcementModal #announcementForm {
+      display: flex !important;
+      flex-direction: column !important;
+
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+
+      max-height: none !important;
+
+      padding: 20px !important;
+      box-sizing: border-box !important;
+    }
+
+    /* Keep action buttons visible while scrolling */
+    #announcementModal #announcementForm .modal-footer {
+
+      background: #ffffff !important;
+
+      flex-shrink: 0 !important;
+
+      margin-top: 8px !important;
+      padding: 14px 0 4px 0 !important;
+
+      border-top: 1px solid #eee !important;
+    }
+
+    /* Make sure buttons remain visible */
+    #announcementModal .modal-footer .btn-cancel,
+    #announcementModal .modal-footer .btn-save-main {
+      flex-shrink: 0 !important;
+    }
+
+    /* Smaller screens */
+    @media (max-height: 700px) {
+      #announcementModal .modal-content.card {
+        max-height: 94vh !important;
+      }
+
+      #announcementModal #announcementForm {
+        max-height: calc(94vh - 70px) !important;
+      }
+    }
+
+    /* Very small screens */
+    @media (max-width: 600px) {
+      #announcementModal {
+        padding: 10px !important;
+      }
+
+      #announcementModal .modal-content.card {
+        width: 100% !important;
+        max-height: 94vh !important;
+      }
+
+      #announcementModal #announcementForm {
+        padding: 16px !important;
+      }
+
+      #announcementModal .form-row {
+        flex-direction: column !important;
+        align-items: stretch !important;
+      }
+
+      #announcementModal .status-group {
+        width: 100% !important;
+      }
     }
 
     /* ========================================================== */
@@ -944,6 +1050,14 @@
       border: 0;
     }
 
+    .notification-item.notification-unread {
+    background: #f7fbf8;
+    }
+
+    .notification-item.notification-unread .notification-item-title {
+        font-weight: 800;
+    }
+
     /* Print View */
     @media print {
 
@@ -1015,6 +1129,14 @@
         margin: 10mm;
       }
     }
+
+  .notification-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  }
+
   </style>
 </head>
 
@@ -1037,9 +1159,166 @@
       </a>
     </div>
 
-    <div class="topbar-right">
-      <button class="avatar-btn" id="avatarBtn"
-        aria-label="Open profile menu">AD</button>
+<div class="topbar-right">
+
+  <!-- Notification Bell -->
+  <div class="notification-wrapper" id="notificationWrapper">
+
+    <button
+      type="button"
+      class="notification-btn"
+      id="notificationBtn"
+      aria-label="Open notifications"
+      aria-expanded="false">
+
+      <i class="fa-solid fa-bell"></i>
+
+      @php
+          // Admin can see all active announcements.
+          $notificationAllAnnouncements = \App\Models\Announcement::where('is_active', 1)
+              ->latest()
+              ->get();
+
+          $notificationReadIds = \DB::table('announcement_reads')
+              ->where('user_id', \Auth::id())
+              ->whereIn('announcement_id', $notificationAllAnnouncements->pluck('id'))
+              ->pluck('announcement_id')
+              ->toArray();
+
+          /*
+          |--------------------------------------------------------------------------
+          | Notification Dropdown
+          |--------------------------------------------------------------------------
+          | Show:
+          | 1. The latest 5 announcements
+          | 2. PLUS any unread announcements that are older than those 5
+          |
+          | This ensures unread notifications represented by the badge
+          | are still visible inside the notification dropdown.
+          |--------------------------------------------------------------------------
+          */
+
+          $notificationLatest = $notificationAllAnnouncements->take(5);
+
+          $notificationUnread = $notificationAllAnnouncements
+              ->whereNotIn('id', $notificationReadIds);
+
+          $notificationAnnouncements = $notificationLatest
+              ->concat($notificationUnread)
+              ->unique('id')
+              ->sortByDesc('created_at')
+              ->values();
+
+          $notificationCount = $notificationUnread->count();
+
+      @endphp
+
+      @if($notificationCount > 0)
+          <span class="notification-badge">
+              {{ $notificationCount > 99 ? '99+' : $notificationCount }}
+          </span>
+      @endif
+
+    </button>
+
+    <!-- Notification Dropdown -->
+    <div class="notification-dropdown" id="notificationDropdown">
+
+      <div class="notification-header">
+        <div>
+          <h3>Notifications</h3>
+        <span>
+            {{ $notificationCount }} unread notification{{ $notificationCount != 1 ? 's' : '' }}
+        </span>
+        </div>
+
+        <i class="fa-solid fa-bell notification-header-icon"></i>
+      </div>
+
+      <div class="notification-divider"></div>
+
+      <div class="notification-list">
+
+        @forelse($notificationAnnouncements as $announcement)
+
+          <div
+          class="notification-item {{ in_array($announcement->id, $notificationReadIds, true) ? '' : 'notification-unread' }}"
+          data-announcement-id="{{ $announcement->id }}"
+          role="button"
+          tabindex="0"
+          >
+
+            <div class="notification-item-icon
+              notification-type-{{ strtolower($announcement->type) }}">
+
+              @if(strtolower($announcement->type) === 'urgent')
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              @elseif(strtolower($announcement->type) === 'reminder')
+                <i class="fa-solid fa-clock"></i>
+              @else
+                <i class="fa-solid fa-bell"></i>
+              @endif
+
+            </div>
+
+            <div class="notification-item-content">
+
+              <div class="notification-item-title">
+                {{ $announcement->title }}
+              </div>
+
+              <div class="notification-item-message">
+                {{ \Illuminate\Support\Str::limit($announcement->message, 75) }}
+              </div>
+
+              <div class="notification-item-meta">
+                <span>
+                  {{ ucfirst($announcement->type) }}
+                </span>
+
+                <span>•</span>
+
+                <span>
+                  {{ $announcement->created_at?->diffForHumans() }}
+                </span>
+              </div>
+
+            </div>
+
+          </div>
+
+        @empty
+
+          <div class="notification-empty">
+            <div class="notification-empty-icon">
+              <i class="fa-regular fa-bell-slash"></i>
+            </div>
+
+            <strong>No notifications</strong>
+
+            <span>
+              You're all caught up.
+            </span>
+          </div>
+
+        @endforelse
+
+      </div>
+
+      <div class="notification-footer">
+        <a href="{{ route('admin1') }}?view=announcements">
+          View All Announcements
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Admin Profile -->
+  <button class="avatar-btn" id="avatarBtn"
+    aria-label="Open profile menu">AD</button>
 
       <div class="dropdown" id="dropdown">
         <div class="dropdown-header">
@@ -2324,6 +2603,7 @@
                 {{ $course->slots }},
                 {{ $course->trainer_id ?? 'null' }},
                 '{{ addslashes($trainerName ?? '') }}',
+                '{{ addslashes($course->training_id ?? '') }}',
                 '{{ $course->status }}'
               )">
                     Course Details
@@ -2548,6 +2828,7 @@
                   data-title="{{ $ann->title }}"
                   data-message="{{ $ann->message }}"
                   data-type="{{ $ann->type }}"
+                  data-audience="{{ $ann->audience }}"
                   data-active="{{ $ann->is_active ? '1' : '0' }}"
                   data-publish-at="{{ $ann->publish_at ? $ann->publish_at->format('Y-m-d H:i:s') : '' }}"
                   data-expires-at="{{ $ann->expires_at ? $ann->expires_at->format('Y-m-d H:i:s') : '' }}"
@@ -2802,7 +3083,7 @@
                   <td class="action-icons">
                     <button type="button" class="btn-icon"
                       title="View Certificate"
-                      onclick="openCertModal('{{ addslashes($fullName) }}', '{{ addslashes($courseTitle) }}', '{{ $cert->certificate_no }}', '{{ $issueDate }}', '{{ $cert->status }}', '{{ $cert->grade ?? '94%' }}', '{{ $cert->document_type ?? 'completion' }}')">
+                      onclick="openCertModal('{{ addslashes($fullName) }}', '{{ addslashes($courseTitle) }}', '{{ $cert->certificate_no }}', '{{ $issueDate }}', '{{ $cert->status }}', '{{ $cert->grade ?? '94%' }}', '{{ $cert->document_type ?? 'completion' }}','{{ $cert->course->training_id ?? '' }}')">
                       <i class="fas fa-eye" aria-hidden="true"></i>
                       <span class="sr-only">View Certificate</span>
                     </button>
@@ -2919,7 +3200,7 @@
 
               <footer class="cert-serial-footer">
                 <span id="vID">CERT. NO.: [ID]</span>
-                <span id="vTrainingID">TRAINING ID: NCIIDRM-26-032</span>
+                <span id="vTrainingID">TRAINING ID: [ID]</span>
               </footer>
             </div>
           </div>
@@ -3038,9 +3319,10 @@
                       $traineeCourse =
                           $trainee->course_title ?? 'General Training';
                     @endphp
-                    <option value="{{ $trainee->id }}"
-                      data-name="{{ $traineeName }}"
-                      data-course="{{ $traineeCourse }}">
+                      <option value="{{ $trainee->id }}"
+                        data-name="{{ $traineeName }}"
+                        data-course="{{ $traineeCourse }}"
+                        data-training-id="{{ $trainee->training_id ?? '' }}">
                       {{ $trainee->lastname ?? '' }},
                       {{ $trainee->firstname ?? '' }} — {{ $traineeCourse }}
                     </option>
@@ -3124,7 +3406,7 @@
 
               <footer class="cert-serial-footer">
                 <span id="pID">CERT. NO.: [ID]</span>
-                <span>TRAINING ID: NCIIDRM-26-032</span>
+                <span id="pTrainingID">TRAINING ID: [ID]</span>
               </footer>
             </div>
           </div>
@@ -3187,6 +3469,19 @@
               <i class="fa-solid fa-barcode"></i>
               <input type="text" id="editCourseCode" name="course_code"
                 placeholder="e.g. CRS-001" required>
+            </div>
+          </div>
+
+          <div class="input-field">
+            <label for="editTrainingId">Training ID</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-id-card"></i>
+              <input
+                type="text"
+                id="editTrainingId"
+                name="training_id"
+                placeholder="e.g. NCIIDRM-26-032"
+                required>
             </div>
           </div>
 
@@ -3330,29 +3625,51 @@
           </div>
         </div>
 
-        <!-- Row 1: Type & Status (Kill Switch) -->
-        <div class="form-row">
-          <div class="form-group flex-1">
-            <label for="annType">Type <span
-                class="required">*</span></label>
-            <div class="input-container">
-              <i class="fa-solid fa-tag input-icon"></i>
-              <select id="annType" class="modal-input-select">
-                <option value="reminder">Reminder</option>
-                <option value="notice">Notice</option>
-                <option value="urgent">Urgent</option>
-              </select>
-            </div>
-          </div>
+<!-- Row 1: Type & Status (Kill Switch) -->
+<div class="form-row">
+  <div class="form-group flex-1">
+    <label for="annType">Type <span class="required">*</span></label>
 
-          <div class="form-group status-group">
-            <label>Status Switch</label>
-            <label class="checkbox-card">
-              <input type="checkbox" id="annIsActive" checked>
-              <span class="checkbox-text" id="statusLabel">Active</span>
-            </label>
-          </div>
-        </div>
+    <div class="input-container">
+      <i class="fa-solid fa-tag input-icon"></i>
+
+      <select id="annType" class="modal-input-select">
+        <option value="reminder">Reminder</option>
+        <option value="notice">Notice</option>
+        <option value="urgent">Urgent</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group status-group">
+    <label>Status Switch</label>
+
+    <label class="checkbox-card">
+      <input type="checkbox" id="annIsActive" checked>
+      <span class="checkbox-text" id="statusLabel">Active</span>
+    </label>
+  </div>
+</div>
+
+<!-- Row 2: Audience -->
+<div class="form-row">
+  <div class="form-group flex-1">
+    <label for="annAudience">
+      Audience <span class="required">*</span>
+    </label>
+
+    <div class="input-container">
+      <i class="fa-solid fa-users input-icon"></i>
+
+      <select id="annAudience" class="modal-input-select">
+        <option value="general">General — Everyone</option>
+        <option value="student">Students</option>
+        <option value="trainer">Trainers</option>
+      </select>
+    </div>
+  </div>
+</div>
+
 
         <!-- Row 2: Schedule & Expiration Timestamps -->
         <div class="form-row">
@@ -3379,14 +3696,20 @@
           </div>
         </div>
 
-        <!-- Modal Footer -->
-        <div class="modal-footer">
-          <button type="button" class="btn-cancel"
-            onclick="closeAnnouncementModal()">Cancel</button>
-          <button type="submit" id="btnSubmitAnn"
-            class="btn-save-main">Save</button>
-        </div>
       </form>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel"
+          onclick="closeAnnouncementModal()">Cancel</button>
+
+        <button type="submit"
+          id="btnSubmitAnn"
+          class="btn-save-main"
+          form="announcementForm">
+          Save
+        </button>
+      </div>
     </div>
   </div>
 
@@ -3420,6 +3743,377 @@
       #addTrainerModal .input-field {
         margin-bottom: 12px !important;
       }
+
+      /* ==========================================================
+   ADMIN NOTIFICATION BELL
+   ========================================================== */
+
+.notification-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notification-btn {
+  position: relative;
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  background: transparent;
+
+  color: #ffffff;
+  font-size: 19px;
+
+  border-radius: 50%;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.notification-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.notification-btn:active {
+  transform: scale(0.96);
+}
+
+/* Notification count */
+.notification-badge {
+  position: absolute;
+
+  top: 1px;
+  right: 0px;
+
+  min-width: 17px;
+  height: 17px;
+
+  padding: 0 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 20px;
+
+  background: #f4d900;
+  color: #025628;
+
+  border: 2px solid #025628;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  line-height: 1;
+}
+
+/* ==========================================================
+   NOTIFICATION DROPDOWN
+   ========================================================== */
+
+.notification-dropdown {
+  position: absolute;
+
+  top: calc(100% + 12px);
+  right: 0;
+
+  width: 360px;
+  max-width: calc(100vw - 24px);
+
+  background: #ffffff;
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 14px 35px rgba(0, 0, 0, 0.18),
+    0 3px 10px rgba(0, 0, 0, 0.08);
+
+  border: 1px solid #e7e7e7;
+
+  overflow: hidden;
+
+  opacity: 0;
+  visibility: hidden;
+
+  transform: translateY(-8px);
+
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    visibility 0.2s ease;
+
+  z-index: 2000;
+}
+
+.notification-dropdown.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Header */
+
+.notification-header {
+  padding: 17px 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.notification-header h3 {
+  margin: 0;
+
+  font-size: 16px;
+  font-weight: 800;
+
+  color: #025628;
+}
+
+.notification-header span {
+  display: block;
+
+  margin-top: 3px;
+
+  font-size: 11px;
+  color: #777;
+}
+
+.notification-header-icon {
+  font-size: 18px;
+  color: #025628;
+}
+
+.notification-divider {
+  height: 1px;
+  background: #eeeeee;
+}
+
+/* ==========================================================
+   NOTIFICATION ITEMS
+   ========================================================== */
+
+.notification-list {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  display: flex;
+  gap: 12px;
+
+  padding: 14px 16px;
+
+  border-bottom: 1px solid #f0f0f0;
+
+  transition: background 0.2s ease;
+}
+
+.notification-item:hover {
+  background: #f8faf8;
+}
+
+/* ==========================================================
+   READ / UNREAD VISUAL STATE
+   ========================================================== */
+
+/* Unread notification */
+.notification-item.notification-unread {
+  background: #f3faf6;
+  box-shadow: inset 4px 0 0 #025628;
+}
+
+/* Make unread title clearly stronger */
+.notification-item.notification-unread .notification-item-title {
+  font-weight: 900;
+  color: #025628;
+}
+
+/* Read notification */
+.notification-item:not(.notification-unread) .notification-item-title {
+  font-weight: 500;
+  color: #555;
+}
+
+.notification-item:not(.notification-unread) .notification-item-message {
+  color: #888;
+}
+
+.notification-item:not(.notification-unread) .notification-item-icon {
+  opacity: 0.65;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item-icon {
+  flex: 0 0 36px;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #e9f6ee;
+  color: #025628;
+
+  font-size: 14px;
+}
+
+.notification-type-urgent {
+  background: #fff0f0;
+  color: #c62828;
+}
+
+.notification-type-reminder {
+  background: #fff8df;
+  color: #8a6d00;
+}
+
+.notification-item-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.notification-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #222;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notification-item-message {
+  margin-top: 3px;
+
+  font-size: 12px;
+  line-height: 1.45;
+
+  color: #666;
+}
+
+.notification-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  margin-top: 7px;
+
+  font-size: 10px;
+  color: #8a8a8a;
+}
+
+/* ==========================================================
+   EMPTY STATE
+   ========================================================== */
+
+.notification-empty {
+  padding: 35px 20px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+}
+
+.notification-empty-icon {
+  width: 48px;
+  height: 48px;
+
+  margin-bottom: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #f1f5f2;
+  color: #777;
+
+  font-size: 18px;
+}
+
+.notification-empty strong {
+  font-size: 13px;
+  color: #333;
+}
+
+.notification-empty span {
+  margin-top: 4px;
+
+  font-size: 11px;
+  color: #888;
+}
+
+/* ==========================================================
+   FOOTER
+   ========================================================== */
+
+.notification-footer {
+  padding: 12px 16px;
+
+  border-top: 1px solid #eeeeee;
+
+  background: #fafafa;
+
+  text-align: center;
+}
+
+.notification-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  color: #025628;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  text-decoration: none;
+}
+
+.notification-footer a:hover {
+  text-decoration: underline;
+}
+
+.notification-footer i {
+  font-size: 10px;
+}
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+
+@media (max-width: 600px) {
+
+  .notification-dropdown {
+    position: fixed;
+
+    top: 70px;
+    right: 10px;
+    left: 10px;
+
+    width: auto;
+    max-width: none;
+  }
+
+}
+
     </style>
 
     <div class="modal-content card">
@@ -4025,6 +4719,8 @@ function _confirmYes() {
     const overlay = document.getElementById('overlay');
     const avatarBtn = document.getElementById('avatarBtn');
     const dropdown = document.getElementById('dropdown');
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationDropdown = document.getElementById('notificationDropdown');
 
     hamburger.addEventListener('click', function() {
       sidebar.classList.toggle('sidebar-open');
@@ -4038,14 +4734,126 @@ function _confirmYes() {
 
     avatarBtn.addEventListener('click', function(e) {
       e.stopPropagation();
+
       dropdown.classList.toggle('open');
+
+      // Close notification dropdown if it is open
+      notificationDropdown.classList.remove('open');
+      notificationBtn.setAttribute('aria-expanded', 'false');
     });
 
     document.addEventListener('click', function(e) {
+
       if (!e.target.closest('.topbar-right')) {
         dropdown.classList.remove('open');
+        notificationDropdown.classList.remove('open');
+
+        notificationBtn.setAttribute('aria-expanded', 'false');
       }
+
     });
+
+    notificationBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+
+      notificationDropdown.classList.toggle('open');
+
+      notificationBtn.setAttribute(
+        'aria-expanded',
+        notificationDropdown.classList.contains('open') ? 'true' : 'false'
+      );
+
+      // Close profile dropdown if it is open
+      dropdown.classList.remove('open');
+    });
+
+    // ==========================================================
+    // ADMIN NOTIFICATION READ STATE
+    // ==========================================================
+    function markNotificationRead(item) {
+        if (!item || item.dataset.read === '1') return;
+        if (!item.classList.contains('notification-unread')) return;
+
+        const announcementId = item.dataset.announcementId;
+        if (!announcementId) return;
+
+        fetch(`{{ url('/notifications/announcements') }}/${announcementId}/read`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Unable to mark notification as read.');
+            }
+
+            return response.json();
+        })
+        .then(data => {
+            if (!data || !data.success) return;
+
+            item.dataset.read = '1';
+            item.classList.remove('notification-unread');
+
+            const notificationBadge = document.querySelector('.notification-badge');
+
+            if (notificationBadge) {
+                const currentCount = parseInt(
+                    notificationBadge.textContent.replace('+', '').trim(),
+                    10
+                ) || 0;
+
+                const nextCount = Math.max(currentCount - 1, 0);
+
+                if (nextCount === 0) {
+                    notificationBadge.remove();
+                } else {
+                    notificationBadge.textContent =
+                        nextCount > 99 ? '99+' : String(nextCount);
+                }
+            }
+
+            const unreadItems = notificationDropdown
+                ? notificationDropdown.querySelectorAll(
+                    '.notification-item.notification-unread'
+                  ).length
+                : 0;
+
+            const headerUnread =
+                document.querySelector('.notification-header > div > span');
+
+            if (headerUnread) {
+                headerUnread.textContent =
+                    `${unreadItems} unread notification${unreadItems !== 1 ? 's' : ''}`;
+            }
+        })
+        .catch(error => {
+            console.error('Mark notification read error:', error);
+        });
+    }
+
+    if (notificationDropdown) {
+        notificationDropdown
+            .querySelectorAll('.notification-item[data-announcement-id]')
+            .forEach(item => {
+
+                item.addEventListener('click', function() {
+                    markNotificationRead(this);
+                });
+
+                item.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        markNotificationRead(this);
+                    }
+                });
+
+            });
+    }
 
     window.traineeCourseLabels = @json($traineeCourseLabels);
     window.traineeCourseCounts = @json($traineeCourseCounts);
@@ -4533,8 +5341,8 @@ function _confirmYes() {
       document.getElementById('logout-form').submit();
     }
 
-    function openCourseModal(id, code, name, duration, slots, trainerId,
-      trainerName, status = 'active') {
+      function openCourseModal(id, code, name, duration, slots, trainerId,
+      trainerName, trainingId, status = 'active') {
       currentCourseId = id;
       document.getElementById('courseModal').style.display = 'block';
       document.querySelector('#courseModal h3').innerHTML =
@@ -4545,6 +5353,7 @@ function _confirmYes() {
 
       document.getElementById('editCourseId').value = id;
       document.getElementById('editCourseCode').value = code || '';
+      document.getElementById('editTrainingId').value = trainingId || '';
       document.getElementById('editCourseName').value = name;
       document.getElementById('editDuration').value = duration;
       document.getElementById('editSlots').value = slots;
@@ -5030,6 +5839,7 @@ function deleteFacility() {
 
       const courseId = document.getElementById('editCourseId').value;
       const courseCode = document.getElementById('editCourseCode').value.trim();
+      const trainingId = document.getElementById('editTrainingId').value.trim();
       const title = document.getElementById('editCourseName').value.trim();
       const duration = document.getElementById('editDuration').value.trim();
       const slots = document.getElementById('editSlots').value;
@@ -5047,13 +5857,14 @@ function deleteFacility() {
             'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
           },
-          body: JSON.stringify({
-            course_code: courseCode,
-            title: title,
-            duration: duration,
-            slots: slots,
-            status: status
-          })
+        body: JSON.stringify({
+          course_code: courseCode,
+          training_id: trainingId,
+          title: title,
+          duration: duration,
+          slots: slots,
+          status: status
+        })
         })
         .then(async r => {
           const text = await r.text();
@@ -5168,6 +5979,7 @@ document.getElementById('facilityForm').onsubmit = function(e) {
       document.getElementById('annTitle').value = '';
       document.getElementById('annMessage').value = '';
       document.getElementById('annType').value = 'reminder';
+      document.getElementById('annAudience').value = 'general';
 
       const isActiveCb = document.getElementById('annIsActive');
       if (isActiveCb) isActiveCb.checked = true;
@@ -5192,6 +6004,7 @@ document.getElementById('facilityForm').onsubmit = function(e) {
       const title = button.getAttribute('data-title') || '';
       const message = button.getAttribute('data-message') || '';
       const type = button.getAttribute('data-type') || 'reminder';
+      const audience = button.getAttribute('data-audience') || 'general';
       const active = button.getAttribute('data-active') === '1';
       const publishAt = button.getAttribute('data-publish-at') || '';
       const expiresAt = button.getAttribute('data-expires-at') || '';
@@ -5200,6 +6013,7 @@ document.getElementById('facilityForm').onsubmit = function(e) {
       document.getElementById('annTitle').value = title;
       document.getElementById('annMessage').value = message;
       document.getElementById('annType').value = type;
+      document.getElementById('annAudience').value = audience;
 
       const isActiveCb = document.getElementById('annIsActive');
       if (isActiveCb) isActiveCb.checked = active;
@@ -5479,6 +6293,8 @@ document.getElementById('facilityForm').onsubmit = function(e) {
             'reminder';
           const isActive = document.getElementById('annIsActive')
             ?.checked ? 1 : 0;
+          const audience = document.getElementById('annAudience')?.value ||
+            'general';
 
           const rawPublish = document.getElementById('annPublishAt')
             ?.value || '';
@@ -5508,6 +6324,7 @@ document.getElementById('facilityForm').onsubmit = function(e) {
             title: title,
             message: message,
             type: type,
+            audience: audience,
             is_active: isActive,
             publish_at: typeof cleanDateTimeInput === 'function' ?
               cleanDateTimeInput(rawPublish) : (rawPublish || null),
@@ -7491,14 +8308,16 @@ document.getElementById('facilityForm').onsubmit = function(e) {
     // ==========================================
     // 1. MODAL CONTROLLERS (OPEN / CLOSE)
     // ==========================================
-    function openCertModal(name, course, certId, issueDate = 'April 3, 2026',
-      status = 'Pending', grade = '94%', docType = 'completion') {
+      function openCertModal(name, course, certId, issueDate = 'April 3, 2026',
+        status = 'Pending', grade = '94%', docType = 'completion',
+        trainingId = '') {
       const modal = document.getElementById('certificateModal');
       if (!modal) return;
 
       document.getElementById('vName').textContent = name;
       document.getElementById('vCourse').textContent = course.toUpperCase();
       document.getElementById('vID').textContent = `CERT. NO.: ${certId}`;
+      document.getElementById('vTrainingID').textContent = `TRAINING ID: ${trainingId || '[ID]'}`;
 
       const docTitle = document.getElementById('vDocTitle');
       if (docTitle) {
@@ -7582,12 +8401,20 @@ document.getElementById('facilityForm').onsubmit = function(e) {
         const selectedOption = traineeSelect.options[traineeSelect.selectedIndex];
         let rawText = selectedOption.getAttribute('data-name') || selectedOption
           .text.split(' (')[0].trim();
-        const course = selectedOption.getAttribute('data-course') ||
-          'TRAINING PROGRAM';
+        const course = selectedOption.getAttribute('data-course') ||'TRAINING PROGRAM';
+        const trainingId = selectedOption.getAttribute('data-training-id') || '';
 
         // Applies proper Title Case instead of lowercase
         pName.textContent = toTitleCase(rawText);
         pCourse.textContent = course.toUpperCase();
+        
+        const pTrainingID = document.getElementById('pTrainingID');
+
+      if (pTrainingID) {
+        pTrainingID.textContent = trainingId
+          ? `TRAINING ID: ${trainingId}`
+          : 'TRAINING ID: [ID]';
+      }
       } else {
         pName.textContent = '[Recipient Name]';
         pCourse.textContent = '[COURSE NAME]';

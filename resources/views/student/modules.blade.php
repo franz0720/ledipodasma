@@ -439,94 +439,380 @@
                 </div>
             </div>
 
-            @if ($enrollment->course->description)
-                <p class="welcome-desc">{{ $enrollment->course->description }}</p>
-            @endif
+            <div id="intro-section">
+                @if ($enrollment->course->description)
+                    <p class="welcome-desc">{{ $enrollment->course->description }}</p>
+                @endif
 
-            @if ($enrollment->course->objectives)
-                <div class="section-label">Objectives</div>
-                <p class="welcome-desc">{{ $enrollment->course->objectives }}</p>
-            @endif
-
-            <hr class="content-hr">
-
-            <div class="section-label">Modules</div>
+                @if ($enrollment->course->objectives)
+                    <div class="section-label">Objectives</div>
+                    <p class="welcome-desc">{{ $enrollment->course->objectives }}</p>
+                @endif
+            </div>
 
             @php
                 $groupedModules = $modules->groupBy('unit_number');
             @endphp
 
-            @forelse ($groupedModules as $unitNum => $unitModules)
-                <div style="font-weight:700;font-size:15px;color:#025628;margin:16px 0 8px;">
-                    Unit {{ $unitNum }}
-                </div>
-
-                @foreach ($unitModules as $i => $module)
-                    @php
-                        $isDone = in_array($module->id, $completedModuleIds);
-                    @endphp
-                    <div class="module-action-row">
-                        <div>
-                            <div class="module-action-title">{{ $i + 1 }}. {{ $module->title }}</div>
-                            @if ($module->description)
-                                <div style="font-size:12px;color:#718096;margin-top:2px;">{{ $module->description }}</div>
-                            @endif
-                        </div>
-                        <div class="module-buttons-group">
-                            @if ($module->file_path)
-                                <a href="{{ asset('storage/' . $module->file_path) }}" target="_blank" class="btn-module-view">
-                                    View
-                                </a>
-                            @else
-                                <span style="font-size:12px;color:#a0aec0;">No file</span>
-                            @endif
-
-                            @if ($isDone)
-                                <span class="btn-module-done completed">✓ Done</span>
-                            @else
-                                <button onclick="markDone({{ $module->id }}, this)" class="btn-module-done">
-                                    Mark as Done
-                                </button>
-                            @endif
-                        </div>
+            @foreach ($groupedModules as $unitNum => $unitModules)
+                <div id="unit-{{ $unitNum }}-section" style="display:none;">
+                    <div style="font-weight:700;font-size:15px;color:#025628;margin:16px 0 8px;">
+                        Unit {{ $unitNum }}
                     </div>
-                @endforeach
-            @empty
+
+                    @foreach ($unitModules as $i => $module)
+                        @php
+                            $isDone = in_array($module->id, $completedModuleIds);
+                        @endphp
+                        <div class="module-action-row" id="module-{{ $module->id }}">
+                            <div>
+                                <div class="module-action-title">{{ $i + 1 }}. {{ $module->title }}</div>
+                                @if ($module->description)
+                                    <div style="font-size:12px;color:#718096;margin-top:2px;">{{ $module->description }}</div>
+                                @endif
+                            </div>
+                            <div class="module-buttons-group">
+                                @if ($module->file_path)
+                                    <a href="{{ asset('storage/' . $module->file_path) }}" target="_blank" class="btn-module-view">
+                                        View
+                                    </a>
+                                @else
+                                    <span style="font-size:12px;color:#a0aec0;">No file</span>
+                                @endif
+
+                                @if ($isDone)
+                                    <span class="btn-module-done completed">✓ Done</span>
+                                @else
+                                    <button onclick="markDone({{ $module->id }}, this)" class="btn-module-done">
+                                        Mark as Done
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endforeach
+
+            @if ($modules->isEmpty())
                 <div class="no-data" style="text-align:center;color:#a0aec0;padding:24px 0;">
                     No modules available yet for this course.
                 </div>
-            @endforelse
+            @endif
 
-            <hr class="content-hr">
+<div id="completion-section" style="display:none;">
 
-            <div class="section-label">Quizzes</div>
+    {{-- Completion Header --}}
+    <div style="margin-top:18px;">
+        <div style="font-size:13px;font-weight:800;color:#025628;text-transform:uppercase;letter-spacing:.3px;">
+            Congratulations! You Have Reached the End of the Modules.
+        </div>
 
-            @forelse ($quizzes as $quiz)
-                @php
-                    $result = $quizResults->firstWhere('quiz_id', $quiz->id);
-                @endphp
-                <div class="pretest-action-bar">
-                    <div>
-                        <div style="font-weight:700;font-size:14px;color:#2d3748;">{{ $quiz->title }}</div>
-                        <div style="font-size:12px;color:#718096;margin-top:2px;">
-                            {{ $quiz->time_limit }} mins &nbsp;·&nbsp; {{ $quiz->passing_score }}% to pass
-                        </div>
-                    </div>
-                    @if ($result)
-                        <span class="pretest-score" style="color: {{ $result->status === 'passed' ? '#276749' : '#c53030' }};">
-                            {{ ucfirst($result->status) }} · {{ $result->percentage }}%
-                        </span>
-                    @else
-                        <button onclick="openQuiz({{ $quiz->id }}, '{{ addslashes($quiz->title) }}')" class="pretest-btn">
-                            Take Quiz
-                        </button>
-                    @endif
-                </div>
-            @empty
-                <div class="no-data" style="text-align:center;color:#a0aec0;padding:24px 0;">
-                    No quizzes available yet for this course.
-                </div>
-            @endforelse
+        <div style="font-size:12px;color:#718096;margin-top:5px;">
+            You are just one step away from completing the training program.
+        </div>
+    </div>
+
+    {{-- Course Progress --}}
+    <div style="
+        background:#025628;
+        color:#fff;
+        border-radius:14px;
+        padding:18px 20px;
+        margin-top:18px;
+    ">
+        <div style="font-size:12px;font-weight:700;">
+            Total Course Duration:
+            {{ $enrollment->course->duration ?? 'TBA' }} Days
+            @if ($enrollment->course->schedule)
+                | {{ $enrollment->course->schedule }}
+            @endif
+        </div>
+
+        <div style="
+            height:8px;
+            background:rgba(255,255,255,.25);
+            border-radius:20px;
+            overflow:hidden;
+            margin-top:14px;
+        ">
+            <div style="
+                height:100%;
+                width:{{ $enrollment->progress ?? 0 }}%;
+                background:#fff;
+                border-radius:20px;
+            "></div>
+        </div>
+
+        <div style="
+            text-align:right;
+            font-size:11px;
+            font-weight:700;
+            margin-top:6px;
+        ">
+            {{ $enrollment->progress ?? 0 }}% Complete
+        </div>
+    </div>
+
+    {{-- Mayor's Message --}}
+    <div style="margin-top:18px;">
+        <div style="
+            border:1px solid #025628;
+            border-radius:14px;
+            padding:18px;
+            background:#fff;
+        ">
+            <div style="
+                font-size:13px;
+                font-weight:800;
+                color:#025628;
+            ">
+                A Special Message from the Mayor
+            </div>
+
+            <div style="
+                font-size:12px;
+                font-weight:700;
+                color:#2d3748;
+                margin-top:12px;
+            ">
+                Mabuhay at Maligayang Bati!
+            </div>
+
+            <p style="
+                font-size:12px;
+                line-height:1.6;
+                color:#4a5568;
+                margin:8px 0 0;
+            ">
+                Congratulations on reaching the final stage of your training program.
+                We hope that the knowledge and skills you gained throughout this training
+                will help you in your personal growth, livelihood, and future opportunities.
+            </p>
+
+            <div style="
+                margin-top:12px;
+                font-size:12px;
+                font-weight:700;
+                color:#025628;
+            ">
+                — Mayor's Office
+            </div>
+        </div>
+    </div>
+
+    {{-- Final Evaluations --}}
+    <div style="margin-top:28px;">
+
+        <div style="
+            font-size:13px;
+            font-weight:800;
+            color:#025628;
+        ">
+            Complete your final evaluations to finish the program
+        </div>
+
+        <div style="
+            font-size:11px;
+            color:#718096;
+            margin-top:4px;
+        ">
+            Complete the required final assessments to proceed to course completion.
+        </div>
+
+{{-- Post-Test --}}
+@php
+    $postTestResult = $postTest
+        ? $quizResults->firstWhere('quiz_id', $postTest->id)
+        : null;
+@endphp
+
+@if ($postTest)
+    <div id="post-test-section" style="
+        margin-top:14px;
+        background:#edf2f7;
+        border-radius:8px;
+        padding:12px 14px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+    ">
+        <div>
+            <div style="
+                font-size:12px;
+                font-weight:800;
+                color:#2d3748;
+            ">
+                {{ $postTest->title }}
+            </div>
+
+            <div style="
+                font-size:11px;
+                color:#718096;
+                margin-top:3px;
+            ">
+                {{ $postTest->questions->count() }} Questions
+                &nbsp;·&nbsp;
+                {{ $postTest->passing_score }}% Passing
+                &nbsp;·&nbsp;
+                {{ $postTest->time_limit }} mins
+            </div>
+        </div>
+
+        @if ($postTestResult)
+            <span style="
+                font-size:11px;
+                font-weight:700;
+                color:{{ $postTestResult->status === 'passed' ? '#276749' : '#c53030' }};
+            ">
+                {{ ucfirst($postTestResult->status) }}
+                · {{ $postTestResult->percentage }}%
+            </span>
+        @else
+            <button
+                onclick="openQuiz({{ $postTest->id }}, '{{ addslashes($postTest->title) }}')"
+                class="pretest-btn">
+                Take Post-Test
+            </button>
+        @endif
+    </div>
+@else
+    <div style="
+        margin-top:14px;
+        background:#edf2f7;
+        border-radius:8px;
+        padding:12px 14px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+    ">
+        <div>
+            <div style="
+                font-size:12px;
+                font-weight:800;
+                color:#2d3748;
+            ">
+                Post-Test
+            </div>
+
+            <div style="
+                font-size:11px;
+                color:#718096;
+                margin-top:3px;
+            ">
+                Final written assessment
+            </div>
+        </div>
+
+        <span style="
+            font-size:11px;
+            font-weight:700;
+            color:#718096;
+        ">
+            Not Available Yet
+        </span>
+    </div>
+@endif
+
+{{-- Final Hands-On Test --}}
+<div id="hands-on-section" style="
+    margin-top:10px;
+    background:#edf2f7;
+    border-radius:8px;
+    padding:12px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+">
+    <div>
+        <div style="
+            font-size:12px;
+            font-weight:800;
+            color:#2d3748;
+        ">
+            Final Hands-On Test
+        </div>
+
+        <div style="
+            font-size:11px;
+            color:#718096;
+            margin-top:3px;
+        ">
+            Practical evaluation
+        </div>
+    </div>
+
+    @if ($handsOnEvaluation)
+        <span style="
+            font-size:11px;
+            font-weight:700;
+            color:{{ $handsOnEvaluation->result === 'passed' ? '#276749' : '#c53030' }};
+        ">
+            {{ ucfirst($handsOnEvaluation->result) }}
+        </span>
+    @else
+        <span style="
+            font-size:11px;
+            font-weight:700;
+            color:#718096;
+        ">
+            Not Evaluated
+        </span>
+    @endif
+</div>
+
+    </div>
+
+    {{-- Certificate --}}
+<div id="certificate-section" style="
+    margin-top:20px;
+    padding:18px;
+    border:1px solid #dfe7e2;
+    border-radius:14px;
+    background:#fff;
+">
+
+    <div style="
+        font-size:12px;
+        font-weight:800;
+        color:#025628;
+        margin-bottom:6px;
+    ">
+        Certificate of Completion
+    </div>
+
+    @if ($certificate && $enrollment->status === 'completed')
+
+        <div style="
+            font-size:12px;
+            color:#555;
+            margin-bottom:12px;
+        ">
+            Congratulations! You have completed all course requirements.
+        </div>
+
+        <button
+            type="button"
+            onclick="openCertificateModal()"
+            class="pretest-btn"
+        >
+            View Certificate
+        </button>
+
+    @else
+
+        <div style="
+            font-size:12px;
+            color:#888;
+        ">
+            Your certificate will become available after you complete
+            all required evaluations.
+        </div>
+
+    @endif
+
+</div>
+
+</div>
         </div>
 
     @else
@@ -574,6 +860,289 @@
         </div>
     @endif
 
+    {{-- Certificate Modal --}}
+<div id="certificateModal"
+     style="
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.65);
+        z-index:10000;
+        align-items:center;
+        justify-content:center;
+     ">
+
+    <div style="
+        background:#fff;
+        width:92%;
+        max-width:900px;
+        max-height:90vh;
+        overflow:auto;
+        border-radius:18px;
+        padding:24px;
+    ">
+
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:18px;
+        ">
+            <h2 style="
+                margin:0;
+                font-size:18px;
+                color:#025628;
+            ">
+                Certificate of Completion
+            </h2>
+
+            <button
+                type="button"
+                onclick="closeCertModal()"
+                style="
+                    border:none;
+                    background:#edf2f7;
+                    width:32px;
+                    height:32px;
+                    border-radius:50%;
+                    cursor:pointer;
+                    font-size:16px;
+                "
+            >
+                ✕
+            </button>
+        </div>
+
+        {{-- Certificate Preview --}}
+        <div id="printableCert" style="
+            background:#fff;
+            border:4px double #025628;
+            padding:30px;
+            text-align:center;
+        ">
+
+            <div style="
+                display:flex;
+                justify-content:center;
+                gap:18px;
+                margin-bottom:14px;
+            ">
+                <img src="{{ asset('images/logo.png') }}"
+                     alt="City Government Logo"
+                     style="height:45px;">
+
+                <img src="{{ asset('images/tesda.png') }}"
+                     alt="TESDA Logo"
+                     style="height:45px;">
+
+                <img src="{{ asset('images/logo_ledipo.png') }}"
+                     alt="LEDIPO Logo"
+                     style="height:45px;">
+            </div>
+
+            <div style="
+                font-size:10px;
+                color:#666;
+                line-height:1.5;
+            ">
+                TECHNICAL EDUCATION AND SKILLS DEVELOPMENT AUTHORITY<br>
+                CITY GOVERNMENT OF DASMARIÑAS — LEDIPO
+            </div>
+
+            <div style="
+                margin-top:20px;
+                font-size:22px;
+                font-weight:800;
+                color:#025628;
+            ">
+                CERTIFICATE OF COMPLETION
+            </div>
+
+            <div style="
+                margin-top:18px;
+                font-size:11px;
+                color:#666;
+            ">
+                THIS CERTIFIES THAT
+            </div>
+
+            <div id="vName" style="
+                margin-top:8px;
+                font-size:24px;
+                font-weight:800;
+                color:#025628;
+            ">
+                {{ $certificate->user->firstname ?? '' }}
+                {{ $certificate->user->lastname ?? '' }}
+            </div>
+
+            <div style="
+                margin-top:16px;
+                font-size:11px;
+                color:#666;
+            ">
+                HAS SUCCESSFULLY COMPLETED THE TRAINING IN
+            </div>
+
+            <div id="vCourse" style="
+                margin-top:8px;
+                font-size:17px;
+                font-weight:800;
+                color:#2d3748;
+            ">
+                {{ $certificate->course->title ?? $enrollment->course->title }}
+            </div>
+
+            <div style="
+                margin-top:40px;
+                display:flex;
+                justify-content:space-around;
+                gap:30px;
+            ">
+                <div>
+                    <div style="font-weight:700;font-size:11px;">
+                        HON. JENNIFER A. BARZAGA
+                    </div>
+                    <div style="font-size:10px;color:#718096;">
+                        City Mayor
+                    </div>
+                </div>
+
+                <div>
+                    <div style="font-weight:700;font-size:11px;">
+                        MR. CARLOS H. LEGASPI
+                    </div>
+                    <div style="font-size:10px;color:#718096;">
+                        LEDIPO Head
+                    </div>
+                </div>
+            </div>
+
+            <div style="
+                margin-top:30px;
+                padding-top:12px;
+                border-top:1px solid #ddd;
+                display:flex;
+                justify-content:space-between;
+                font-size:10px;
+                color:#718096;
+            ">
+                <span>
+                    CERT. NO.:
+                    <strong id="vID">
+                        {{ $certificate->certificate_no ?? '—' }}
+                    </strong>
+                </span>
+
+                <span>
+                    TRAINING ID:
+                    <strong id="vTrainingID">
+                        {{ $certificate->training_id ?? '—' }}
+                    </strong>
+                </span>
+            </div>
+
+        </div>
+
+        {{-- Certificate Details --}}
+        <div style="
+            margin-top:20px;
+            padding-top:18px;
+            border-top:1px solid #e2e8f0;
+        ">
+
+            <div style="
+                font-size:12px;
+                color:#718096;
+            ">
+                Issue Date
+            </div>
+
+            <div id="vIssueDate" style="
+                font-size:13px;
+                font-weight:700;
+                color:#2d3748;
+            ">
+                {{ $certificate->issue_date ?? '—' }}
+            </div>
+
+            <div style="
+                margin-top:12px;
+                font-size:12px;
+                color:#718096;
+            ">
+                Status
+            </div>
+
+            <div id="vStatusBadge" style="
+                font-size:13px;
+                font-weight:700;
+                color:#276749;
+            ">
+                {{ ucfirst($certificate->status ?? 'issued') }}
+            </div>
+
+            <div style="
+                margin-top:12px;
+                font-size:12px;
+                color:#718096;
+            ">
+                Trainee Performance
+            </div>
+
+            <div id="vGrade" style="
+                font-size:13px;
+                font-weight:700;
+                color:#276749;
+            ">
+                {{ $certificate->grade ?? 'Completed' }}
+            </div>
+
+        </div>
+
+        {{-- Actions --}}
+        <div style="
+            margin-top:20px;
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+        ">
+            <button
+                type="button"
+                onclick="window.print()"
+                style="
+                    background:#025628;
+                    color:#fff;
+                    border:none;
+                    padding:10px 18px;
+                    border-radius:8px;
+                    font-weight:700;
+                    cursor:pointer;
+                "
+            >
+                Print Certificate
+            </button>
+
+            <button
+                type="button"
+                onclick="closeCertModal()"
+                style="
+                    background:#edf2f7;
+                    color:#2d3748;
+                    border:none;
+                    padding:10px 18px;
+                    border-radius:8px;
+                    font-weight:700;
+                    cursor:pointer;
+                "
+            >
+                Close
+            </button>
+        </div>
+
+    </div>
+</div>
+
             <div id="quizModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;">
             <div style="background:#fff;width:90%;max-width:600px;max-height:85vh;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;">
                 <div style="background:#025628;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;">
@@ -594,6 +1163,44 @@
 
     @section('scripts')
     <script>
+
+        function showIntroScreen() {
+    document.getElementById('intro-section').style.display = 'block';
+    document.querySelectorAll('[id^="unit-"][id$="-section"]').forEach(el => el.style.display = 'none');
+    document.getElementById('completion-section').style.display = 'none';
+    }
+
+    function openCertificateModal() {
+    const modal = document.getElementById('certificateModal');
+
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeCertModal() {
+        const modal = document.getElementById('certificateModal');
+
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    function showUnitScreen(unitNum) {
+        document.getElementById('intro-section').style.display = 'none';
+        document.querySelectorAll('[id^="unit-"][id$="-section"]').forEach(el => el.style.display = 'none');
+        document.getElementById('completion-section').style.display = 'none';
+
+        const target = document.getElementById(`unit-${unitNum}-section`);
+        if (target) target.style.display = 'block';
+    }
+
+    function showCompletionScreen() {
+        document.getElementById('intro-section').style.display = 'none';
+        document.querySelectorAll('[id^="unit-"][id$="-section"]').forEach(el => el.style.display = 'none');
+        document.getElementById('completion-section').style.display = 'block';
+    }
+
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         let _currentQuizId = null;
 

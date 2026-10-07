@@ -27,6 +27,7 @@ class Course_tbl extends Model
         'status',
         'trainer_id',
         'facility_id',
+        'training_id',
     ];
 
     /**

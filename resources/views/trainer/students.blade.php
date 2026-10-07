@@ -265,6 +265,20 @@
       <strong style="color:#025628;">{{ $course->title ?? 'your course' }}</strong>
     </div>
 
+    @if (session('success'))
+    <div style="
+        margin-bottom:15px;
+        padding:10px 14px;
+        background:#e8f5e9;
+        color:#2e7d32;
+        border-radius:8px;
+        font-size:13px;
+        font-weight:600;
+    ">
+        {{ session('success') }}
+    </div>
+@endif
+
     {{-- ── FILTER BAR ─────────────────────────────────────────── --}}
     <div class="st-filter-bar">
       <div class="st-search-wrap">
@@ -298,12 +312,14 @@
             <th>Enrolled At</th>
             <th>Progress</th>
             <th>Status</th>
+            <th>Hands-On Evaluation</th>
           </tr>
         </thead>
         <tbody>
           @forelse($students as $student)
             @php
               $status = strtolower($student->status ?? 'pending');
+              $handsOn = $handsOnEvaluations->get($student->id);
               $cls = in_array($status, [
                   'enrolled',
                   'pending',
@@ -347,14 +363,54 @@
                   <span class="st-progress-pct">{{ $progress }}%</span>
                 </div>
               </td>
+<td>
+    <form method="POST" action="{{ route('trainer.hands-on.store') }}"
+        style="display:flex;align-items:center;gap:6px;">
 
-              <td><span
-                  class="st-badge {{ $cls }}">{{ ucfirst($cls) }}</span>
-              </td>
+        @csrf
+
+        <input type="hidden" name="user_id" value="{{ $student->id }}">
+
+        <select
+            name="result"
+            class="st-select"
+            style="padding:7px 9px;font-size:12px;min-width:110px;"
+        >
+            <option value="">Not Evaluated</option>
+
+            <option value="passed"
+                {{ $handsOn && $handsOn->result === 'passed' ? 'selected' : '' }}>
+                Passed
+            </option>
+
+            <option value="failed"
+                {{ $handsOn && $handsOn->result === 'failed' ? 'selected' : '' }}>
+                Failed
+            </option>
+        </select>
+
+        <button
+            type="submit"
+            style="
+                padding:7px 10px;
+                border:none;
+                border-radius:7px;
+                background:#025628;
+                color:#fff;
+                font-size:11px;
+                font-weight:600;
+                cursor:pointer;
+            "
+        >
+            Save
+        </button>
+
+    </form>
+</td>
             </tr>
           @empty
             <tr>
-              <td colspan="5">
+              <td colspan="6">
                 <div class="st-empty">
                   <i class="fa fa-users"></i>
                   <p>No students enrolled yet.</p>
