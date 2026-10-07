@@ -30,10 +30,10 @@
   @yield('css')
 
   <style>
-    /* =========================================================
+    /* =
            LOGGED-IN PROFILE AVATAR / DROPDOWN
            Matches the student homepage profile-circle design
-           ========================================================= */
+           = */
     .landing-profile {
       position: relative;
       display: flex;
@@ -400,9 +400,9 @@
     }
     }
 
-    /* ==========================================================
+    /* ==
    STUDENT NOTIFICATION BELL
-   ========================================================== */
+   == */
     .notification-wrapper {
       position: relative;
       display: flex;
@@ -680,9 +680,9 @@
       }
     }
 
-    /* ==========================================================
+    /* ==
    STUDENT NOTIFICATION BELL
-   ========================================================== */
+   == */
     .notification-wrapper {
       position: relative;
       display: flex;
@@ -729,9 +729,9 @@
       font-weight: 800;
     }
 
-    /* ==========================================================
+    /* ==
    NOTIFICATION DROPDOWN
-   ========================================================== */
+   == */
     .notification-dropdown {
       position: absolute;
       top: calc(100% + 12px);
@@ -792,9 +792,9 @@
       background: #eeeeee;
     }
 
-    /* ==========================================================
+    /* ==
    NOTIFICATION ITEMS
-   ========================================================== */
+   == */
     .notification-list {
       max-height: 350px;
       overflow-y: auto;
@@ -812,9 +812,9 @@
       background: #f8faf8;
     }
 
-    /* ==========================================================
+    /* ==
    READ / UNREAD VISUAL STATE
-   ========================================================== */
+   == */
     .notification-item.notification-unread {
       background: #f3faf6;
       box-shadow: inset 4px 0 0 #025628;
@@ -895,9 +895,9 @@
       color: #8a8a8a;
     }
 
-    /* ==========================================================
+    /* ==
    EMPTY STATE
-   ========================================================== */
+   == */
     .notification-empty {
       padding: 35px 20px;
       display: flex;
@@ -930,9 +930,9 @@
       color: #888;
     }
 
-    /* ==========================================================
+    /* ==
    FOOTER
-   ========================================================== */
+   == */
     .notification-footer {
       padding: 12px 16px;
       border-top: 1px solid #eeeeee;
@@ -958,9 +958,9 @@
       font-size: 10px;
     }
 
-    /* ==========================================================
+    /* ==
    TOPBAR ALIGNMENT
-   ========================================================== */
+   == */
     .topbar-right {
       position: relative;
       display: flex;
@@ -983,9 +983,9 @@
       z-index: 3000 !important;
     }
 
-    /* ==========================================================
+    /* ==
    MOBILE
-   ========================================================== */
+   == */
     @media (max-width: 600px) {
       .notification-dropdown {
         position: fixed;
@@ -1018,12 +1018,11 @@
         <span></span>
       </button>
 
-      <<<<<<< HEAD <a href="{{ route('homepage') }}" class="topbar-brand">
+      <a href="{{ route('homepage') }}" class="topbar-brand">
         <img src="{{ asset('images/logo.png') }}" alt="logo"
           class="topbar-logo">
         <span>LEDIPO</span>
         </a>
-        =======
         <a href="{{ route('homepage') }}" class="topbar-brand">
           <img src="{{ asset('images/logo.png') }}" alt="logo"
             class="topbar-logo">
@@ -1275,8 +1274,7 @@
           class="btn-modal-no">Cancel</button>
       </div>
     </div>
-    >>>>>>> 384453d6cf3600e14902e811c88999cfb75c91ce
-  </div>
+    </div>
 
   <div class="topbar-right">
     {{-- Updated Profile Trigger & Container --}}
@@ -1314,10 +1312,9 @@
             Dashboard
           </a>
 
-          <<<<<<< HEAD <a href="{{ url('/') }}" class="dd-item">
+          <a href="{{ url('/') }}" class="dd-item">
             <i class="fa fa-house dd-icon"></i>
             Home
-            =======
             {{-- ── INDEX DROPDOWN MENU ── --}}
             @if (isset($unitNumbers) && $unitNumbers->isNotEmpty())
               <div id="sidebarIndexMenu">
@@ -1382,8 +1379,7 @@
             <a href="{{ Route::has('student.announcements') ? route('student.announcements') : '/student/announcements' }}"
               class="nav-item {{ request()->routeIs('student.announcements') ? 'active' : '' }}">
               <span>Announcement</span>
-              >>>>>>> 384453d6cf3600e14902e811c88999cfb75c91ce
-            </a>
+              </a>
 
             <div class="dd-divider"></div>
 
@@ -1685,7 +1681,7 @@
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
   </script>
 
-  <<<<<<< HEAD <script>
+  <script>
     const hamburger = document.getElementById('hamburger');
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('overlay');

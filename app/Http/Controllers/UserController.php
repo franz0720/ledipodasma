@@ -1181,7 +1181,6 @@ public function ResetPassword(Request $request)
         );
     }
 
-<<<<<<< HEAD
     // Check if the student is already enrolled in this course
     $existing = \App\Models\Enrollment_tbl::where('user_id', Auth::id())
         ->where('course_id', $id)
@@ -1225,7 +1224,6 @@ public function ResetPassword(Request $request)
         );
 }
 
-=======
     public function studentAnnouncements()
     {
         $announcements = \App\Models\Announcement::where('is_active', 1)
@@ -1244,7 +1242,6 @@ public function ResetPassword(Request $request)
         return view('student.announcements', compact('announcements'));
     }
 
->>>>>>> 384453d6cf3600e14902e811c88999cfb75c91ce
 //contact
 public function contact(){
     return view("student.contact");
@@ -1496,284 +1493,25 @@ public function dashboard()
     }
 }
     // ── QUIZZES ───────────────────────────────────────────────────────────────
-public function storeQuiz(Request $request)
-{
-    $request->validate([
-        'course_id' => 'required|exists:course_tbls,id',
-        'module_id' => 'nullable|exists:modules,id',
 
-<<<<<<< HEAD
-        'title' => 'required|string|max:255',
-        'instructions' => 'nullable|string',
-
-        // Quiz settings
-        'passing_score' => 'required|integer|min:0|max:100',
-        'time_limit' => 'required|integer|min:0',
-
-        'questions' => 'required|array|min:1',
-
-        'questions.*.text' => 'required|string',
-        'questions.*.type' => 'required|string|in:multiple_choice,checkboxes,short_answer,paragraph',
-        'questions.*.options' => 'nullable|array',
-        'questions.*.correctAnswers' => 'nullable|array',
-        'questions.*.points' => 'nullable|integer|min:0',
-        'questions.*.feedback' => 'nullable|string',
-        'questions.*.required' => 'nullable|boolean',
-    ]);
-
-    DB::beginTransaction();
-
-    try {
-
-        // Create quiz
-        $quiz = \App\Models\Quiz::create([
-            'course_id' => $request->course_id,
-            'module_id' => $request->module_id,
-
-            'title' => $request->title,
-            'instructions' => $request->instructions,
-
-            // Dynamic quiz settings
-            'passing_score' => $request->passing_score,
-            'time_limit' => $request->time_limit,
+    public function storeQuiz(Request $request)
+    {
+        $request->validate([
+            'course_id'     => 'required|exists:course_tbls,id',
+            'module_id'     => 'nullable|exists:modules,id',
+            'title'         => 'required|string|max:255',
+            'passing_score' => 'required|integer|min:1|max:100',
+            'time_limit'    => 'required|integer|min:1',
         ]);
 
-        // Create questions
-        foreach ($request->questions as $index => $data) {
+        $quiz = \App\Models\Quiz::create($request->only(
+            'course_id', 'module_id', 'title', 'passing_score', 'time_limit'
+        ));
 
-            $options = $data['options'] ?? [];
-            $correctAnswers = $data['correctAnswers'] ?? [];
+        $quiz->load('module');
 
-            // Keep old A-D fields for compatibility
-            $choiceA = $options[0] ?? '';
-            $choiceB = $options[1] ?? '';
-            $choiceC = $options[2] ?? '';
-            $choiceD = $options[3] ?? '';
-
-            // Convert first correct answer index
-            // into old A/B/C/D format
-            $correctAnswer = 'a';
-
-            if (!empty($correctAnswers)) {
-
-                $firstCorrect = (int) $correctAnswers[0];
-
-                $correctAnswer = match ($firstCorrect) {
-                    0 => 'a',
-                    1 => 'b',
-                    2 => 'c',
-                    3 => 'd',
-                    default => 'a',
-                };
-            }
-
-            \App\Models\QuizQuestion::create([
-                'quiz_id' => $quiz->id,
-
-                // New fields
-                'question' => $data['text'],
-                'question_type' => $data['type'],
-                'options' => $options,
-                'correct_answers' => $correctAnswers,
-
-                'points' => $data['points'] ?? 1,
-                'feedback' => $data['feedback'] ?? null,
-                'required' => $data['required'] ?? false,
-
-                // Existing fields
-                'choice_a' => $choiceA,
-                'choice_b' => $choiceB,
-                'choice_c' => $choiceC,
-                'choice_d' => $choiceD,
-                'correct_answer' => $correctAnswer,
-
-                // Question order
-                'order' => $index,
-            ]);
-        }
-
-        DB::commit();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Quiz created successfully.',
-            'quiz' => $quiz->load('module', 'questions'),
-        ]);
-
-    } catch (\Exception $e) {
-
-        DB::rollBack();
-
-        return response()->json([
-            'success' => false,
-            'message' => $e->getMessage(),
-        ], 500);
+        return response()->json(['success' => true, 'quiz' => $quiz]);
     }
-}
-
-
-public function editQuiz($id)
-{
-    $quiz = \App\Models\Quiz::with([
-        'module',
-        'questions'
-    ])->findOrFail($id);
-
-    return response()->json([
-        'success' => true,
-        'quiz' => $quiz,
-    ]);
-}
-
-
-public function updateQuiz(Request $request, $id)
-{
-    $request->validate([
-        'course_id' => 'required|exists:course_tbls,id',
-        'module_id' => 'nullable|exists:modules,id',
-
-        'title' => 'required|string|max:255',
-        'instructions' => 'nullable|string',
-
-        // Quiz settings
-        'passing_score' => 'required|integer|min:0|max:100',
-        'time_limit' => 'required|integer|min:0',
-
-        'questions' => 'required|array|min:1',
-
-        'questions.*.text' => 'required|string',
-        'questions.*.type' => 'required|string|in:multiple_choice,checkboxes,short_answer,paragraph',
-        'questions.*.options' => 'nullable|array',
-        'questions.*.correctAnswers' => 'nullable|array',
-        'questions.*.points' => 'nullable|integer|min:0',
-        'questions.*.feedback' => 'nullable|string',
-        'questions.*.required' => 'nullable|boolean',
-    ]);
-
-    DB::beginTransaction();
-
-    try {
-
-        $quiz = \App\Models\Quiz::findOrFail($id);
-
-        // Update quiz information
-        $quiz->update([
-            'course_id' => $request->course_id,
-            'module_id' => $request->module_id,
-
-            'title' => $request->title,
-            'instructions' => $request->instructions,
-
-            // Dynamic quiz settings
-            'passing_score' => $request->passing_score,
-            'time_limit' => $request->time_limit,
-        ]);
-
-        // Remove old questions
-        $quiz->questions()->delete();
-
-        // Save updated questions
-        foreach ($request->questions as $index => $data) {
-
-            $options = $data['options'] ?? [];
-            $correctAnswers = $data['correctAnswers'] ?? [];
-
-            // Keep old fields for compatibility
-            $choiceA = $options[0] ?? '';
-            $choiceB = $options[1] ?? '';
-            $choiceC = $options[2] ?? '';
-            $choiceD = $options[3] ?? '';
-
-            $correctAnswer = 'a';
-
-            if (!empty($correctAnswers)) {
-
-                $firstCorrect = (int) $correctAnswers[0];
-
-                $correctAnswer = match ($firstCorrect) {
-                    0 => 'a',
-                    1 => 'b',
-                    2 => 'c',
-                    3 => 'd',
-                    default => 'a',
-                };
-            }
-
-            \App\Models\QuizQuestion::create([
-                'quiz_id' => $quiz->id,
-
-                'question' => $data['text'],
-                'question_type' => $data['type'],
-                'options' => $options,
-                'correct_answers' => $correctAnswers,
-
-                'points' => $data['points'] ?? 1,
-                'feedback' => $data['feedback'] ?? null,
-                'required' => $data['required'] ?? false,
-
-                // Existing fields
-                'choice_a' => $choiceA,
-                'choice_b' => $choiceB,
-                'choice_c' => $choiceC,
-                'choice_d' => $choiceD,
-                'correct_answer' => $correctAnswer,
-
-                'order' => $index,
-            ]);
-        }
-
-        DB::commit();
-
-        // Reload updated quiz
-        $quiz->load('module', 'questions');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Quiz updated successfully.',
-            'quiz' => $quiz,
-        ]);
-
-    } catch (\Exception $e) {
-
-        DB::rollBack();
-
-        return response()->json([
-            'success' => false,
-            'message' => $e->getMessage(),
-        ], 500);
-    }
-}
-=======
-public function storeQuiz(Request $request)
-{
-    $request->validate([
-        'course_id'     => 'required|exists:course_tbls,id',
-        'module_id'     => 'nullable|exists:modules,id',
-        'title'         => 'required|string|max:255',
-        'passing_score' => 'required|integer|min:1|max:100',
-        'time_limit'    => 'required|integer|min:1',
-        'quiz_type'     => 'required|in:regular,post_test',
-    ]);
-
-    $quiz = \App\Models\Quiz::create([
-        'course_id'     => $request->course_id,
-        'module_id'     => $request->quiz_type === 'post_test'
-                            ? null
-                            : $request->module_id,
-        'title'         => $request->title,
-        'passing_score' => $request->passing_score,
-        'time_limit'    => $request->time_limit,
-        'quiz_type'     => $request->quiz_type,
-    ]);
-
-    $quiz->load('module');
-
-    return response()->json([
-        'success' => true,
-        'quiz' => $quiz
-    ]);
-}
->>>>>>> 384453d6cf3600e14902e811c88999cfb75c91ce
 
     public function destroyQuiz($id)
     {

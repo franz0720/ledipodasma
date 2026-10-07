@@ -373,9 +373,9 @@
 
   </div>
 
-  {{-- ============================================================
+  {{-- ====
       MODAL 1: Course Details (read-only)
-      ============================================================ --}}
+      ==== --}}
   <div id="courseDetailsModal" class="mc-modal">
     <div class="mc-modal-content">
       <div class="mc-modal-header">
@@ -452,14 +452,12 @@
     </div>
   </div>
 
-  {{-- ============================================================
-<<<<<<< HEAD
-      MODAL: Custom Alert Card (replaces native alert())
-      ============================================================ --}}
+  {{-- ====
+MODAL: Custom Alert Card (replaces native alert())
+      ==== --}}
   <div id="mcAlertModal" class="mc-modal">
-=======
-     MODAL 2: Modules & Quizzes (same as admin)
-     ============================================================ --}}
+MODAL 2: Modules & Quizzes (same as admin)
+     ==== --}}
   <div id="contentModal" class="mc-modal">
     <div class="mc-modal-content wide">
       <div class="mc-modal-header">
@@ -580,12 +578,11 @@
     </div>
   </div>
 
-  {{-- ============================================================
+  {{-- ====
      MODAL: Custom Confirm Card (replaces native confirm())
-     ============================================================ --}}
+     ==== --}}
   <div id="mcConfirmModal" class="mc-modal">
->>>>>>> 384453d6cf3600e14902e811c88999cfb75c91ce
-    <div class="mc-modal-content" style="max-width:380px;">
+<div class="mc-modal-content" style="max-width:380px;">
       <div class="mc-modal-header">
         <h3><i class="fa fa-circle-info"></i> Notice</h3>
         <span class="mc-close" onclick="closeAlertModal()">&times;</span>
@@ -663,9 +660,7 @@
       document.getElementById('mcAlertModal').style.display = 'none';
     }
 
-<<<<<<< HEAD
-=======
-    function closeContentModal() {
+function closeContentModal() {
       document.getElementById('contentModal').style.display = 'none';
       _contentCourseId = null;
       _contentModules = [];
@@ -1048,8 +1043,7 @@
       return div.innerHTML;
     }
 
->>>>>>> 384453d6cf3600e14902e811c88999cfb75c91ce
-    // ── CLOSE ON OUTSIDE CLICK ─────────────────────────────────────────────────
+// ── CLOSE ON OUTSIDE CLICK ─────────────────────────────────────────────────
     window.addEventListener('click', function(e) {
       if (e.target.id === 'courseDetailsModal') closeCourseDetails();
     });

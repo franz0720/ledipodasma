@@ -320,7 +320,7 @@
       </div>
     </div>
 
-    <<<<<<< HEAD {{-- Announcements Feed --}} <div class="announcements-feed"
+    {{-- Announcements Feed --}} <div class="announcements-feed"
       id="announcementFeed">
       @forelse($announcements ?? [] as $announcement)
         @php
@@ -367,7 +367,6 @@
               <div class="role-time">
                 Posted {{ $timeAgo }} &bull; {{ $formattedDate }}
               </div>
-              =======
               {{-- Announcement Stream --}}
               <div class="announcements-feed" id="announcementFeed">
 
@@ -428,8 +427,7 @@
 
                       </div>
 
-                      >>>>>>> 384453d6cf3600e14902e811c88999cfb75c91ce
-                    </div>
+                      </div>
                   </div>
 
                   {{-- Content --}}
