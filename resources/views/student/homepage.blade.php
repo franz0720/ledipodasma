@@ -669,8 +669,8 @@
   </script>
   <script>
     // ── Daily Progress Line Chart ─────────────────────────────────────────
-      const weekDays = @json($weekDays);
-      const progressData = @json($weeklyData);
+    const weekDays = @json($weekDays);
+    const progressData = @json($weeklyData);
 
     new Chart(document.getElementById('progressChart'), {
       type: 'line',
@@ -756,3 +756,4 @@
     });
   </script>
 @endsection
+

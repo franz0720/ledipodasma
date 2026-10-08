@@ -320,17 +320,19 @@
       </div>
     </div>
 
-      @if (!$attendanceTakenToday)
-        <div style="background:#fff8e1;color:#b7791f;border-radius:10px;padding:14px 20px;margin-bottom:20px;font-size:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-          <span>⚠️ You haven't taken today's attendance yet.</span>
-          <a href="{{ route('trainer.attendance') }}" style="background:#1a4d2e;color:white;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
-            Take attendance
-          </a>
-        </div>
-      @endif
+    @if (!$attendanceTakenToday)
+      <div
+        style="background:#fff8e1;color:#b7791f;border-radius:10px;padding:14px 20px;margin-bottom:20px;font-size:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <span>⚠️ You haven't taken today's attendance yet.</span>
+        <a href="{{ route('trainer.attendance') }}"
+          style="background:#1a4d2e;color:white;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
+          Take attendance
+        </a>
+      </div>
+    @endif
 
-      {{-- ── Analytics heading ─────────────────────────────────────────────── --}}
-      <p class="section-heading">Overview</p>
+    {{-- ── Analytics heading ─────────────────────────────────────────────── --}}
+    <p class="section-heading">Overview</p>
 
     <div class="stat-grid">
       <div class="stat-card">
@@ -556,3 +558,4 @@
     });
   </script>
 @endsection
+

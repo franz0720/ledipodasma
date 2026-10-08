@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\TrainerAnnouncement; // Added
 
 class Course_tbl extends Model
 {
@@ -21,6 +22,7 @@ class Course_tbl extends Model
         'schedule',
         'location',
         'thumbnail',
+        'banner_image', // Added for the banner feature
         'slots',
         'status',
         'trainer_id',
@@ -64,6 +66,16 @@ class Course_tbl extends Model
     }
 
     /**
+     * Relationship to Enrolled Students (used by TrainerController)
+     */
+    public function students()
+    {
+        return $this->belongsToMany(User_tbl::class, 'enrollment_tbls', 'course_id', 'user_id')
+            ->withPivot('status')
+            ->withTimestamps();
+    }
+
+    /**
      * Relationship to Course Modules
      */
     public function modules()
@@ -87,6 +99,22 @@ class Course_tbl extends Model
         return $this->hasMany(Deadline_tbl::class, 'course_id');
     }
 
+    /**
+     * Relationship to Trainer Announcements (Ordered newest first)
+     */
+    public function trainerAnnouncements()
+    {
+        return $this->hasMany(TrainerAnnouncement::class, 'course_id')->latest();
+    }
+
+    /**
+     * Alias for announcements
+     */
+    public function announcements()
+    {
+        return $this->trainerAnnouncements();
+    }
+
     /* ==========================================================
      * ACCESSORS & VIRTUAL ATTRIBUTES
      * ========================================================== */
@@ -96,6 +124,15 @@ class Course_tbl extends Model
      */
     public function getEnrolledCountAttribute(): int
     {
+        // Avoid executing a query if count/relation is already eager loaded
+        if (isset($this->attributes['enrollments_count'])) {
+            return (int) $this->attributes['enrollments_count'];
+        }
+
+        if ($this->relationLoaded('enrollments')) {
+            return $this->enrollments->count();
+        }
+
         return $this->enrollments()->count();
     }
 

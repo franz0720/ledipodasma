@@ -3,451 +3,528 @@
 @section('title', 'Announcements')
 
 @section('css')
-<style>
-/* ── Main Container ────────────────────────────────────────── */
-.announcements-wrap {
-    padding: 32px 40px;
-    font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
-    max-width: 1000px;
-}
+  <style>
+    /* ── Main Container ────────────────────────────────────────── */
+    .announcements-wrap {
+      padding: 32px 40px;
+      font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
+      max-width: 1000px;
+    }
 
-.page-header-title {
-    font-size: 24px;
-    font-weight: 800;
-    color: #025628;
-    margin-bottom: 6px;
-}
+    .page-header-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #025628;
+      margin-bottom: 6px;
+    }
 
-.page-header-sub {
-    font-size: 13px;
-    color: #718096;
-    margin-bottom: 28px;
-}
+    .page-header-sub {
+      font-size: 13px;
+      color: #718096;
+      margin-bottom: 24px;
+    }
 
-/* ── Filter / Search Bar ───────────────────────────────────── */
-.announcement-filter-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-}
+    /* ── Filter / Search Bar ───────────────────────────────────── */
+    .announcement-filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
 
-.search-box-wrap {
-    position: relative;
-    flex: 1;
-    min-width: 260px;
-}
+    .search-box-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 260px;
+    }
 
-.search-box-wrap input {
-    width: 100%;
-    padding: 10px 16px 10px 38px;
-    border: 1px solid #E2E8F0;
-    border-radius: 12px;
-    font-size: 13px;
-    outline: none;
-    transition: border-color 0.2s;
-}
+    .search-box-wrap input {
+      width: 100%;
+      padding: 10px 16px 10px 38px;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
 
-.search-box-wrap input:focus {
-    border-color: #025628;
-}
+    .search-box-wrap input:focus {
+      border-color: #025628;
+    }
 
-.search-box-wrap i {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #A0AEC0;
-    font-size: 14px;
-}
+    .search-box-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #A0AEC0;
+      font-size: 14px;
+    }
 
-.filter-pills {
-    display: flex;
-    gap: 8px;
-}
+    .filter-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
 
-.filter-pill {
-    background: #EDF2F7;
-    color: #4A5568;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-}
+    .filter-pill {
+      background: #EDF2F7;
+      color: #4A5568;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
 
-.filter-pill.active, .filter-pill:hover {
-    background: #025628;
-    color: #ffffff;
-}
+    .filter-pill.active,
+    .filter-pill:hover {
+      background: #025628;
+      color: #ffffff;
+    }
 
-/* ── Announcement Cards Stack ──────────────────────────────── */
-.announcements-feed {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
+    /* ── Announcement Cards Stack ──────────────────────────────── */
+    .announcements-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
 
-.announcement-card {
-    background: #ffffff;
-    border: 1px solid #E2E8F0;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    transition: transform 0.2s, box-shadow 0.2s;
-    position: relative;
-    overflow: hidden;
-}
+    .announcement-card {
+      background: #ffffff;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
 
-.announcement-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-}
+    .announcement-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    }
 
-.announcement-card.pinned {
-    border-left: 5px solid #D4D120;
-}
+    .announcement-card.type-urgent {
+      border-left: 5px solid #E53E3E;
+    }
 
-.pin-badge {
-    position: absolute;
-    top: 16px;
-    right: 20px;
-    background: #FFFDF0;
-    border: 1px solid #E2E07B;
-    color: #1A1A1A;
-    font-size: 10px;
-    font-weight: 800;
-    padding: 4px 10px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
+    .announcement-card.type-notice {
+      border-left: 5px solid #3182CE;
+    }
 
-.author-meta-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
-}
+    .announcement-card.type-reminder {
+      border-left: 5px solid #D69E2E;
+    }
 
-.author-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: #025628;
-    color: #ffffff;
-    font-weight: 800;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+    .announcement-card.inactive-item {
+      opacity: 0.65;
+      background: #F7FAFC;
+    }
 
-.author-info .name {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: #1A202C;
-}
+    .badge-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
 
-.author-info .role-time {
-    font-size: 11px;
-    color: #718096;
-}
+    .category-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 10px;
+      border-radius: 10px;
+    }
 
-.category-badge {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 3px 10px;
-    border-radius: 10px;
-    margin-bottom: 8px;
-}
+    .badge-urgent {
+      background: #FED7D7;
+      color: #9B2C2C;
+    }
 
-.badge-urgent { background: #FED7D7; color: #9B2C2C; }
-.badge-general { background: #E2E8F0; color: #2D3748; }
-.badge-schedule { background: #C6F6D5; color: #22543D; }
+    .badge-notice {
+      background: #EBF8FF;
+      color: #2B6CB0;
+    }
 
-.announcement-title {
-    font-size: 17px;
-    font-weight: 800;
-    color: #025628;
-    margin-bottom: 10px;
-    line-height: 1.35;
-}
+    .badge-reminder {
+      background: #FEFCBF;
+      color: #744210;
+    }
 
-.announcement-body {
-    font-size: 13px;
-    color: #4A5568;
-    line-height: 1.65;
-    margin-bottom: 16px;
-}
+    .badge-status {
+      background: #EDF2F7;
+      color: #718096;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 10px;
+    }
 
-/* Optional Event Box inside Announcement */
-.event-info-box {
-    background: #F7FAFC;
-    border: 1px solid #EDF2F7;
-    border-radius: 12px;
-    padding: 14px 18px;
-    display: flex;
-    gap: 20px;
-    font-size: 12px;
-    color: #2D3748;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-}
+    .author-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
 
-.event-info-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-}
+    .author-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #025628;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+    }
 
-.event-info-item i {
-    color: #025628;
-}
+    .author-avatar.type-urgent {
+      background: #C53030;
+    }
 
-.announcement-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-top: 1px solid #EDF2F7;
-    padding-top: 14px;
-    font-size: 12px;
-    color: #718096;
-}
+    .author-avatar.type-notice {
+      background: #2B6CB0;
+    }
 
-.footer-actions {
-    display: flex;
-    gap: 16px;
-}
+    .author-avatar.type-reminder {
+      background: #B7791F;
+    }
 
-.action-btn {
-    background: transparent;
-    border: none;
-    color: #718096;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: color 0.2s;
-}
+    .author-info .name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #1A202C;
+    }
 
-.action-btn:hover {
-    color: #025628;
-}
+    .author-info .role-time {
+      font-size: 11px;
+      color: #718096;
+    }
 
-@media (max-width: 640px) {
-    .announcements-wrap { padding: 20px 16px; }
-    .announcement-filter-bar { flex-direction: column; align-items: stretch; }
-    .filter-pills { overflow-x: auto; padding-bottom: 4px; }
-}
-</style>
+    .announcement-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #025628;
+      margin-bottom: 10px;
+      line-height: 1.35;
+    }
+
+    .announcement-body {
+      font-size: 13px;
+      color: #4A5568;
+      line-height: 1.65;
+      margin-bottom: 16px;
+      white-space: pre-line;
+    }
+
+    .announcement-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      border-top: 1px solid #EDF2F7;
+      padding-top: 14px;
+      font-size: 12px;
+      color: #718096;
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: 16px;
+    }
+
+    .action-btn {
+      background: transparent;
+      border: none;
+      color: #718096;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+
+    .action-btn:hover {
+      color: #025628;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 16px;
+      color: #A0AEC0;
+    }
+
+    .empty-state i {
+      font-size: 36px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    @media (max-width: 640px) {
+      .announcements-wrap {
+        padding: 20px 16px;
+      }
+
+      .announcement-filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .filter-pills {
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+    }
+  </style>
 @endsection
 
 @section('content')
-<div class="announcements-wrap">
-    
+  <div class="announcements-wrap">
+
     <div>
-        <h1 class="page-header-title">Announcements & Updates</h1>
-        <p class="page-header-sub">Stay informed with official updates from LEDIPO and your course instructors.</p>
+      <h1 class="page-header-title">Announcements & Updates</h1>
+      <p class="page-header-sub">Official announcements and notices from the
+        administration.</p>
     </div>
 
     {{-- Search & Filter Controls --}}
     <div class="announcement-filter-bar">
-        <div class="search-box-wrap">
-            <i class="fa fa-search"></i>
-            <input type="text" id="announcementSearch" onkeyup="filterAnnouncements()" placeholder="Search announcements...">
-        </div>
+      <div class="search-box-wrap">
+        <i class="fa fa-search"></i>
+        <input type="text" id="announcementSearch" oninput="applyFilters()"
+          placeholder="Search title or content...">
+      </div>
 
-        <div class="filter-pills">
-            <button class="filter-pill active" onclick="filterCategory('all', this)">All</button>
-            <button class="filter-pill" onclick="filterCategory('urgent', this)">Urgent</button>
-            <button class="filter-pill" onclick="filterCategory('schedule', this)">Schedules</button>
-            <button class="filter-pill" onclick="filterCategory('general', this)">General</button>
-        </div>
+      <div class="filter-pills">
+        <button class="filter-pill active"
+          onclick="setCategoryFilter('all', this)">All</button>
+        <button class="filter-pill"
+          onclick="setCategoryFilter('urgent', this)">Urgent</button>
+        <button class="filter-pill"
+          onclick="setCategoryFilter('notice', this)">Notices</button>
+        <button class="filter-pill"
+          onclick="setCategoryFilter('reminder', this)">Reminders</button>
+      </div>
     </div>
 
-    {{-- Announcement Stream --}}
-<div class="announcements-feed" id="announcementFeed">
-
-    @forelse ($announcements as $announcement)
-
+    {{-- Announcements Feed --}} <div class="announcements-feed"
+      id="announcementFeed">
+      @forelse($announcements ?? [] as $announcement)
         @php
-            $type = strtolower($announcement->type ?? 'notice');
+          $dateTimestamp =
+              $announcement->publish_at ?? $announcement->created_at;
+          $formattedDate = $dateTimestamp
+              ? \Carbon\Carbon::parse($dateTimestamp)->format('M d, Y')
+              : 'Date unset';
+          $timeAgo = $dateTimestamp
+              ? \Carbon\Carbon::parse($dateTimestamp)->diffForHumans()
+              : '';
 
-            // Map Admin announcement types to the Student page categories
-            if ($type === 'urgent') {
-                $category = 'urgent';
-                $categoryLabel = 'Urgent Reminder';
-                $badgeClass = 'badge-urgent';
-            } elseif ($type === 'reminder') {
-                $category = 'schedule';
-                $categoryLabel = 'Schedule Notice';
-                $badgeClass = 'badge-schedule';
-            } else {
-                $category = 'general';
-                $categoryLabel = 'General';
-                $badgeClass = 'badge-general';
-            }
-
-            $audienceLabel = match ($announcement->audience ?? 'general') {
-                'student' => 'Students',
-                'trainer' => 'Trainers',
-                default => 'All Users',
-            };
+          $avatarText = match ($announcement->type) {
+              'urgent' => '!',
+              'notice' => 'NT',
+              'reminder' => 'RM',
+              default => 'AD',
+          };
         @endphp
 
-        <div class="announcement-card" data-category="{{ $category }}">
+        <div
+          class="announcement-card type-{{ $announcement->type }} {{ isset($announcement->is_active) && !$announcement->is_active ? 'inactive-item' : '' }}"
+          id="announcement-{{ $announcement->id }}"
+          data-category="{{ $announcement->type }}">
 
-            {{-- Category --}}
-            <span class="category-badge {{ $badgeClass }}">
-                {{ $categoryLabel }}
+          {{-- Badges --}}
+          <div class="badge-row">
+            <span class="category-badge badge-{{ $announcement->type }}">
+              {{ ucfirst($announcement->type) }}
             </span>
 
-            {{-- Author --}}
-            <div class="author-meta-row">
+            @if (isset($announcement->is_active) && !$announcement->is_active)
+              <span class="badge-status">Inactive</span>
+            @endif
+          </div>
 
-                <div class="author-avatar">
-                    LD
-                </div>
-
-                <div class="author-info">
-
-                    <div class="name">
-                        LEDIPO Main Office
-                    </div>
-
-                    <div class="role-time">
-                        Administrator • Posted
-                        {{ $announcement->created_at?->format('M j, Y') }}
-                    </div>
-
-                </div>
-
+          {{-- Sender Information --}}
+          <div class="author-meta-row">
+            <div class="author-avatar type-{{ $announcement->type }}">
+              {{ $avatarText }}
             </div>
+            <div class="author-info">
+              <div class="name">Administration Office</div>
+              <div class="role-time">
+                Posted {{ $timeAgo }} &bull; {{ $formattedDate }}
+              </div>
+              {{-- Announcement Stream --}}
+              <div class="announcements-feed" id="announcementFeed">
 
-            {{-- Title --}}
-            <h2 class="announcement-title">
-                {{ $announcement->title }}
-            </h2>
+                @forelse ($announcements as $announcement)
 
-            {{-- Message --}}
-            <p class="announcement-body">
-                {{ $announcement->message }}
-            </p>
+                  @php
+                    $type = strtolower($announcement->type ?? 'notice');
 
-            {{-- Footer --}}
-            <div class="announcement-footer">
+                    // Map Admin announcement types to the Student page categories
+                    if ($type === 'urgent') {
+                        $category = 'urgent';
+                        $categoryLabel = 'Urgent Reminder';
+                        $badgeClass = 'badge-urgent';
+                    } elseif ($type === 'reminder') {
+                        $category = 'schedule';
+                        $categoryLabel = 'Schedule Notice';
+                        $badgeClass = 'badge-schedule';
+                    } else {
+                        $category = 'general';
+                        $categoryLabel = 'General';
+                        $badgeClass = 'badge-general';
+                    }
 
-                <span>
-                    Target Group: {{ $audienceLabel }}
-                </span>
+                    $audienceLabel = match (
+                        $announcement->audience ?? 'general'
+                    ) {
+                        'student' => 'Students',
+                        'trainer' => 'Trainers',
+                        default => 'All Users',
+                    };
+                  @endphp
 
-                <div class="footer-actions">
+                  <div class="announcement-card"
+                    data-category="{{ $category }}">
 
-                    <button
-                        class="action-btn"
-                        type="button"
-                        onclick="shareAnnouncement(this)"
-                    >
-                        <i class="fa fa-share"></i>
-                        Share
-                    </button>
+                    {{-- Category --}}
+                    <span class="category-badge {{ $badgeClass }}">
+                      {{ $categoryLabel }}
+                    </span>
 
-                </div>
+                    {{-- Author --}}
+                    <div class="author-meta-row">
 
-            </div>
+                      <div class="author-avatar">
+                        LD
+                      </div>
 
-        </div>
+                      <div class="author-info">
 
-    @empty
+                        <div class="name">
+                          LEDIPO Main Office
+                        </div>
 
-        <div
-            style="
-                text-align: center;
-                padding: 60px 20px;
-                background: #ffffff;
-                border: 1px solid #E2E8F0;
-                border-radius: 16px;
-                color: #718096;
-            "
-        >
-            <i
-                class="fa-solid fa-bell-slash"
-                style="
-                    font-size: 32px;
-                    color: #CBD5E0;
-                    margin-bottom: 12px;
-                "
-            ></i>
+                        <div class="role-time">
+                          Administrator • Posted
+                          {{ $announcement->created_at?->format('M j, Y') }}
+                        </div>
 
-            <h3
-                style="
-                    margin: 0 0 6px;
-                    color: #2D3748;
-                    font-size: 16px;
-                "
-            >
-                No announcements yet
-            </h3>
+                      </div>
 
-            <p
-                style="
-                    margin: 0;
-                    font-size: 13px;
-                "
-            >
-                There are currently no active announcements available.
-            </p>
-        </div>
+                      </div>
+                  </div>
 
-    @endforelse
+                  {{-- Content --}}
+                  <h2 class="announcement-title">{{ $announcement->title }}</h2>
+                  <div class="announcement-body">{{ $announcement->message }}
+                  </div>
 
-</div>
-</div>
+                  {{-- Footer --}}
+                  <div class="announcement-footer">
+                    <div class="footer-actions">
+                      <button class="action-btn"
+                        onclick="copyDirectLink('{{ $announcement->id }}', this)">
+                        <i class="fa fa-share"></i> <span>Share</span>
+                      </button>
+                    </div>
+                  </div>
+              </div>
+            @empty
+              <div class="empty-state">
+                <i class="fa fa-bullhorn"></i>
+                <p>No announcements found in the database.</p>
+              </div>
+      @endforelse
+
+      <div id="noSearchResults" class="empty-state" style="display: none;">
+        <i class="fa fa-search"></i>
+        <p>No announcements match your search criteria.</p>
+      </div>
+  </div>
+
+  </div>
 @endsection
 
 @section('scripts')
-<script>
-function filterAnnouncements() {
-    const input = document.getElementById('announcementSearch').value.toLowerCase();
-    const cards = document.querySelectorAll('.announcement-card');
+  <script>
+    let currentCategory = 'all';
 
-    cards.forEach(card => {
-        const title = card.querySelector('.announcement-title').textContent.toLowerCase();
-        const body  = card.querySelector('.announcement-body').textContent.toLowerCase();
+    function setCategoryFilter(category, buttonElement) {
+      document.querySelectorAll('.filter-pill').forEach(pill => pill.classList
+        .remove('active'));
+      buttonElement.classList.add('active');
+      currentCategory = category;
+      applyFilters();
+    }
 
-        if (title.includes(input) || body.includes(input)) {
-            card.style.display = 'block';
+    function applyFilters() {
+      const searchQuery = document.getElementById('announcementSearch').value
+        .trim().toLowerCase();
+      const cards = document.querySelectorAll('.announcement-card');
+      const noResultsNotice = document.getElementById('noSearchResults');
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const titleText = card.querySelector('.announcement-title')
+          ?.textContent.toLowerCase() || '';
+        const bodyText = card.querySelector('.announcement-body')?.textContent
+          .toLowerCase() || '';
+        const cardCategory = card.getAttribute('data-category');
+
+        const matchesCategory = (currentCategory === 'all' || cardCategory ===
+          currentCategory);
+        const matchesSearch = (titleText.includes(searchQuery) || bodyText
+          .includes(searchQuery));
+
+        if (matchesCategory && matchesSearch) {
+          card.style.display = 'block';
+          visibleCount++;
         } else {
-            card.style.display = 'none';
+          card.style.display = 'none';
         }
-    });
-}
+      });
 
-function filterCategory(cat, btn) {
-    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
+      if (noResultsNotice) {
+        noResultsNotice.style.display = (visibleCount === 0 && cards.length > 0) ?
+          'block' : 'none';
+      }
+    }
 
-    const cards = document.querySelectorAll('.announcement-card');
+    function copyDirectLink(id, btn) {
+      const directUrl =
+        `${window.location.origin}${window.location.pathname}#announcement-${id}`;
 
-    cards.forEach(card => {
-        if (cat === 'all' || card.dataset.category === cat) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
-</script>
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(directUrl).then(() => {
+          const label = btn.querySelector('span');
+          const originalText = label.textContent;
+
+          label.textContent = 'Copied!';
+          btn.style.color = '#025628';
+
+          setTimeout(() => {
+            label.textContent = originalText;
+            btn.style.color = '';
+          }, 2000);
+        });
+      }
+    }
+  </script>
 @endsection
+

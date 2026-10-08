@@ -7,6 +7,7 @@ use App\Models\User_tbl;
 use App\Models\Course_tbl;
 use App\Models\Module;             // <-- Added for Module CRUD
 use App\Models\Quiz;               // <-- Added for Quiz operations
+use App\Models\QuizQuestion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -1165,43 +1166,64 @@ public function ResetPassword(Request $request)
         return view("student.course_detail", compact('course', 'atLimit'));
     }
 
-    public function enroll(Request $request, $id){
-        $course = \App\Models\Course_tbl::findOrFail($id);
+    public function enroll(Request $request, $id)
+{
+    $course = \App\Models\Course_tbl::findOrFail($id);
 
-        // Check if student already has 2 active enrollments
-        $activeEnrollments = \App\Models\Enrollment_tbl::where('user_id', Auth::id())
-                                ->where('status', 'active')
-                                ->count();
+    // Check if student already has 2 active enrollments
+    $activeEnrollments = \App\Models\Enrollment_tbl::where('user_id', Auth::id())
+        ->where('status', 'active')
+        ->count();
 
-        if($activeEnrollments >= 2){
-            return back()->with('error', 'You can only be enrolled in 2 courses at a time. Please complete or drop a course first.');
-        }
-
-        // Check if no more slots
-        if($course->available_slots <= 0){
-            return back()->with('error', 'Sorry, no more slots available for this course!');
-        }
-
-        // Check if already enrolled
-        $existing = \App\Models\Enrollment_tbl::where('user_id', Auth::id())
-                    ->where('course_id', $id)
-                    ->first();
-
-        if($existing){
-            return back()->with('error', 'You are already enrolled in this course!');
-        }
-
-        // Enroll the student
-        \App\Models\Enrollment_tbl::create([
-            'user_id'     => Auth::id(),
-            'course_id'   => $id,
-            'status'      => 'active',
-            'progress'    => 0,
-            'enrolled_at' => now(),
-        ]);
-
-        return back()->with('success', 'Successfully enrolled in ' . $course->title . '!');
+    if ($activeEnrollments >= 2) {
+        return back()->with(
+            'error',
+            'You can only be enrolled in 2 courses at a time. Please complete or drop a course first.'
+        );
     }
+
+    // Check if the student is already enrolled in this course
+    $existing = \App\Models\Enrollment_tbl::where('user_id', Auth::id())
+        ->where('course_id', $id)
+        ->first();
+
+    if ($existing) {
+        return redirect()
+            ->route('homepage')
+            ->with(
+                'error',
+                'You are already enrolled in this course!'
+            );
+    }
+
+    // Check available slots
+    if ($course->available_slots <= 0) {
+        return back()->with(
+            'error',
+            'Sorry, no more slots are available for this course!'
+        );
+    }
+
+    // Create enrollment
+    \App\Models\Enrollment_tbl::create([
+        'user_id'     => Auth::id(),
+        'course_id'   => $id,
+        'status'      => 'active',
+        'progress'    => 0,
+        'enrolled_at' => now(),
+    ]);
+
+    // Decrease available slots by 1
+    $course->decrement('available_slots');
+
+    // Successfully enrolled → go directly to homepage
+    return redirect()
+        ->route('homepage')
+        ->with(
+            'success',
+            'You have successfully enrolled in ' . $course->title . '!'
+        );
+}
 
     public function studentAnnouncements()
     {
@@ -1473,35 +1495,24 @@ public function dashboard()
 }
     // ── QUIZZES ───────────────────────────────────────────────────────────────
 
-public function storeQuiz(Request $request)
-{
-    $request->validate([
-        'course_id'     => 'required|exists:course_tbls,id',
-        'module_id'     => 'nullable|exists:modules,id',
-        'title'         => 'required|string|max:255',
-        'passing_score' => 'required|integer|min:1|max:100',
-        'time_limit'    => 'required|integer|min:1',
-        'quiz_type'     => 'required|in:regular,post_test',
-    ]);
+    public function storeQuiz(Request $request)
+    {
+        $request->validate([
+            'course_id'     => 'required|exists:course_tbls,id',
+            'module_id'     => 'nullable|exists:modules,id',
+            'title'         => 'required|string|max:255',
+            'passing_score' => 'required|integer|min:1|max:100',
+            'time_limit'    => 'required|integer|min:1',
+        ]);
 
-    $quiz = \App\Models\Quiz::create([
-        'course_id'     => $request->course_id,
-        'module_id'     => $request->quiz_type === 'post_test'
-                            ? null
-                            : $request->module_id,
-        'title'         => $request->title,
-        'passing_score' => $request->passing_score,
-        'time_limit'    => $request->time_limit,
-        'quiz_type'     => $request->quiz_type,
-    ]);
+        $quiz = \App\Models\Quiz::create($request->only(
+            'course_id', 'module_id', 'title', 'passing_score', 'time_limit'
+        ));
 
-    $quiz->load('module');
+        $quiz->load('module');
 
-    return response()->json([
-        'success' => true,
-        'quiz' => $quiz
-    ]);
-}
+        return response()->json(['success' => true, 'quiz' => $quiz]);
+    }
 
     public function destroyQuiz($id)
     {

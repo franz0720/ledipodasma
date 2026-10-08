@@ -158,16 +158,6 @@
       color: #fff;
     }
 
-    .mc-btn.outline {
-      background: #fff;
-      color: #025628;
-      border: 2px solid #025628;
-    }
-
-    .mc-btn.outline:hover {
-      background: #e8f5e9;
-    }
-
     /* ── MODALS ───────────────────────────────────────────────── */
     .mc-modal {
       display: none;
@@ -190,14 +180,6 @@
       overflow: hidden;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
       animation: mcModalIn 0.25s ease;
-    }
-
-    .mc-modal-content.wide {
-      max-width: 680px;
-      max-height: 90vh;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
     }
 
     @keyframes mcModalIn {
@@ -233,7 +215,7 @@
     .mc-close {
       font-size: 22px;
       color: #aaa;
-      ~cursor: pointer;
+      cursor: pointer;
       line-height: 1;
     }
 
@@ -307,31 +289,6 @@
       font-weight: 500;
     }
 
-    /* ── Content modal tabs ───────────────────────────────────── */
-    .mc-tabs {
-      display: flex;
-      border-bottom: 2px solid #e5e5e5;
-      margin-bottom: 16px;
-    }
-
-    .mc-tab-btn {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      background: none;
-      font-weight: 700;
-      font-size: 13px;
-      color: #aaa;
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    .mc-tab-btn.active {
-      color: #025628;
-      border-bottom: 2px solid #025628;
-      margin-bottom: -2px;
-    }
-
     /* Empty state */
     .mc-empty {
       text-align: center;
@@ -400,13 +357,10 @@
           </div>
 
           <div class="mc-btn-row">
-            <a href="{{ route('trainer.course.preview', $course->id) }}" class="mc-btn primary" style="text-decoration:none;">
+            <a href="{{ route('trainer.course.preview', $course->id) }}"
+              class="mc-btn primary" style="text-decoration:none;">
               Course Details
             </a>
-            <button class="mc-btn outline"
-              onclick="openContentModal({{ $course->id }}, '{{ addslashes($course->title) }}')">
-              <i class="fa fa-layer-group"></i> Modules
-            </button>
           </div>
         </div>
       </div>
@@ -419,9 +373,9 @@
 
   </div>
 
-  {{-- ============================================================
-     MODAL 1: Course Details (read-only)
-     ============================================================ --}}
+  {{-- ====
+      MODAL 1: Course Details (read-only)
+      ==== --}}
   <div id="courseDetailsModal" class="mc-modal">
     <div class="mc-modal-content">
       <div class="mc-modal-header">
@@ -436,15 +390,15 @@
             <div class="mc-detail-value" id="cd-title"></div>
           </div>
         </div>
-          <div class="mc-detail-row">
-            <div class="mc-detail-icon"><i class="fa fa-align-left"></i></div>
-            <div style="flex:1;">
-              <div class="mc-detail-label">Description</div>
-              <textarea id="cd-description-input" rows="3"
-                placeholder="Write a short description trainees will see"
-                style="width:100%;font-size:13px;color:#333;font-family:inherit;border:1px solid #ddd;border-radius:8px;padding:8px 10px;resize:vertical;margin-top:4px;"></textarea>
-            </div>
+        <div class="mc-detail-row">
+          <div class="mc-detail-icon"><i class="fa fa-align-left"></i></div>
+          <div style="flex:1;">
+            <div class="mc-detail-label">Description</div>
+            <textarea id="cd-description-input" rows="3"
+              placeholder="Write a short description trainees will see"
+              style="width:100%;font-size:13px;color:#333;font-family:inherit;border:1px solid #ddd;border-radius:8px;padding:8px 10px;resize:vertical;margin-top:4px;"></textarea>
           </div>
+        </div>
         <div class="mc-detail-row">
           <div class="mc-detail-icon"><i class="fa fa-tag"></i></div>
           <div>
@@ -498,9 +452,12 @@
     </div>
   </div>
 
-  {{-- ============================================================
-     MODAL 2: Modules & Quizzes (same as admin)
-     ============================================================ --}}
+  {{-- ====
+MODAL: Custom Alert Card (replaces native alert())
+      ==== --}}
+  <div id="mcAlertModal" class="mc-modal">
+MODAL 2: Modules & Quizzes (same as admin)
+     ==== --}}
   <div id="contentModal" class="mc-modal">
     <div class="mc-modal-content wide">
       <div class="mc-modal-header">
@@ -621,52 +578,27 @@
     </div>
   </div>
 
-  {{-- ============================================================
+  {{-- ====
      MODAL: Custom Confirm Card (replaces native confirm())
-     ============================================================ --}}
+     ==== --}}
   <div id="mcConfirmModal" class="mc-modal">
-    <div class="mc-modal-content" style="max-width:380px;">
+<div class="mc-modal-content" style="max-width:380px;">
       <div class="mc-modal-header">
-        <h3><i class="fa fa-triangle-exclamation"></i> Confirm</h3>
-        <span class="mc-close" onclick="closeConfirmModal()">&times;</span>
+        <h3><i class="fa fa-circle-info"></i> Notice</h3>
+        <span class="mc-close" onclick="closeAlertModal()">&times;</span>
       </div>
       <div class="mc-modal-body" style="text-align:center; padding:24px;">
-        <p id="mcConfirmMessage" style="font-size:14px; color:#333; margin:0;"></p>
+        <p id="mcAlertMessage" style="font-size:14px; color:#333; margin:0;">
+        </p>
       </div>
-      <div class="mc-modal-footer" style="justify-content:center; gap:10px;">
-        <button onclick="closeConfirmModal()"
-          style="background:#fff;color:#777;border:1px solid #ddd;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;">
-          Cancel
-        </button>
-        <button onclick="_confirmYes()"
-          style="background:#A32D2D;color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;">
-          Yes, Remove
+      <div class="mc-modal-footer" style="justify-content:center;">
+        <button onclick="closeAlertModal()"
+          style="background:#025628;color:#fff;border:none;border-radius:8px;padding:9px 24px;font-size:13px;font-weight:700;cursor:pointer;">
+          OK
         </button>
       </div>
     </div>
   </div>
-
-  {{-- ============================================================
-     MODAL: Custom Alert Card (replaces native alert())
-     ============================================================ --}}
-<div id="mcAlertModal" class="mc-modal">
-  <div class="mc-modal-content" style="max-width:380px;">
-    <div class="mc-modal-header">
-      <h3><i class="fa fa-circle-info"></i> Notice</h3>
-      <span class="mc-close" onclick="closeAlertModal()">&times;</span>
-    </div>
-    <div class="mc-modal-body" style="text-align:center; padding:24px;">
-      <p id="mcAlertMessage" style="font-size:14px; color:#333; margin:0;"></p>
-    </div>
-    <div class="mc-modal-footer" style="justify-content:center;">
-      <button onclick="closeAlertModal()"
-        style="background:#025628;color:#fff;border:none;border-radius:8px;padding:9px 24px;font-size:13px;font-weight:700;cursor:pointer;">
-        OK
-      </button>
-    </div>
-  </div>
-</div>
-
 @endsection
 
 @section('scripts')
@@ -674,13 +606,9 @@
     const csrfToken = document.querySelector('meta[name="csrf-token"]')
       .getAttribute('content');
 
-    // ── STATE ──────────────────────────────────────────────────────────────────
-    let _contentCourseId = null;
-    let _contentModules = [];
-    let _contentQuizzes = [];
-
     // ── COURSE DETAILS MODAL ───────────────────────────────────────────────────
-    function openCourseDetails(id, title, description, duration, slots, schedule, location, sector, status) {
+    function openCourseDetails(id, title, description, duration, slots, schedule,
+      location, sector, status) {
       document.getElementById('cd-title').textContent = title;
       document.getElementById('cd-description-input').value = description || '';
       document.getElementById('cd-sector').textContent = sector || '—';
@@ -694,8 +622,9 @@
       window._currentDetailsCourseId = id;
     }
 
-      function saveDescription() {
-      const newDescription = document.getElementById('cd-description-input').value;
+    function saveDescription() {
+      const newDescription = document.getElementById('cd-description-input')
+      .value;
       const courseId = window._currentDetailsCourseId;
 
       fetch(`/trainer/course/${courseId}/description`, {
@@ -704,14 +633,16 @@
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': csrfToken
           },
-          body: JSON.stringify({ description: newDescription })
+          body: JSON.stringify({
+            description: newDescription
+          })
         })
         .then(r => r.json())
         .then(data => {
-      if (data.success) {
-        showAlert('Description updated!');
-        closeCourseDetails();
-      }
+          if (data.success) {
+            showAlert('Description updated!');
+            closeCourseDetails();
+          }
         })
         .catch(() => showAlert('Something went wrong. Please try again.'));
     }
@@ -720,45 +651,16 @@
       document.getElementById('courseDetailsModal').style.display = 'none';
     }
 
-    // ── CONTENT MODAL (Modules & Quizzes) ─────────────────────────────────────
-    function openContentModal(courseId, courseTitle) {
-      _contentCourseId = courseId;
-      document.getElementById('contentModalCourseTitle').textContent =
-      courseTitle;
-      document.getElementById('contentModal').style.display = 'block';
-      switchContentTab('modules');
-      fetchCourseContent(courseId);
-    }
-
     function showAlert(message) {
       document.getElementById('mcAlertMessage').textContent = message;
       document.getElementById('mcAlertModal').style.display = 'block';
-    }
-
-    let _confirmCallback = null;
-
-    function showConfirm(message, onYes) {
-      document.getElementById('mcConfirmMessage').textContent = message;
-      _confirmCallback = onYes;
-      document.getElementById('mcConfirmModal').style.display = 'block';
-    }
-
-    function closeConfirmModal() {
-      document.getElementById('mcConfirmModal').style.display = 'none';
-      _confirmCallback = null;
-    }
-
-    function _confirmYes() {
-      const cb = _confirmCallback;
-      closeConfirmModal();
-      if (cb) cb();
     }
 
     function closeAlertModal() {
       document.getElementById('mcAlertModal').style.display = 'none';
     }
 
-    function closeContentModal() {
+function closeContentModal() {
       document.getElementById('contentModal').style.display = 'none';
       _contentCourseId = null;
       _contentModules = [];
@@ -1141,10 +1043,9 @@
       return div.innerHTML;
     }
 
-    // ── CLOSE ON OUTSIDE CLICK ─────────────────────────────────────────────────
+// ── CLOSE ON OUTSIDE CLICK ─────────────────────────────────────────────────
     window.addEventListener('click', function(e) {
       if (e.target.id === 'courseDetailsModal') closeCourseDetails();
-      if (e.target.id === 'contentModal') closeContentModal();
     });
   </script>
 @endsection
