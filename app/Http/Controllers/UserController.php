@@ -114,12 +114,13 @@ class UserController extends Controller
         }
 
         // Role-based routing
-        return match ($user->role) {
-            'student' => redirect()->route('homepage'),
-            'trainer' => redirect()->route('teacher'),
-            'admin'   => redirect()->route('admin1'),
-            default   => $this->logoutInvalidUser(),
-        };
+    return match ($user->role) {
+        'student'     => redirect()->route('homepage'),
+        'trainer'     => redirect()->route('teacher'),
+        'admin'       => redirect()->route('admin1'),
+        'super_admin' => redirect()->route('superadmin.dashboard'),
+        default       => $this->logoutInvalidUser(),
+    };
     }
 
     /**

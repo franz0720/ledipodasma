@@ -117,6 +117,16 @@ Route::middleware("admin")->group(function () {
     Route::patch('/admin/certificate/{id}/toggle-status', [CertificateController::class, 'toggleStatus'])->name('admin.certificate.toggle-status');
 });
 
+// ── SUPERADMIN ROUTES ───────────────────────────────────
+
+Route::middleware("super_admin")->group(function () {
+
+    Route::get('/superadmin', function () {
+        return view('superadmin.dashboard');
+    })->name('superadmin.dashboard');
+
+});
+
 // ── TRAINER ROUTES ────────────────────────────────────────────────────────────
     Route::middleware("trainer")->group(function () {
     Route::get("/teacher", [UserController::class, "teacher"])->name("teacher");
