@@ -535,41 +535,39 @@ as a base64 PNG in the hidden field `signature_data`.
             <span class="num">4</span>
             <h2>Learner / Trainee / Student (Clients) Classification <span class="optional">(optional)</span></h2>
           </div>
-          @php
-          $previousClassifications = $previousRegistration?->classification ?? [];
+        @php
+            $previousClassifications = $previousRegistration?->classification ?? [];
 
-          if (is_string($previousClassifications)) {
-              $previousClassifications = json_decode($previousClassifications, true) ?? [];
-          }
+            if (is_string($previousClassifications)) {
+                $previousClassifications = json_decode($previousClassifications, true) ?? [];
+            }
 
-          $classifications = [
-          @php
             $classifications = [
-            '4Ps Beneficiary',
-            'Agrarian Reform Beneficiary',
-            'Balik Probinsya',
-            'Displaced Workers',
-            'Drug Dependents Surrenderees/Surrenderers',
-            'Family Members of AFP and PNP Wounded-in-Action',
-            'Family Members of AFP and PNP Killed-in-Action',
-            'Farmers and Fishermen',
-            'Indigenous People & Cultural Communities',
-            'Industry Workers',
-            'Inmates and Detainees',
-            'MILF Beneficiary',
-            'Out-of-School Youth',
-            'Overseas Filipino Workers (OFW) Dependents',
-            'RCEF-RESP',
-            'Rebel Returnees/Decommissioned Combatants',
-            'Returning/Repatriated OFW',
-            'Student',
-            'TESDA Alumni',
-            'TVET Trainers',
-            'Uniformed Personnel',
-            'Victim of Natural Disasters and Calamities',
-            'Wounded-in-Action AFP & PNP Personnel',
+                '4Ps Beneficiary',
+                'Agrarian Reform Beneficiary',
+                'Balik Probinsya',
+                'Displaced Workers',
+                'Drug Dependents Surrenderees/Surrenderers',
+                'Family Members of AFP and PNP Wounded-in-Action',
+                'Family Members of AFP and PNP Killed-in-Action',
+                'Farmers and Fishermen',
+                'Indigenous People & Cultural Communities',
+                'Industry Workers',
+                'Inmates and Detainees',
+                'MILF Beneficiary',
+                'Out-of-School Youth',
+                'Overseas Filipino Workers (OFW) Dependents',
+                'RCEF-RESP',
+                'Rebel Returnees/Decommissioned Combatants',
+                'Returning/Repatriated OFW',
+                'Student',
+                'TESDA Alumni',
+                'TVET Trainers',
+                'Uniformed Personnel',
+                'Victim of Natural Disasters and Calamities',
+                'Wounded-in-Action AFP & PNP Personnel',
             ];
-          @endphp
+        @endphp
           <div class="check-grid">
             @foreach ($classifications as $i => $c)
               <label class="choice">
