@@ -115,13 +115,12 @@ class UserController extends Controller
         }
 
         // Role-based routing
-    return match ($user->role) {
-        'student'     => redirect()->route('homepage'),
-        'trainer'     => redirect()->route('teacher'),
-        'admin'       => redirect()->route('admin1'),
-        'super_admin' => redirect()->route('superadmin.dashboard'),
-        default       => $this->logoutInvalidUser(),
-    };
+        return match ($user->role) {
+            'student' => redirect()->route('homepage'),
+            'trainer' => redirect()->route('teacher'),
+            'admin'   => redirect()->route('admin1'),
+            default   => $this->logoutInvalidUser(),
+        };
     }
 
     /**
@@ -1182,6 +1181,7 @@ public function ResetPassword(Request $request)
         );
     }
 
+
     // Check if the student is already enrolled in this course
     $existing = \App\Models\Enrollment_tbl::where('user_id', Auth::id())
         ->where('course_id', $id)
@@ -1513,6 +1513,121 @@ public function dashboard()
 
         return response()->json(['success' => true, 'quiz' => $quiz]);
     }
+    
+
+    
+public function editQuiz($id)
+{
+    $quiz = \App\Models\Quiz::with([
+        'questions',
+        'module'
+    ])->findOrFail($id);
+
+    return response()->json([
+        'success' => true,
+        'quiz' => $quiz
+    ]);
+}
+
+public function updateQuiz(Request $request, $id)
+{
+    $quiz = Quiz::findOrFail($id);
+
+    $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'course_id' => 'sometimes|required|exists:course_tbls,id',
+        'module_id' => 'nullable|exists:modules,id',
+        'passing_score' => 'required|integer|min:1|max:100',
+        'time_limit' => 'required|integer|min:1',
+        'instructions' => 'nullable|string',
+
+        'questions' => 'required|array|min:1',
+        'questions.*.text' => 'required|string',
+        'questions.*.type' => 'required|in:multiple_choice,checkboxes,short_answer,paragraph',
+        'questions.*.options' => 'nullable|array',
+        'questions.*.options.*' => 'nullable|string',
+        'questions.*.correctAnswers' => 'nullable|array',
+        'questions.*.correctAnswers.*' => 'nullable',
+        'questions.*.points' => 'nullable|integer|min:0',
+        'questions.*.feedback' => 'nullable|string',
+        'questions.*.required' => 'nullable|boolean',
+    ]);
+
+    DB::transaction(function () use ($validated, $quiz) {
+
+        $quiz->title = $validated['title'];
+
+        if (array_key_exists('course_id', $validated)) {
+            $quiz->course_id = $validated['course_id'];
+        }
+
+        $quiz->module_id = $validated['module_id'] ?? null;
+        $quiz->passing_score = $validated['passing_score'];
+        $quiz->time_limit = $validated['time_limit'];
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn(
+            $quiz->getTable(),
+            'instructions'
+        )) {
+            $quiz->instructions = $validated['instructions'] ?? null;
+        }
+
+        $quiz->save();
+
+        // Replace existing questions with the submitted questions.
+        $quiz->questions()->delete();
+
+        foreach ($validated['questions'] as $index => $data) {
+
+            $options = array_values(array_filter(
+                array_map(
+                    fn ($value) => is_scalar($value) ? (string) $value : '',
+                    $data['options'] ?? []
+                ),
+                fn ($value) => $value !== ''
+            ));
+
+            // Normalize correct answers to strings.
+            $correctAnswers = array_values(array_filter(
+                array_map(
+                    fn ($value) => is_scalar($value) ? (string) $value : '',
+                    $data['correctAnswers'] ?? []
+                ),
+                fn ($value) => $value !== ''
+            ));
+
+            $question = new QuizQuestion();
+
+            $question->quiz_id = $quiz->id;
+            $question->question = $data['text'];
+            $question->question_type = $data['type'];
+            $question->options = $options;
+            $question->correct_answers = $correctAnswers;
+            $question->points = $data['points'] ?? 1;
+            $question->feedback = $data['feedback'] ?? null;
+            $question->required = $data['required'] ?? false;
+            $question->order = $index + 1;
+
+            // Preserve compatibility with existing multiple-choice fields.
+            $question->choice_a = $options[0] ?? null;
+            $question->choice_b = $options[1] ?? null;
+            $question->choice_c = $options[2] ?? null;
+            $question->choice_d = $options[3] ?? null;
+            $question->correct_answer = $correctAnswers[0] ?? null;
+
+            $question->save();
+        }
+    });
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Quiz updated successfully.',
+        'quiz' => $quiz->fresh(['questions', 'module']),
+    ]);
+}
+
+
+
 
     public function destroyQuiz($id)
     {
@@ -2297,20 +2412,36 @@ private function validateAnnouncement(Request $request): array
     }
 
         public function trainerCoursePreview($id)
-    {
-        $trainer = Auth::user();
+{
+    $trainer = Auth::user();
 
-        $course = Course_tbl::where('id', $id)
-                    ->where('trainer_id', $trainer->id)
-                    ->firstOrFail();
+    // Get the course owned by the logged-in trainer
+    $course = Course_tbl::where('id', $id)
+        ->where('trainer_id', $trainer->id)
+        ->firstOrFail();
 
-        $modules = \App\Models\Module::where('course_id', $course->id)
-                        ->active()
-                        ->ordered()
-                        ->get();
+    // Get the course modules
+    $modules = \App\Models\Module::where('course_id', $course->id)
+        ->active()
+        ->ordered()
+        ->get();
 
-        return view('trainer.course_preview', compact('course', 'modules'));
-    }
+    // Get all onsite activities created for this course
+    $onsiteActivities = \App\Models\OnsiteActivity::where(
+        'course_id',
+        $course->id
+    )
+        ->orderByDesc('activity_date')
+        ->orderByDesc('id')
+        ->get();
+
+    // Pass all required data to the Blade view
+    return view('trainer.course_preview', compact(
+        'course',
+        'modules',
+        'onsiteActivities'
+    ));
+}
 
     public function updateCourseObjectives(Request $request, $id)
     {

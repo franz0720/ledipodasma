@@ -1,39 +1,52 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
+
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <meta name="csrf-token" content="{{ csrf_token() }}">
+
   <title>@yield('title', 'Dasmariñas Training')</title>
 
   <link rel="stylesheet" href="{{ asset('stylesheet/homepage.css') }}">
+
   <link rel="stylesheet" href="{{ asset('stylesheet/layout.css') }}">
+
   <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
     integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <link
     href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Montserrat:wght@400;600;700;800;900&family=Poppins:wght@600;700;800&display=swap"
     rel="stylesheet">
+
   <link
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
     rel="stylesheet"
     integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
     crossorigin="anonymous">
+
   <!-- Tab Icon -->
+
   <link rel="icon" type="image/png"
     href="{{ asset('images/logo_ledipo.png') }}">
 
   @yield('css')
 
   <style>
-    /* =
-           LOGGED-IN PROFILE AVATAR / DROPDOWN
-           Matches the student homepage profile-circle design
-           = */
+    /* =========================================================
+      LOGGED-IN PROFILE AVATAR / DROPDOWN
+      Matches the student homepage profile-circle design
+      ========================================================= */
     .landing-profile {
       position: relative;
       display: flex;
@@ -166,7 +179,7 @@
       padding: 8px 15px;
     }
 
-    /* ── SIDEBAR INDEX STYLES ──────────────────────────── */
+    /* ── SIDEBAR INDEX STYLES ────────────────────────────────────── */
     .sidebar-index-title {
       font-size: 10px;
       font-weight: 700;
@@ -215,7 +228,74 @@
       color: #025628;
     }
 
-    /* ── PRE-TEST & POST-TEST MODAL STYLES ──────────────────── */
+    .index-item {
+      border-radius: 8px;
+      transition: background .18s ease;
+    }
+
+    .index-item:hover,
+    .index-item.active {
+      background: #eaf5ee;
+    }
+
+    .index-item>span {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .index-item>span .fa {
+      width: 15px;
+      text-align: center;
+    }
+
+    .index-chevron {
+      font-size: 10px;
+      transition: transform .18s ease;
+    }
+
+    .index-item[aria-expanded="true"] .index-chevron {
+      transform: rotate(180deg);
+    }
+
+    .index-sub-menu {
+      padding: 5px 0 8px 16px;
+    }
+
+    .index-sub-link {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      padding: 7px 9px;
+      margin: 1px 6px 1px 0;
+      border-radius: 7px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .index-sub-link .fa {
+      flex: 0 0 13px;
+      margin-top: 2px;
+      font-size: 11px;
+    }
+
+    .index-sub-link:hover,
+    .index-sub-link.active {
+      background: #eaf5ee;
+      color: #025628;
+    }
+
+    .index-quiz-link {
+      font-size: 10px;
+      padding-left: 16px;
+    }
+
+    .index-empty {
+      cursor: default;
+      font-style: italic;
+    }
+
+    /* ── MODAL STYLES ────────────────────────────────────── */
     .pretest-modal-overlay {
       display: none;
       position: fixed;
@@ -365,7 +445,6 @@
       color: #ffffff;
     }
 
-    /* ── A4 LANDSCAPE CERTIFICATE MODAL ─────────────────── */
     .a4-cert-modal-wrapper {
       display: none;
       position: fixed;
@@ -383,32 +462,16 @@
     }
 
     .a4-cert-container {
-      box-shadow: none !important;
-      width: 100% !important;
-      max-width: 100% !important;
-    }
-
-    .a4-cert-sheet {
-      width: 100% !important;
-      height: 100vh !important;
-      padding: 20mm 25mm !important;
-    }
-
-    @page {
-      size: A4 landscape;
-      margin: 0;
-    }
-    }
-
-    /* ==
-   STUDENT NOTIFICATION BELL
-   == */
-    .notification-wrapper {
+      width: 780px;
+      max-width: 95vw;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
       position: relative;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      flex-shrink: 0;
-      margin-right: 10px;
+      overflow: hidden;
     }
 
     .a4-cert-sheet {
@@ -679,332 +742,8 @@
         margin: 0;
       }
     }
-
-    /* ==
-   STUDENT NOTIFICATION BELL
-   == */
-    .notification-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-      flex-shrink: 0;
-      margin-right: 10px;
-    }
-
-    .notification-btn {
-      position: relative;
-      width: 42px;
-      height: 42px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: none;
-      background: transparent;
-      color: #ffffff;
-      font-size: 18px;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .notification-btn:hover {
-      background: rgba(2, 86, 40, 0.08);
-    }
-
-    .notification-badge {
-      position: absolute;
-      top: 0;
-      right: -1px;
-      min-width: 17px;
-      height: 17px;
-      padding: 0 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 20px;
-      background: #D4D120;
-      color: #025628;
-      border: 2px solid #ffffff;
-      font-size: 9px;
-      font-weight: 800;
-    }
-
-    /* ==
-   NOTIFICATION DROPDOWN
-   == */
-    .notification-dropdown {
-      position: absolute;
-      top: calc(100% + 12px);
-      right: 0;
-      width: 360px;
-      max-width: calc(100vw - 24px);
-      background: #ffffff;
-      border-radius: 14px;
-      box-shadow:
-        0 14px 35px rgba(0, 0, 0, 0.18),
-        0 3px 10px rgba(0, 0, 0, 0.08);
-      border: 1px solid #e7e7e7;
-      overflow: hidden;
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(-8px);
-      transition:
-        opacity 0.2s ease,
-        transform 0.2s ease,
-        visibility 0.2s ease;
-      z-index: 2000;
-    }
-
-    .notification-dropdown.open {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-    }
-
-    .notification-header {
-      padding: 17px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .notification-header h3 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 800;
-      color: #025628;
-    }
-
-    .notification-header span {
-      display: block;
-      margin-top: 3px;
-      font-size: 11px;
-      color: #777;
-    }
-
-    .notification-header-icon {
-      font-size: 18px;
-      color: #025628;
-    }
-
-    .notification-divider {
-      height: 1px;
-      background: #eeeeee;
-    }
-
-    /* ==
-   NOTIFICATION ITEMS
-   == */
-    .notification-list {
-      max-height: 350px;
-      overflow-y: auto;
-    }
-
-    .notification-item {
-      display: flex;
-      gap: 12px;
-      padding: 14px 16px;
-      border-bottom: 1px solid #f0f0f0;
-      transition: background 0.2s ease;
-    }
-
-    .notification-item:hover {
-      background: #f8faf8;
-    }
-
-    /* ==
-   READ / UNREAD VISUAL STATE
-   == */
-    .notification-item.notification-unread {
-      background: #f3faf6;
-      box-shadow: inset 4px 0 0 #025628;
-    }
-
-    .notification-item.notification-unread .notification-item-title {
-      font-weight: 900;
-      color: #025628;
-    }
-
-    .notification-item:not(.notification-unread) .notification-item-title {
-      font-weight: 500;
-      color: #555;
-    }
-
-    .notification-item:not(.notification-unread) .notification-item-message {
-      color: #888;
-    }
-
-    .notification-item:not(.notification-unread) .notification-item-icon {
-      opacity: 0.65;
-    }
-
-    .notification-item:last-child {
-      border-bottom: none;
-    }
-
-    .notification-item-icon {
-      flex: 0 0 36px;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #e6f4eb;
-      color: #025628;
-      font-size: 14px;
-    }
-
-    .notification-type-urgent {
-      background: #fff0f0;
-      color: #c62828;
-    }
-
-    .notification-type-reminder {
-      background: #fff8df;
-      color: #8a6d00;
-    }
-
-    .notification-item-content {
-      min-width: 0;
-      flex: 1;
-    }
-
-    .notification-item-title {
-      font-size: 13px;
-      font-weight: 500;
-      color: #222;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .notification-item-message {
-      margin-top: 3px;
-      font-size: 12px;
-      line-height: 1.45;
-      color: #666;
-    }
-
-    .notification-item-meta {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 7px;
-      font-size: 10px;
-      color: #8a8a8a;
-    }
-
-    /* ==
-   EMPTY STATE
-   == */
-    .notification-empty {
-      padding: 35px 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-
-    .notification-empty-icon {
-      width: 48px;
-      height: 48px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      background: #f1f5f2;
-      color: #777;
-      font-size: 18px;
-    }
-
-    .notification-empty strong {
-      font-size: 13px;
-      color: #333;
-    }
-
-    .notification-empty span {
-      margin-top: 4px;
-      font-size: 11px;
-      color: #888;
-    }
-
-    /* ==
-   FOOTER
-   == */
-    .notification-footer {
-      padding: 12px 16px;
-      border-top: 1px solid #eeeeee;
-      background: #fafafa;
-      text-align: center;
-    }
-
-    .notification-footer a {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      color: #025628;
-      font-size: 12px;
-      font-weight: 800;
-      text-decoration: none;
-    }
-
-    .notification-footer a:hover {
-      text-decoration: underline;
-    }
-
-    .notification-footer i {
-      font-size: 10px;
-    }
-
-    /* ==
-   TOPBAR ALIGNMENT
-   == */
-    .topbar-right {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      flex-wrap: nowrap;
-    }
-
-    .topbar-right .avatar-btn {
-      flex-shrink: 0;
-    }
-
-    /* Keep profile dropdown anchored to the right */
-    .topbar-right .dropdown {
-      position: absolute !important;
-      top: calc(100% + 10px) !important;
-      right: 0 !important;
-      left: auto !important;
-      margin: 0 !important;
-      z-index: 3000 !important;
-    }
-
-    /* ==
-   MOBILE
-   == */
-    @media (max-width: 600px) {
-      .notification-dropdown {
-        position: fixed;
-        top: 70px;
-        right: 10px;
-        left: 10px;
-        width: auto;
-        max-width: none;
-      }
-
-      .notification-item.notification-unread {
-        background: #f7fbf8;
-      }
-
-      .notification-item.notification-unread .notification-item-title {
-        font-weight: 800;
-      }
-    }
   </style>
+
 </head>
 
 <body>
@@ -1012,404 +751,143 @@
   <nav class="topbar">
 
     <div class="topbar-left">
+
       <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">
+
         <span></span>
+
         <span></span>
+
         <span></span>
+
       </button>
 
       <a href="{{ route('homepage') }}" class="topbar-brand">
+
         <img src="{{ asset('images/logo.png') }}" alt="logo"
           class="topbar-logo">
+
         <span>LEDIPO</span>
-        </a>
-        <a href="{{ route('homepage') }}" class="topbar-brand">
-          <img src="{{ asset('images/logo.png') }}" alt="logo"
-            class="topbar-logo">
-          <span>LEDIPO</span>
-        </a>
+
+      </a>
+
     </div>
 
     <div class="topbar-right">
 
-      <!-- Notification Bell -->
-      <div class="notification-wrapper" id="notificationWrapper">
+      {{-- Updated Profile Trigger & Container --}}
 
-        <button type="button" class="notification-btn" id="notificationBtn"
-          aria-label="Open notifications" aria-expanded="false">
+      <div class="landing-profile">
 
-          <i class="fa-solid fa-bell"></i>
+        <button class="landing-avatar-btn" id="avatarBtn"
+          aria-label="Open profile menu">
 
-          @php
-            // Student receives General and Student announcements.
-            $notificationAllAnnouncements = \App\Models\Announcement::where(
-                'is_active',
-                1,
-            )
-                ->whereIn('audience', ['general', 'student'])
-                ->latest()
-                ->get();
-
-            // Read announcements for the currently logged-in Student.
-            $notificationReadIds = \DB::table('announcement_reads')
-                ->where('user_id', \Auth::id())
-                ->whereIn(
-                    'announcement_id',
-                    $notificationAllAnnouncements->pluck('id'),
-                )
-                ->pluck('announcement_id')
-                ->toArray();
-
-            /*
-    |--------------------------------------------------------------------------
-    | Student Notification Dropdown
-    |--------------------------------------------------------------------------
-    | Show the latest 5 announcements PLUS any older unread
-    | announcements so unread notifications are never hidden.
-    |--------------------------------------------------------------------------
-    */
-
-            $notificationLatest = $notificationAllAnnouncements->take(5);
-
-            $notificationUnread = $notificationAllAnnouncements->whereNotIn(
-                'id',
-                $notificationReadIds,
-            );
-
-            $notificationAnnouncements = $notificationLatest
-                ->concat($notificationUnread)
-                ->unique('id')
-                ->sortByDesc('created_at')
-                ->values();
-
-            $notificationCount = $notificationUnread->count();
-          @endphp
-
-          @if ($notificationCount > 0)
-            <span class="notification-badge">
-              {{ $notificationCount > 99 ? '99+' : $notificationCount }}
-            </span>
-          @endif
+          {{ strtoupper(substr(Auth::user()->firstname ?? 'M', 0, 1)) }}{{ strtoupper(substr(Auth::user()->lastname ?? 'B', 0, 1)) }}
 
         </button>
 
-        <!-- Notification Dropdown -->
-        <div class="notification-dropdown" id="notificationDropdown">
+        <div class="landing-profile-dropdown" id="dropdown">
 
-          <div class="notification-header">
-            <div>
-              <h3>Notifications</h3>
+          <div class="landing-dropdown-header">
 
-              <span>
-                {{ $notificationCount }} unread
-                notification{{ $notificationCount != 1 ? 's' : '' }}
-              </span>
+            <div class="landing-dd-avatar">
+
+              {{ strtoupper(substr(Auth::user()->firstname ?? 'M', 0, 1)) }}{{ strtoupper(substr(Auth::user()->lastname ?? 'B', 0, 1)) }}
+
             </div>
 
-            <i class="fa-solid fa-bell notification-header-icon"></i>
-          </div>
+            <div class="landing-user-info">
 
-          <div class="notification-divider"></div>
+              <div class="landing-dh-name">
 
-          <div class="notification-list">
+                {{ Auth::user()->firstname ?? 'Student' }}
 
-            @forelse($notificationAnnouncements as $announcement)
-              <div
-                class="notification-item {{ in_array($announcement->id, $notificationReadIds, true) ? '' : 'notification-unread' }}"
-                data-announcement-id="{{ $announcement->id }}" role="button"
-                tabindex="0">
+                {{ Auth::user()->lastname ?? '' }}</div>
 
-                <div
-                  class="notification-item-icon
-                            notification-type-{{ strtolower($announcement->type) }}">
+              <div class="landing-dh-role">
 
-                  @if (strtolower($announcement->type) === 'urgent')
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                  @elseif(strtolower($announcement->type) === 'reminder')
-                    <i class="fa-solid fa-clock"></i>
-                  @else
-                    <i class="fa-solid fa-bell"></i>
-                  @endif
-
-                </div>
-
-                <div class="notification-item-content">
-
-                  <div class="notification-item-title">
-                    {{ $announcement->title }}
-                  </div>
-
-                  <div class="notification-item-message">
-                    {{ \Illuminate\Support\Str::limit($announcement->message, 75) }}
-                  </div>
-
-                  <div class="notification-item-meta">
-                    <span>
-                      {{ ucfirst($announcement->type) }}
-                    </span>
-
-                    <span>•</span>
-
-                    <span>
-                      {{ $announcement->created_at?->diffForHumans() }}
-                    </span>
-                  </div>
-
-                </div>
+                {{ ucfirst(Auth::user()->role ?? 'Student') }}
 
               </div>
 
-            @empty
-
-              <div class="notification-empty">
-
-                <div class="notification-empty-icon">
-                  <i class="fa-regular fa-bell-slash"></i>
-                </div>
-
-                <strong>No notifications</strong>
-
-                <span>
-                  You're all caught up.
-                </span>
-
-              </div>
-            @endforelse
+            </div>
 
           </div>
 
-          <div class="notification-footer">
+          <div class="dd-items">
 
-            <a
-              href="{{ Route::has('student.announcements') ? route('student.announcements') : '/student/announcements' }}">
+            <a href="{{ Route::has('student.profile') ? route('student.profile') : '#' }}"
+              class="dd-item">
 
-              View All Announcements
+              <i class="fa fa-user dd-icon"></i>
 
-              <i class="fa-solid fa-arrow-right"></i>
+              Profile
 
             </a>
 
-          </div>
+            <a href="{{ Route::has('homepage') ? route('homepage') : url('/homepage') }}"
+              class="dd-item">
 
-        </div>
+              <i class="fa fa-gauge-high dd-icon"></i>
 
-      </div>
+              Dashboard
 
-      <!-- Student Profile -->
-      <button class="avatar-btn" id="avatarBtn" aria-label="Open profile menu">
+            </a>
 
-        {{ strtoupper(substr(Auth::user()->firstname ?? 'M', 0, 1)) }}{{ strtoupper(substr(Auth::user()->lastname ?? 'B', 0, 1)) }}
+            <a href="{{ url('/') }}" class="dd-item">
 
-      </button>
+              <i class="fa fa-house dd-icon"></i>
 
-      <div class="dropdown" id="dropdown">
+              Home
 
-        <div class="dropdown-header">
-
-          <div class="dd-avatar">
-
-            {{ strtoupper(substr(Auth::user()->firstname ?? 'M', 0, 1)) }}{{ strtoupper(substr(Auth::user()->lastname ?? 'B', 0, 1)) }}
-
-          </div>
-
-          <div>
-
-            <div class="dh-name">
-              {{ Auth::user()->firstname ?? 'Student' }}
-              {{ Auth::user()->lastname ?? '' }}
-            </div>
-
-            <div class="dh-role">
-              {{ ucfirst(Auth::user()->role ?? 'Student') }}
-            </div>
-
-          </div>
-
-        </div>
-
-        <div class="dd-items">
-
-          <a href="{{ Route::has('student.profile') ? route('student.profile') : '#' }}"
-            class="dd-item">
-
-            <i class="fa fa-user dd-icon"></i>
-
-            Profile
-
-          </a>
-
-          <div class="dd-divider"></div>
-
-          <a href="#" class="dd-item dd-logout"
-            onclick="event.preventDefault(); openLogoutModal();">
-
-            <i class="fa fa-right-from-bracket dd-icon"></i>
-
-            Log out
-
-          </a>
-
-        </div>
-
-        <form id="logout-form"
-          action="{{ Route::has('Logout') ? route('Logout') : '#' }}"
-          method="POST" style="display:none;">
-
-          @csrf
-
-        </form>
-
-      </div>
-
-    </div>
-  </nav>
-
-  <div id="logoutModal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <p>Are you sure you want to log out?</p>
-
-      <div class="modal-actions-centered">
-        <button onclick="confirmLogout()" class="btn-modal-yes">Yes</button>
-        <button onclick="closeLogoutModal()"
-          class="btn-modal-no">Cancel</button>
-      </div>
-    </div>
-    </div>
-
-  <div class="topbar-right">
-    {{-- Updated Profile Trigger & Container --}}
-    <div class="landing-profile">
-      <button class="landing-avatar-btn" id="avatarBtn"
-        aria-label="Open profile menu">
-        {{ strtoupper(substr(Auth::user()->firstname ?? 'M', 0, 1)) }}{{ strtoupper(substr(Auth::user()->lastname ?? 'B', 0, 1)) }}
-      </button>
-
-      <div class="landing-profile-dropdown" id="dropdown">
-        <div class="landing-dropdown-header">
-          <div class="landing-dd-avatar">
-            {{ strtoupper(substr(Auth::user()->firstname ?? 'M', 0, 1)) }}{{ strtoupper(substr(Auth::user()->lastname ?? 'B', 0, 1)) }}
-          </div>
-          <div class="landing-user-info">
-            <div class="landing-dh-name">
-              {{ Auth::user()->firstname ?? 'Student' }}
-              {{ Auth::user()->lastname ?? '' }}</div>
-            <div class="landing-dh-role">
-              {{ ucfirst(Auth::user()->role ?? 'Student') }}</div>
-          </div>
-        </div>
-
-        <div class="dd-items">
-
-          <a href="{{ Route::has('student.profile') ? route('student.profile') : '#' }}"
-            class="dd-item">
-            <i class="fa fa-user dd-icon"></i>
-            Profile
-          </a>
-
-          <a href="{{ Route::has('homepage') ? route('homepage') : url('/homepage') }}"
-            class="dd-item">
-            <i class="fa fa-gauge-high dd-icon"></i>
-            Dashboard
-          </a>
-
-          <a href="{{ url('/') }}" class="dd-item">
-            <i class="fa fa-house dd-icon"></i>
-            Home
-            {{-- ── INDEX DROPDOWN MENU ── --}}
-            @if (isset($unitNumbers) && $unitNumbers->isNotEmpty())
-              <div id="sidebarIndexMenu">
-                <div class="sidebar-index-title">INDEX</div>
-
-                {{-- Introduction --}}
-                <div class="index-item"
-                  onclick="toggleSubMenu('introSub'); if(typeof showIntroScreen === 'function') showIntroScreen();">
-                  <span>Introduction</span>
-                  <i class="fa fa-chevron-down" style="font-size:10px;"></i>
-                </div>
-                <div class="index-sub-menu show" id="introSub">
-                  <span
-                    onclick="if(typeof showIntroScreen === 'function') showIntroScreen()"
-                    class="index-sub-link active">• Welcome & Course
-                    Overview</span>
-                </div>
-
-                {{-- Real Units --}}
-                @foreach ($unitNumbers as $unitNum)
-                  <div class="index-item"
-                    onclick="toggleSubMenu('unit{{ $unitNum }}Sub'); if(typeof showUnitScreen === 'function') showUnitScreen({{ $unitNum }});">
-                    <span>Unit {{ $unitNum }}</span>
-                    <i class="fa fa-chevron-down" style="font-size:10px;"></i>
-                  </div>
-                  <div class="index-sub-menu"
-                    id="unit{{ $unitNum }}Sub">
-                    @foreach ($modules->where('unit_number', $unitNum) as $module)
-                      <span class="index-sub-link"
-                        onclick="showUnitScreen({{ $unitNum }}); setTimeout(() => document.getElementById('module-{{ $module->id }}')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);">
-                        • {{ $module->title }}
-                      </span>
-                    @endforeach
-                  </div>
-                @endforeach
-
-                {{-- Completion --}}
-                <div class="index-item"
-                  onclick="toggleSubMenu('completionSub'); if(typeof showCompletionScreen === 'function') showCompletionScreen();">
-                  <span>Completion</span>
-                  <i class="fa fa-chevron-down" style="font-size:10px;"></i>
-                </div>
-                <div class="index-sub-menu" id="completionSub">
-                  <span class="index-sub-link"
-                    onclick="showCompletionScreen(); setTimeout(() => document.getElementById('post-test-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);">
-                    • Post-Test
-                  </span>
-
-                  <span class="index-sub-link"
-                    onclick="showCompletionScreen(); setTimeout(() => document.getElementById('hands-on-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);">
-                    • Hands-On Evaluation
-                  </span>
-
-                  <span class="index-sub-link"
-                    onclick="showCompletionScreen(); setTimeout(() => document.getElementById('certificate-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);">
-                    • Certificate
-                  </span>
-                </div>
-              </div>
-            @endif
-
-            <a href="{{ Route::has('student.announcements') ? route('student.announcements') : '/student/announcements' }}"
-              class="nav-item {{ request()->routeIs('student.announcements') ? 'active' : '' }}">
-              <span>Announcement</span>
-              </a>
+            </a>
 
             <div class="dd-divider"></div>
 
             <a href="#" class="dd-item dd-logout"
               onclick="event.preventDefault(); openLogoutModal();">
+
               <i class="fa fa-right-from-bracket dd-icon"></i>
+
               Log out
+
             </a>
+
+          </div>
+
+          <form id="logout-form"
+            action="{{ Route::has('Logout') ? route('Logout') : '#' }}"
+            method="POST" style="display:none;">
+
+            @csrf
+
+          </form>
+
         </div>
 
-        <form id="logout-form"
-          action="{{ Route::has('Logout') ? route('Logout') : '#' }}"
-          method="POST" style="display:none;">
-          @csrf
-        </form>
       </div>
+
     </div>
-  </div>
+
   </nav>
 
   <div id="logoutModal" class="modal" style="display:none;">
+
     <div class="modal-content">
+
       <p>Are you sure you want to log out?</p>
 
       <div class="modal-actions-centered">
+
         <button onclick="confirmLogout()" class="btn-modal-yes">Yes</button>
+
         <button onclick="closeLogoutModal()"
           class="btn-modal-no">Cancel</button>
+
       </div>
+
     </div>
+
   </div>
 
   <div class="app-body">
@@ -1417,264 +895,514 @@
     <div class="sidebar-overlay" id="overlay"></div>
 
     {{-- ── SIDEBAR ────────────────────────────────────────── --}}
+
     <aside class="sidebar" id="sidebar">
+
       <div class="sidebar-section-label">MENU</div>
 
       <a href="{{ Route::has('homepage') ? route('homepage') : '/student/dashboard' }}"
         class="nav-item {{ request()->routeIs('homepage') ? 'active' : '' }}">
+
         <span>Dashboard</span>
+
       </a>
 
       <a href="{{ Route::has('student.modules') ? route('student.modules') : '/student/modules' }}"
         class="nav-item {{ request()->routeIs('student.modules*') ? 'active' : '' }}">
+
         <span>My Courses</span>
+
       </a>
 
-      {{-- ── INDEX DROPDOWN MENU ── --}}
-      @if (isset($unitNumbers) && $unitNumbers->isNotEmpty())
+      {{-- ── COURSE INDEX / MODULE SIDEBAR ── --}}
+
+      @php
+
+        $sidebarModules = isset($modules) ? $modules : collect();
+
+        $sidebarUnitNumbers =
+            isset($unitNumbers) && $unitNumbers->isNotEmpty()
+                ? $unitNumbers
+                : $sidebarModules
+
+                    ->pluck('unit_number')
+
+                    ->filter(fn($number) => $number !== null)
+
+                    ->unique()
+
+                    ->sort()
+
+                    ->values();
+
+      @endphp
+
+      @if ($sidebarUnitNumbers->isNotEmpty())
+
         <div id="sidebarIndexMenu">
-          <div class="sidebar-index-title">INDEX</div>
 
-          {{-- Introduction --}}
-          <div class="index-item"
-            onclick="toggleSubMenu('introSub'); if(typeof showIntroScreen === 'function') showIntroScreen();">
-            <span>Introduction</span>
-            <i class="fa fa-chevron-down" style="font-size:10px;"></i>
+          <div class="sidebar-index-title">COURSE CONTENT</div>
+
+          <div class="index-item" role="button" tabindex="0"
+            onclick="toggleSubMenu('introSub'); showIntroScreen();">
+
+            <span><i class="fa fa-book-open"></i> Introduction</span>
+
+            <i class="fa fa-chevron-down index-chevron"></i>
+
           </div>
+
           <div class="index-sub-menu show" id="introSub">
-            <span
-              onclick="if(typeof showIntroScreen === 'function') showIntroScreen()"
-              class="index-sub-link active">• Welcome & Course Overview</span>
+
+            <a href="#courseOverview" class="index-sub-link"
+              onclick="showIntroScreen();">• Welcome &amp; Course
+
+              Overview</a>
+
           </div>
 
-          {{-- Real Units --}}
-          @foreach ($unitNumbers as $unitNum)
-            <div class="index-item"
-              onclick="toggleSubMenu('unit{{ $unitNum }}Sub'); if(typeof showUnitScreen === 'function') showUnitScreen({{ $unitNum }});">
-              <span>Unit {{ $unitNum }}</span>
-              <i class="fa fa-chevron-down" style="font-size:10px;"></i>
+          @foreach ($sidebarUnitNumbers as $unitNum)
+            <div class="index-item" role="button" tabindex="0"
+              onclick="toggleSubMenu('unit{{ $unitNum }}Sub'); showUnitScreen({{ $unitNum }});">
+
+              <span><i class="fa fa-layer-group"></i> Unit
+
+                {{ $unitNum }}</span>
+
+              <i class="fa fa-chevron-down index-chevron"></i>
+
             </div>
+
             <div class="index-sub-menu" id="unit{{ $unitNum }}Sub">
+
+              @foreach ($sidebarModules->where('unit_number', $unitNum) as $sidebarModule)
+                <a href="#module-item-{{ $sidebarModule->id }}"
+                  class="index-sub-link"
+                  onclick="openSidebarModule(event, {{ $sidebarModule->id }}, {{ $unitNum }});">
+
+                  <i
+                    class="fa fa-file-lines"></i><span>{{ $sidebarModule->title }}</span>
+
+                </a>
+
+                @if (isset($quizzes))
+                  @foreach ($quizzes->where('module_id', $sidebarModule->id) as $sidebarQuiz)
+                    <a href="#quiz-item-{{ $sidebarQuiz->id }}"
+                      class="index-sub-link index-quiz-link"
+                      onclick="openSidebarQuiz(event, {{ $sidebarQuiz->id }}, @js($sidebarQuiz->title), {{ $unitNum }});">
+
+                      <i
+                        class="fa fa-circle-question"></i><span>{{ $sidebarQuiz->title }}</span>
+
+                    </a>
+                  @endforeach
+                @endif
+              @endforeach
+
+              @if ($sidebarModules->where('unit_number', $unitNum)->isEmpty())
+                <span class="index-sub-link index-empty">No modules added
+
+                  yet</span>
+              @endif
+
             </div>
           @endforeach
 
-          {{-- Completion --}}
-          <div class="index-item"
-            onclick="toggleSubMenu('completionSub'); if(typeof showCompletionScreen === 'function') showCompletionScreen();">
-            <span>Completion</span>
-            <i class="fa fa-chevron-down" style="font-size:10px;"></i>
+          <div class="index-item" role="button" tabindex="0"
+            onclick="toggleSubMenu('completionSub'); showAllCourseContent();">
+
+            <span><i class="fa fa-graduation-cap"></i> Completion</span>
+
+            <i class="fa fa-chevron-down index-chevron"></i>
+
           </div>
-          <div class="index-sub-menu" id="completionSub"></div>
+
+          <div class="index-sub-menu" id="completionSub">
+
+            <a href="#courseOverview" class="index-sub-link"
+              onclick="showIntroScreen();">• Course progress</a>
+
+          </div>
+
         </div>
+
       @endif
 
       <a href="{{ Route::has('student.announcements') ? route('student.announcements') : '/student/announcements' }}"
         class="nav-item {{ request()->routeIs('student.announcements') ? 'active' : '' }}">
+
         <span>Announcement</span>
+
       </a>
+
     </aside>
 
     <main class="main-content">
+
       @yield('content')
+
     </main>
 
   </div>
 
   {{-- ── PRE-TEST MODAL POPUP ───────────────────────────────── --}}
+
   <div id="pretestSidebarModal" class="pretest-modal-overlay">
+
     <div class="pretest-modal-card">
+
       <div class="pretest-modal-header">
+
         <button onclick="closePretestSidebarModal()"
           class="pretest-modal-close">✕</button>
+
         <h3>Baseline Pre-test</h3>
+
         <p>Course Assessment</p>
+
       </div>
 
       <div class="pretest-modal-body">
+
         <div class="pretest-grid-info">
+
           <div class="pretest-info-box">
+
             <div class="val">20</div>
+
             <div class="lbl">Questions</div>
+
           </div>
+
           <div class="pretest-info-box">
+
             <div class="val">1 Attempt</div>
+
             <div class="lbl">Limit Allowed</div>
+
           </div>
+
           <div class="pretest-info-box">
+
             <div class="val">30 Mins</div>
+
             <div class="lbl">Time Duration</div>
+
           </div>
+
           <div class="pretest-info-box">
+
             <div class="val">70%</div>
+
             <div class="lbl">Passing Grade</div>
+
           </div>
+
         </div>
 
         <div class="pretest-rules-list">
+
           <strong>Instructions:</strong>
+
           <ul>
-            <li>Ensure a stable internet connection before starting.</li>
-            <li>You only have <strong>1 attempt</strong> to take this test.</li>
+
+            <li>Ensure a stable internet connection before starting.
+
+            </li>
+
+            <li>You only have <strong>1 attempt</strong> to take
+
+              this test.</li>
+
             <li>Once started, the timer cannot be paused.</li>
+
           </ul>
+
         </div>
 
         <button onclick="triggerStartPretest()" class="btn-start-pretest">
+
           Start Pre-test
+
         </button>
+
       </div>
+
     </div>
+
   </div>
 
   {{-- ── POST-TEST MODAL POPUP ─────────────────────────────── --}}
+
   <div id="posttestSidebarModal" class="pretest-modal-overlay">
+
     <div class="pretest-modal-card">
+
       <div class="pretest-modal-header">
+
         <button onclick="closePosttestSidebarModal()"
           class="pretest-modal-close">✕</button>
+
         <h3>Final Post-Test</h3>
+
         <p>Official Written Evaluation</p>
+
       </div>
 
       <div class="pretest-modal-body">
+
         <div class="pretest-grid-info">
+
           <div class="pretest-info-box">
+
             <div class="val">80</div>
+
             <div class="lbl">Questions</div>
+
           </div>
+
           <div class="pretest-info-box">
+
             <div class="val">1 Attempt</div>
+
             <div class="lbl">Limit Allowed</div>
+
           </div>
+
           <div class="pretest-info-box">
+
             <div class="val">60 Mins</div>
+
             <div class="lbl">Time Duration</div>
+
           </div>
+
           <div class="pretest-info-box">
+
             <div class="val">80%</div>
+
             <div class="lbl">Passing Grade</div>
+
           </div>
+
         </div>
 
         <div class="pretest-rules-list">
+
           <strong>Instructions:</strong>
+
           <ul>
-            <li>This is the final written evaluation containing <strong>80
-                questions</strong>.</li>
-            <li>You need a score of <strong>80% or higher</strong> to pass.</li>
-            <li>Ensure you complete all items before submitting.</li>
+
+            <li>This is the final written evaluation containing
+
+              <strong>80
+
+                questions</strong>.
+
+            </li>
+
+            <li>You need a score of <strong>80% or higher</strong>
+
+              to pass.</li>
+
+            <li>Ensure you complete all items before submitting.
+
+            </li>
+
           </ul>
+
         </div>
 
         <button onclick="triggerStartPosttest()" class="btn-start-pretest">
+
           Start Post-Test
+
         </button>
+
       </div>
+
     </div>
+
   </div>
 
-  {{-- ── A4 LANDSCAPE CERTIFICATE MODAL ─────────────────────── --}}
   <div id="certificateModal" class="a4-cert-modal-wrapper">
+
     <div class="a4-cert-container">
 
       <div class="a4-cert-sheet">
+
         <div class="cert-corner-top-left-accent"></div>
+
         <div class="cert-corner-top-left"></div>
 
         <div class="cert-corner-bottom-right-accent"></div>
+
         <div class="cert-corner-bottom-right"></div>
 
         <div class="cert-inner-content">
+
           <div>
+
             <div class="cert-header-logos">
+
               <img src="{{ asset('images/logo.png') }}" alt="Dasma Logo"
                 class="cert-logo-img"
                 onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/4/41/Seal_of_Dasmari%C3%B1as.png'">
+
               <img
                 src="https://upload.wikimedia.org/wikipedia/commons/b/b2/TESDA_logo.svg"
                 alt="TESDA Logo" class="cert-logo-img" style="height:36px;">
+
               <img src="{{ asset('images/logo.png') }}" alt="LEDIPO Logo"
                 class="cert-logo-img">
+
             </div>
 
             <div class="cert-agency-title">
-              TECHNICAL EDUCATION AND SKILLS DEVELOPMENT AUTHORITY<br>
+
+              TECHNICAL EDUCATION AND SKILLS DEVELOPMENT
+
+              AUTHORITY<br>
+
               CITY GOVERNMENT OF DASMARIÑAS - LEDIPO
+
             </div>
 
-            <div class="cert-main-heading">CERTIFICATE OF COMPLETION</div>
-            <div class="cert-certify-text">THIS COMS CERTIFIY THAT</div>
+            <div class="cert-main-heading">CERTIFICATE OF
+
+              COMPLETION</div>
+
+            <div class="cert-certify-text">THIS COMS CERTIFIY THAT
+
+            </div>
+
           </div>
 
           <div>
+
             <div class="cert-student-name">
+
               {{ Auth::user()->firstname ?? 'Samira' }}
+
               {{ Auth::user()->lastname ?? 'Hadid' }}
+
             </div>
-            <div class="cert-completion-desc">HAS SUCCESSFULLY COMPLETED THE
+
+            <div class="cert-completion-desc">HAS SUCCESSFULLY
+
+              COMPLETED THE
+
               TRAINING IN</div>
 
             <div class="cert-course-title" id="certDynamicCourseTitle">
+
               DRESSMAKING
+
             </div>
 
             <div class="cert-conducted-by">Conducted by</div>
+
             <div class="cert-office-name">
-              DASMARIÑAS LOCAL ECONOMIC DEVELOPMENT AND INVESTMENT PROMOTION
+
+              DASMARIÑAS LOCAL ECONOMIC DEVELOPMENT AND INVESTMENT
+
+              PROMOTION
+
               OFFICE (LEDIPO)
+
             </div>
 
             <div class="cert-date-range">
+
               from April 15, 2026 to May 11, 2026
+
             </div>
 
             <div class="cert-given-text">
-              Given this 18th day of April 2026 at Dasmariñas City, Cavite,
+
+              Given this 18th day of April 2026 at Dasmariñas
+
+              City, Cavite,
+
               Philippines.
+
             </div>
+
           </div>
 
           <div>
+
             <div class="cert-meta-ids-row">
+
               <span>CERT. NO.: D-LED-TES-2026-081</span>
+
               <span>TRAINING ID: NCIIDRM-26-032</span>
+
             </div>
 
             <div class="cert-signatures-row">
+
               <div class="cert-sig-block">
+
                 <div class="cert-sig-line"></div>
-                <div class="cert-sig-name">HON. JENNIFER A. BARZAGA</div>
+
+                <div class="cert-sig-name">HON. JENNIFER A.
+
+                  BARZAGA</div>
+
                 <div class="cert-sig-title">City Mayor</div>
+
               </div>
 
               <div class="cert-sig-block">
+
                 <div class="cert-sig-line"></div>
-                <div class="cert-sig-name">MR. CARLOS H. LEGASPI</div>
+
+                <div class="cert-sig-name">MR. CARLOS H.
+
+                  LEGASPI</div>
+
                 <div class="cert-sig-title">LEDIPO Head</div>
+
               </div>
+
             </div>
+
           </div>
 
         </div>
+
       </div>
 
       <div class="cert-modal-actions">
+
         <span
           style="color:#ffffff; font-size:11.5px; font-weight:600;">Official
+
           LEDIPO E-Certificate Preview</span>
+
         <div>
+
           <button onclick="closeCertificateModal()"
             style="background:#4A5568; color:#fff; border:none; padding:6px 16px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; margin-right:8px;">
+
             Close
+
           </button>
-          <button onclick="window.print()"
+
+          <button onclick="window\.print()"
             style="background:#D4D120; color:#1A1A1A; border:none; padding:6px 18px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">
+
             <i class="fa fa-print"></i> Print / Download PDF
+
           </button>
+
         </div>
+
       </div>
 
     </div>
+
   </div>
 
   <script
@@ -1683,320 +1411,1008 @@
 
   <script>
     const hamburger = document.getElementById('hamburger');
+
+
+
+
+
+
+
     const sidebar = document.getElementById('sidebar');
+
+
+
+
+
+
+
     const overlay = document.getElementById('overlay');
+
+
+
+
+
+
+
     const avatarBtn = document.getElementById('avatarBtn');
-    const dropdown = document.getElementById('dropdown'); ===
-    ===
-    =
 
-    <
-    script >
-      document.addEventListener('DOMContentLoaded', function() {
 
-        const notificationDropdown =
-          document.getElementById('notificationDropdown');
 
-        if (!notificationDropdown) return;
 
-        function markNotificationRead(item) {
 
-          if (!item) return;
 
-          if (item.dataset.read === '1') return;
 
-          const announcementId = item.dataset.announcementId;
-
-          if (!announcementId) {
-            console.error(
-              'Student notification is missing data-announcement-id.'
-            );
-            return;
-          }
-
-          fetch(
-              `{{ url('/notifications/announcements') }}/${announcementId}/read`, {
-                method: 'POST',
-                headers: {
-                  'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({})
-              })
-            .then(response => {
-
-              if (!response.ok) {
-                throw new Error(
-                  `Notification read request failed: ${response.status}`
-                );
-              }
-
-              return response.json();
-            })
-            .then(data => {
-
-              if (!data || !data.success) {
-                throw new Error(
-                  'Server did not confirm the notification as read.'
-                );
-              }
-
-              item.dataset.read = '1';
-              item.classList.remove('notification-unread');
-
-              const notificationBadge =
-                document.querySelector('.notification-badge');
-
-              if (notificationBadge) {
-
-                const currentCount = parseInt(
-                  notificationBadge.textContent
-                  .replace('+', '')
-                  .trim(),
-                  10
-                ) || 0;
-
-                const nextCount = Math.max(currentCount - 1, 0);
-
-                if (nextCount === 0) {
-                  notificationBadge.remove();
-                } else {
-                  notificationBadge.textContent =
-                    nextCount > 99 ? '99+' : String(nextCount);
-                }
-              }
-
-              const unreadItems =
-                notificationDropdown.querySelectorAll(
-                  '.notification-item.notification-unread'
-                ).length;
-
-              const headerUnread =
-                document.querySelector(
-                  '.notification-header > div > span'
-                );
-
-              if (headerUnread) {
-                headerUnread.textContent =
-                  `${unreadItems} unread notification${unreadItems !== 1 ? 's' : ''}`;
-              }
-
-            })
-            .catch(error => {
-              console.error(
-                'Student notification read error:',
-                error
-              );
-            });
-        }
-
-        notificationDropdown
-          .querySelectorAll(
-            '.notification-item[data-announcement-id]'
-          )
-          .forEach(item => {
-
-            item.addEventListener('click', function() {
-              markNotificationRead(this);
-            });
-
-            item.addEventListener('keydown', function(event) {
-
-              if (event.key === 'Enter' || event.key === ' ') {
-
-                event.preventDefault();
-
-                markNotificationRead(this);
-              }
-            });
-          });
-
-      });
-  </script>
-  <script>
-    const hamburger = document.getElementById('hamburger');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-    const avatarBtn = document.getElementById('avatarBtn');
     const dropdown = document.getElementById('dropdown');
-    const notificationBtn = document.getElementById('notificationBtn');
-    const notificationDropdown = document.getElementById(
-      'notificationDropdown'); >>>
-    >>>
-    > 384453 d6cf3600e14902e811c88999cfb75c91ce
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     if (hamburger) {
+
+
+
+
+
+
+
       hamburger.addEventListener('click', function() {
+
+
+
+
+
+
+
         sidebar.classList.toggle('sidebar-open');
+
+
+
+
+
+
+
         overlay.classList.toggle('show');
+
+
+
+
+
+
+
       });
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     if (overlay) {
+
+
+
+
+
+
+
       overlay.addEventListener('click', function() {
+
+
+
+
+
+
+
         sidebar.classList.remove('sidebar-open');
+
+
+
+
+
+
+
         overlay.classList.remove('show');
+
+
+
+
+
+
+
       });
+
+
+
+
+
+
+
     }
 
-    <<
-    <<
-    << < HEAD
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (avatarBtn) {
+
+
+
+
+
+
+
       avatarBtn.addEventListener('click', function(e) {
+
+
+
+
+
+
+
         e.stopPropagation();
+
+
+
+
+
+
+
         dropdown.classList.toggle('open');
+
+
+
+
+
+
+
       });
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     document.addEventListener('click', function(e) {
+
+
+
+
+
+
+
       if (dropdown && !e.target.closest('.landing-profile')) {
+
+
+
+
+
+
+
         dropdown.classList.remove('open');
-      }
-    });
 
-    function toggleSubMenu(id) {
-      const el = document.getElementById(id);
-      if (el) {
-        el.classList.toggle('show');
-      }
-    } ===
-    ===
-    =
-    if (avatarBtn) {
-      avatarBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
 
-        dropdown.classList.toggle('open');
 
-        // Close notification dropdown
-        if (notificationDropdown) {
-          notificationDropdown.classList.remove('open');
-        }
 
-        if (notificationBtn) {
-          notificationBtn.setAttribute('aria-expanded', 'false');
-        }
-      });
-    }
 
-    document.addEventListener('click', function(e) {
 
-      if (!e.target.closest('.topbar-right')) {
-
-        if (dropdown) {
-          dropdown.classList.remove('open');
-        }
-
-        if (notificationDropdown) {
-          notificationDropdown.classList.remove('open');
-        }
-
-        if (notificationBtn) {
-          notificationBtn.setAttribute('aria-expanded', 'false');
-        }
 
       }
+
+
+
+
+
+
 
     });
 
-    if (notificationBtn) {
 
-      notificationBtn.addEventListener('click', function(e) {
 
-        e.stopPropagation();
 
-        notificationDropdown.classList.toggle('open');
 
-        notificationBtn.setAttribute(
-          'aria-expanded',
-          notificationDropdown.classList.contains('open') ?
-          'true' :
-          'false'
-        );
 
-        // Close profile dropdown
-        if (dropdown) {
-          dropdown.classList.remove('open');
-        }
 
-      });
+
+
+
+
+
+
+
+
+    function toggleSubMenu(id) {
+
+
+
+      const el = document.getElementById(id);
+
+
+
+      if (!el) return;
+
+
+
+      el.classList.toggle('show');
+
+
+
+      const heading = el.previousElementSibling;
+
+
+
+      if (heading && heading.classList.contains('index-item')) {
+
+
+
+        heading.setAttribute('aria-expanded', el.classList.contains('show') ?
+
+
+
+          'true' : 'false');
+
+
+
+      }
+
+
 
     }
 
-    function toggleSubMenu(id) {
-      const el = document.getElementById(id);
-      if (el) {
-        el.classList.toggle('show');
-      }
-    } >>>
-    >>>
-    > 384453 d6cf3600e14902e811c88999cfb75c91ce
 
-    /* ── Pre-test Modal Handlers ────────────────────────── */
+
+
+
+
+
+    function hideAllModuleContent() {
+      document.querySelectorAll(
+        '.sidebar-unit-heading, .module-action-row, .module-quizzes-wrap, .module-pdf-preview, .course-level-quizzes-wrap'
+      ).forEach((element) => {
+        element.style.display = 'none';
+      });
+    }
+
+    function setIntroContentVisibility(show) {
+      const selectors = [
+        '#courseOverview',
+        '#courseSyllabus',
+        '.course-syllabus',
+        '.syllabus-section',
+        '[data-content-screen="introduction"]'
+      ];
+
+      selectors.forEach((selector) => {
+        document.querySelectorAll(selector).forEach((element) => {
+          element.style.display = show ? '' : 'none';
+        });
+      });
+
+      // Introduction and module content are separate screens.
+      document.querySelectorAll('#modulesSection').forEach((element) => {
+        element.style.display = show ? 'none' : '';
+      });
+    }
+
+    function clearCourseIndexActiveState() {
+      document.querySelectorAll(
+        '#sidebarIndexMenu .index-item, #sidebarIndexMenu .index-sub-link'
+      ).forEach((element) => element.classList.remove('active'));
+    }
+
+    function showIntroScreen() {
+      // Remember the current screen in the URL
+      saveLmsPosition('screen', 'intro');
+      saveLmsPosition('unit', null);
+      saveLmsPosition('module', null);
+      saveLmsPosition('quiz', null);
+
+      hideAllModuleContent();
+      setIntroContentVisibility(true);
+
+      document.querySelectorAll('.course-level-quizzes-wrap').forEach(
+        (element) => {
+          element.style.display = '';
+        }
+      );
+
+      clearCourseIndexActiveState();
+
+      const introMenu = document.getElementById('introSub');
+      if (introMenu) introMenu.classList.add('show');
+
+      const introHeading = introMenu ?
+        introMenu.previousElementSibling :
+        null;
+
+      if (introHeading) introHeading.classList.add('active');
+
+      const introLink = document.querySelector('#introSub .index-sub-link');
+      if (introLink) introLink.classList.add('active');
+    }
+
+    function showUnitScreen(unitNumber) {
+      const selectedUnit = String(unitNumber);
+      hideAllModuleContent();
+      setIntroContentVisibility(false);
+      clearCourseIndexActiveState();
+
+      document.querySelectorAll('.sidebar-unit-heading').forEach((heading) => {
+        if (String(heading.dataset.unitNumber) === selectedUnit) {
+          heading.style.display = '';
+        }
+      });
+
+      document.querySelectorAll('.module-action-row').forEach((module) => {
+        if (String(module.dataset.unitNumber) === selectedUnit) {
+          module.style.display = '';
+        }
+      });
+
+      // Show only previews/quizzes that belong to the selected unit. If a child
+      // element has no unit number, resolve its unit from its linked module.
+      document.querySelectorAll('.module-quizzes-wrap, .module-pdf-preview')
+        .forEach((element) => {
+          let elementUnit = element.dataset.unitNumber;
+          if (!elementUnit && element.dataset.moduleId) {
+            const linkedModule = document.getElementById('module-item-' +
+              element.dataset.moduleId);
+            elementUnit = linkedModule ? linkedModule.dataset.unitNumber : '';
+          }
+          if (String(elementUnit) === selectedUnit) element.style.display = '';
+        });
+
+      const unitMenu = document.getElementById('unit' + selectedUnit + 'Sub');
+      if (unitMenu) {
+        unitMenu.classList.add('show');
+        if (unitMenu.previousElementSibling) {
+          unitMenu.previousElementSibling.classList.add('active');
+        }
+      }
+    }
+
+    function showAllCourseContent() {
+      showIntroScreen();
+    }
+
+    function showOnlySelectedModule(moduleId, unitNumber) {
+      const selectedId = String(moduleId);
+      const selectedUnit = String(unitNumber);
+      hideAllModuleContent();
+      setIntroContentVisibility(false);
+      clearCourseIndexActiveState();
+
+      document.querySelectorAll('.sidebar-unit-heading').forEach((heading) => {
+        if (String(heading.dataset.unitNumber) === selectedUnit) {
+          heading.style.display = '';
+        }
+      });
+
+      const moduleElement = document.getElementById('module-item-' + selectedId);
+      if (moduleElement) moduleElement.style.display = '';
+
+      document.querySelectorAll('.module-pdf-preview, .module-quizzes-wrap')
+        .forEach((element) => {
+          if (String(element.dataset.moduleId) === selectedId) {
+            element.style.display = '';
+          }
+        });
+
+      const unitMenu = document.getElementById('unit' + selectedUnit + 'Sub');
+      if (unitMenu) unitMenu.classList.add('show');
+
+      const selectedLink = document.querySelector(
+        '#unit' + selectedUnit + 'Sub a[href="#module-item-' + selectedId + '"]'
+      );
+      if (selectedLink) selectedLink.classList.add('active');
+    }
+
+    function openSidebarModule(event, moduleId, unitNumber) {
+      if (event) event.preventDefault();
+      showOnlySelectedModule(moduleId, unitNumber);
+
+      const target = document.getElementById('module-item-' + moduleId);
+      if (target) target.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+
+    function openSidebarQuiz(event, quizId, quizTitle, unitNumber) {
+      if (event) event.preventDefault();
+
+      const quizElement = document.getElementById('quiz-item-' + quizId);
+      const moduleId = quizElement ? quizElement.dataset.moduleId : null;
+
+      if (moduleId) {
+        showOnlySelectedModule(moduleId, unitNumber);
+      } else {
+        hideAllModuleContent();
+        setIntroContentVisibility(false);
+        clearCourseIndexActiveState();
+      }
+
+      if (event && event.currentTarget) event.currentTarget.classList.add(
+        'active');
+
+      if (typeof openQuiz === 'function') {
+        openQuiz(quizId, quizTitle);
+      } else if (quizElement) {
+        quizElement.style.display = '';
+        quizElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const params = new URLSearchParams(window.location.search);
+
+      const screen = params.get('screen') || 'intro';
+      const unit = params.get('unit');
+      const moduleId = params.get('module');
+
+      if (screen === 'module' && moduleId && unit) {
+        showOnlySelectedModule(moduleId, unit);
+      } else if (screen === 'unit' && unit) {
+        showUnitScreen(unit);
+      } else {
+        showIntroScreen();
+      }
+    });
+
+
     function openPretestSidebarModal() {
+
+
+
+
+
+
+
       document.getElementById('pretestSidebarModal').style.display = 'flex';
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     function closePretestSidebarModal() {
+
+
+
+
+
+
+
       document.getElementById('pretestSidebarModal').style.display = 'none';
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     function triggerStartPretest() {
+
+
+
+
+
+
+
       closePretestSidebarModal();
+
+
+
+
+
+
+
       if (typeof openQuizModal === 'function') {
+
+
+
+
+
+
+
         openQuizModal(1, 'Baseline Pre-test');
+
+
+
+
+
+
+
       } else {
+
+
+
+
+
+
+
         alert('Starting Pre-test...');
+
+
+
+
+
+
+
       }
+
+
+
+
+
+
+
     }
 
-    /* ── Post-test Modal Handlers ────────────────────────── */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // ── Post-test Modal Handlers ──────────────────────────
+
+
+
+
+
+
+
     function openPosttestSidebarModal() {
+
+
+
+
+
+
+
       document.getElementById('posttestSidebarModal').style.display = 'flex';
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     function closePosttestSidebarModal() {
+
+
+
+
+
+
+
       document.getElementById('posttestSidebarModal').style.display = 'none';
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     function triggerStartPosttest() {
+
+
+
+
+
+
+
       closePosttestSidebarModal();
+
+
+
+
+
+
+
       if (typeof openQuizModal === 'function') {
+
+
+
+
+
+
+
         openQuizModal(2, 'Final Post-Test (80 Items)');
+
+
+
+
+
+
+
       } else {
+
+
+
+
+
+
+
         alert('Starting 80-Item Post-Test...');
+
+
+
+
+
+
+
       }
+
+
+
+
+
+
+
     }
 
-    /* ── Certificate Modal Handlers ──────────────────────── */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // ── Certificate Modal Handlers ────────────────────────
+
+
+
+
+
+
+
     function openCertificateModal() {
+
+
+
+
+
+
+
       const activeTitleEl = document.getElementById('activeCourseTitle') ||
+
+
+
+
+
+
+
         document.getElementById('certProgramName');
+
+
+
+
+
+
+
       const certCourseEl = document.getElementById('certDynamicCourseTitle');
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       if (activeTitleEl && certCourseEl) {
+
+
+
+
+
+
+
         certCourseEl.textContent = activeTitleEl.textContent.trim();
+
+
+
+
+
+
+
       }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       document.getElementById('certificateModal').style.display = 'flex';
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     function closeCertificateModal() {
+
+
+
+
+
+
+
       document.getElementById('certificateModal').style.display = 'none';
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     function openLogoutModal() {
+
+
+
+
+
+
+
       document.getElementById('logoutModal').style.display = 'block';
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     function closeLogoutModal() {
+
+
+
+
+
+
+
       document.getElementById('logoutModal').style.display = 'none';
+
+
+
+
+
+
+
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     function confirmLogout() {
+
+
+
+
+
+
+
       document.getElementById('logout-form').submit();
+
+
+
+
+
+
+
     }
   </script>
 

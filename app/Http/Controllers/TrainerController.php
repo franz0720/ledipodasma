@@ -10,6 +10,8 @@ use App\Models\User_tbl;
 use App\Models\Module;
 use App\Models\TrainerAnnouncement;
 use App\Models\AnnouncementComment;
+use App\Models\Course_tbl as Course;
+use App\Models\OnsiteActivity; // <-- Replace with your actual model name
 
 class TrainerController extends Controller
 {
@@ -53,6 +55,48 @@ class TrainerController extends Controller
         ));
     }
 
+    public function updateSyllabus(Request $request, $id)
+{
+    $course = \App\Models\Course_tbl::findOrFail($id);
+
+    $validated = $request->validate([
+        'syllabus_title'   => 'nullable|string|max:255',
+        'syllabus_content' => 'nullable|string',
+        'syllabus_file'    => 'nullable|file|mimes:pdf,docx,doc|max:10240',
+    ]);
+
+    $course->syllabus_title = $validated['syllabus_title'] ?? $course->syllabus_title;
+    $course->syllabus_content = $validated['syllabus_content'] ?? null;
+
+    if ($request->hasFile('syllabus_file')) {
+        if ($course->syllabus_path && Storage::disk('public')->exists($course->syllabus_path)) {
+            Storage::disk('public')->delete($course->syllabus_path);
+        }
+
+        $course->syllabus_path = $request->file('syllabus_file')->store("courses/{$course->id}/syllabus", 'public');
+    }
+
+    $course->save();
+
+    return back()->with('success', 'Syllabus updated successfully.');
+}
+
+public function deleteSyllabus($id)
+{
+    $course = \App\Models\Course_tbl::findOrFail($id);
+
+    if ($course->syllabus_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($course->syllabus_path)) {
+        \Illuminate\Support\Facades\Storage::disk('public')->delete($course->syllabus_path);
+    }
+
+    $course->syllabus_title = null;
+    $course->syllabus_content = null;
+    $course->syllabus_path = null;
+    $course->save();
+
+    return back()->with('success', 'Syllabus removed successfully.');
+}
+
     /**
      * My Courses list
      */
@@ -70,22 +114,27 @@ class TrainerController extends Controller
      * Course Preview / Detail
      */
     public function courseShow($id)
-    {
-        $trainer = Auth::user();
-        $course  = Course_tbl::where('trainer_id', $trainer->id)
-            ->with([
-                'students',
-                // Order by unit first, then lesson order within that unit
-                'modules' => fn($q) => $q->orderBy('unit_number', 'asc')->orderBy('order', 'asc'),
-                'trainerAnnouncements.trainer',
-                'trainerAnnouncements.comments.user', // Eager-load comments and authors
-            ])
-            ->findOrFail($id);
+{
+    $trainer = Auth::user();
+    $course  = Course_tbl::where('trainer_id', $trainer->id)
+        ->with([
+            'students',
+            'modules' => fn($q) => $q->orderBy('unit_number', 'asc')->orderBy('order', 'asc'),
+            'trainerAnnouncements.trainer',
+            'trainerAnnouncements.comments.user',
+        ])
+        ->findOrFail($id);
 
-        $modules = $course->modules ?? collect();
+    $modules = $course->modules ?? collect();
 
-        return view('trainer.course-preview', compact('course', 'modules'));
-    }
+    // Fetch the onsite activities for this course
+    $onsiteActivities = OnsiteActivity::where('course_id', $course->id)
+        ->orderBy('activity_date', 'desc')
+        ->get();
+
+    // Pass 'onsiteActivities' to the view
+    return view('trainer.course-preview', compact('course', 'modules', 'onsiteActivities'));
+}
 
     /**
      * Store Curriculum Module (Trainer Action)
@@ -418,15 +467,28 @@ class TrainerController extends Controller
     /**
      * Assessments
      */
-    public function assessment()
+    public function assessment(Request $request)
     {
         $trainer = Auth::user();
         $courses = Course_tbl::where('trainer_id', $trainer->id)->get();
 
+        // 1. Fetch activities for all courses taught by this trainer
+        // (or filter by selected course if you have a dropdown)
+        $selectedCourseId = $request->get('course_id');
+
+        $onsiteActivities = OnsiteActivity::whereIn('course_id', $courses->pluck('id'))
+            ->when($selectedCourseId, function ($query, $selectedCourseId) {
+                return $query->where('course_id', $selectedCourseId);
+            })
+            ->orderBy('activity_date', 'desc')
+            ->get();
+
+        // 2. Pass 'onsiteActivities' to the view
         return view('trainer.assessment', [
-            'courses'     => $courses,
-            'assessments' => collect(),
+            'courses'          => $courses,
+            'selectedCourseId' => $selectedCourseId,
+            'assessments'      => collect(),
+            'onsiteActivities' => $onsiteActivities, // <-- This was missing
         ]);
     }
 }
-

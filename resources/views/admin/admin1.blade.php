@@ -25,11 +25,17 @@
     src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
   </script>
   <style>
-
     @keyframes mcToastIn {
-  from { transform: translateX(30px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-  }
+      from {
+        transform: translateX(30px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
 
     /* ========================================================== */
     /* GENERAL & COMPONENT STYLES                                 */
@@ -1341,49 +1347,55 @@
   </nav>
 
   <!-- Custom Alert Modal (replaces native alert()) -->
-<div id="mcAlertModal" class="modal" style="display:none;">
-  <div class="modal-content" style="max-width:380px;">
-    <div class="modal-header">
-      <h3><i class="fa-solid fa-circle-info"></i> Notice</h3>
-      <span class="close-modal" onclick="closeAlertModal()">&times;</span>
-    </div>
-    <div style="padding:24px; text-align:center;">
-      <p id="mcAlertMessage" style="font-size:14px; color:#333; margin:0;"></p>
-    </div>
-    <div class="modal-actions-centered" style="text-align:center; padding-bottom:16px;">
-      <button onclick="closeAlertModal()"
-        style="background:#025628;color:#fff;border:none;border-radius:8px;padding:9px 24px;font-size:13px;font-weight:700;cursor:pointer;">
-        OK
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast Notification Container -->
-<div id="toastContainer" style="position:fixed; top:20px; right:20px; z-index:5000; display:flex; flex-direction:column; gap:10px; max-width:360px;"></div>
-
-<!-- Custom Confirm Modal (replaces native confirm()) -->
-<div id="mcConfirmModal" class="modal" style="display:none;">
-  <div class="modal-content" style="max-width:380px;">
-    <div class="modal-header">
-      <h3><i class="fa-solid fa-triangle-exclamation"></i> Confirm</h3>
-      <span class="close-modal" onclick="closeConfirmModal()">&times;</span>
-    </div>
-    <div style="padding:24px; text-align:center;">
-      <p id="mcConfirmMessage" style="font-size:14px; color:#333; margin:0;"></p>
-    </div>
-    <div class="modal-actions-centered" style="text-align:center; padding-bottom:16px; display:flex; justify-content:center; gap:10px;">
-      <button onclick="closeConfirmModal()"
-        style="background:#fff;color:#777;border:1px solid #ddd;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;">
-        Cancel
-      </button>
-      <button onclick="_confirmYes()"
-        style="background:#A32D2D;color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;">
-        Yes, Remove
-      </button>
+  <div id="mcAlertModal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width:380px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-circle-info"></i> Notice</h3>
+        <span class="close-modal" onclick="closeAlertModal()">&times;</span>
+      </div>
+      <div style="padding:24px; text-align:center;">
+        <p id="mcAlertMessage" style="font-size:14px; color:#333; margin:0;">
+        </p>
+      </div>
+      <div class="modal-actions-centered"
+        style="text-align:center; padding-bottom:16px;">
+        <button onclick="closeAlertModal()"
+          style="background:#025628;color:#fff;border:none;border-radius:8px;padding:9px 24px;font-size:13px;font-weight:700;cursor:pointer;">
+          OK
+        </button>
+      </div>
     </div>
   </div>
-</div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer"
+    style="position:fixed; top:20px; right:20px; z-index:5000; display:flex; flex-direction:column; gap:10px; max-width:360px;">
+  </div>
+
+  <!-- Custom Confirm Modal (replaces native confirm()) -->
+  <div id="mcConfirmModal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width:380px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-triangle-exclamation"></i> Confirm</h3>
+        <span class="close-modal" onclick="closeConfirmModal()">&times;</span>
+      </div>
+      <div style="padding:24px; text-align:center;">
+        <p id="mcConfirmMessage" style="font-size:14px; color:#333; margin:0;">
+        </p>
+      </div>
+      <div class="modal-actions-centered"
+        style="text-align:center; padding-bottom:16px; display:flex; justify-content:center; gap:10px;">
+        <button onclick="closeConfirmModal()"
+          style="background:#fff;color:#777;border:1px solid #ddd;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;">
+          Cancel
+        </button>
+        <button onclick="_confirmYes()"
+          style="background:#A32D2D;color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;">
+          Yes, Remove
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Logout Confirmation Modal -->
   <div id="logoutModal" class="modal" style="display:none;">
@@ -2331,8 +2343,6 @@
                       </small>
                     </div>
                   </div>
-                  <span class="course-badge active"
-                    style="font-size: 10px; padding: 2px 8px; border-radius: 12px;">Active</span>
                 </div>
 
                 <hr
@@ -3328,7 +3338,8 @@
                     </option>
                   @endforeach
                 @else
-                  <option value="" disabled>No enrolled trainees found in
+                  <option value="" disabled>No enrolled trainees found
+                    in
                     database.</option>
                 @endif
               </select>
@@ -4649,63 +4660,83 @@
     const urlParams = new URLSearchParams(window.location.search);
 
     function showAlert(message) {
-  document.getElementById('mcAlertMessage').textContent = message;
-  document.getElementById('mcAlertModal').style.display = 'block';
-}
+      document.getElementById('mcAlertMessage').textContent = message;
+      document.getElementById('mcAlertModal').style.display = 'block';
+    }
 
-function closeAlertModal() {
-  document.getElementById('mcAlertModal').style.display = 'none';
-}
+    function closeAlertModal() {
+      document.getElementById('mcAlertModal').style.display = 'none';
+    }
 
-let _confirmCallback = null;
+    let _confirmCallback = null;
 
-function showConfirm(message, onYes) {
-  document.getElementById('mcConfirmMessage').textContent = message;
-  _confirmCallback = onYes;
-  document.getElementById('mcConfirmModal').style.display = 'block';
-}
+    function showConfirm(message, onYes) {
+      document.getElementById('mcConfirmMessage').textContent = message;
+      _confirmCallback = onYes;
+      document.getElementById('mcConfirmModal').style.display = 'block';
+    }
 
-function closeConfirmModal() {
-  document.getElementById('mcConfirmModal').style.display = 'none';
-  _confirmCallback = null;
-}
+    function closeConfirmModal() {
+      document.getElementById('mcConfirmModal').style.display = 'none';
+      _confirmCallback = null;
+    }
 
-function showToast(message, type = 'info') {
-  const styles = {
-    success: { bg: '#e8f5e9', border: '#025628', color: '#025628', icon: 'fa-circle-check' },
-    error:   { bg: '#FCEBEB', border: '#A32D2D', color: '#A32D2D', icon: 'fa-circle-xmark' },
-    warning: { bg: '#FFF8E1', border: '#854F0B', color: '#854F0B', icon: 'fa-triangle-exclamation' },
-    info:    { bg: '#E3F2FD', border: '#0d47a1', color: '#0d47a1', icon: 'fa-circle-info' }
-  };
-  const s = styles[type] || styles.info;
+    function showToast(message, type = 'info') {
+      const styles = {
+        success: {
+          bg: '#e8f5e9',
+          border: '#025628',
+          color: '#025628',
+          icon: 'fa-circle-check'
+        },
+        error: {
+          bg: '#FCEBEB',
+          border: '#A32D2D',
+          color: '#A32D2D',
+          icon: 'fa-circle-xmark'
+        },
+        warning: {
+          bg: '#FFF8E1',
+          border: '#854F0B',
+          color: '#854F0B',
+          icon: 'fa-triangle-exclamation'
+        },
+        info: {
+          bg: '#E3F2FD',
+          border: '#0d47a1',
+          color: '#0d47a1',
+          icon: 'fa-circle-info'
+        }
+      };
+      const s = styles[type] || styles.info;
 
-  const toast = document.createElement('div');
-  toast.style.cssText = `
+      const toast = document.createElement('div');
+      toast.style.cssText = `
     background:${s.bg}; border:1px solid ${s.border}; color:${s.color};
     padding:12px 16px; border-radius:8px; font-size:13px; font-weight:600;
     display:flex; align-items:center; gap:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1);
     animation: mcToastIn 0.25s ease;
   `;
-  toast.innerHTML = `
+      toast.innerHTML = `
     <i class="fa-solid ${s.icon}"></i>
     <span style="flex:1;">${message}</span>
     <span onclick="this.parentElement.remove()" style="cursor:pointer; font-weight:700; opacity:0.6;">&times;</span>
   `;
 
-  document.getElementById('toastContainer').appendChild(toast);
+      document.getElementById('toastContainer').appendChild(toast);
 
-  setTimeout(() => {
-    toast.style.transition = 'opacity 0.3s ease';
-    toast.style.opacity = '0';
-    setTimeout(() => toast.remove(), 300);
-  }, 4000);
-}
+      setTimeout(() => {
+        toast.style.transition = 'opacity 0.3s ease';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
 
-function _confirmYes() {
-  const cb = _confirmCallback;
-  closeConfirmModal();
-  if (cb) cb();
-}
+    function _confirmYes() {
+      const cb = _confirmCallback;
+      closeConfirmModal();
+      if (cb) cb();
+    }
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')
       .getAttribute('content');
@@ -5687,51 +5718,53 @@ function _confirmYes() {
       }
     }
 
-function deleteFacility() {
-  const id = document.getElementById('editFacId')?.value?.trim();
+    function deleteFacility() {
+      const id = document.getElementById('editFacId')?.value?.trim();
 
-  if (!id) {
-    showAlert('Cannot delete: Invalid or missing Facility ID.');
-    return;
-  }
+      if (!id) {
+        showAlert('Cannot delete: Invalid or missing Facility ID.');
+        return;
+      }
 
-  showConfirm('Are you sure you want to delete this facility? Any assigned courses will be unlinked.', function() {
-    const csrfToken = typeof getCsrfToken === 'function' ?
-      getCsrfToken() :
-      document.querySelector('meta[name="csrf-token"]')?.getAttribute(
-        'content');
+      showConfirm(
+        'Are you sure you want to delete this facility? Any assigned courses will be unlinked.',
+        function() {
+          const csrfToken = typeof getCsrfToken === 'function' ?
+            getCsrfToken() :
+            document.querySelector('meta[name="csrf-token"]')?.getAttribute(
+              'content');
 
-    fetch('/admin/facility/delete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken,
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          id: id
-        })
-      })
-      .then(async response => {
-        const data = await response.json().catch(() => null);
+          fetch('/admin/facility/delete', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                id: id
+              })
+            })
+            .then(async response => {
+              const data = await response.json().catch(() => null);
 
-        if (response.ok && data && data.success) {
-          showAlert(data.message || 'Facility deleted successfully!');
-          closeFacilityModal();
+              if (response.ok && data && data.success) {
+                showAlert(data.message || 'Facility deleted successfully!');
+                closeFacilityModal();
 
-          localStorage.setItem('activeAdminTab', 'view-facilities');
-          location.reload();
-        } else {
-          showAlert((data && data.message) ? data.message :
-            'Failed to delete facility.');
-        }
-      })
-      .catch(error => {
-        console.error('Delete facility error:', error);
-        showAlert('An error occurred while deleting the facility.');
-      });
-  });
-}
+                localStorage.setItem('activeAdminTab', 'view-facilities');
+                location.reload();
+              } else {
+                showAlert((data && data.message) ? data.message :
+                  'Failed to delete facility.');
+              }
+            })
+            .catch(error => {
+              console.error('Delete facility error:', error);
+              showAlert('An error occurred while deleting the facility.');
+            });
+        });
+    }
 
     function closeFacilityModal() {
       const modal = document.getElementById('facilityModal');
@@ -5891,67 +5924,68 @@ function deleteFacility() {
         });
     };
 
-document.getElementById('facilityForm').onsubmit = function(e) {
-  e.preventDefault();
+    document.getElementById('facilityForm').onsubmit = function(e) {
+      e.preventDefault();
 
-  const idVal = document.getElementById('editFacId')?.value?.trim();
-  const id = idVal ? idVal : null;
+      const idVal = document.getElementById('editFacId')?.value?.trim();
+      const id = idVal ? idVal : null;
 
-  const name = document.getElementById('editFacName').value.trim();
-  const address = document.getElementById('editFacAddress').value.trim();
+      const name = document.getElementById('editFacName').value.trim();
+      const address = document.getElementById('editFacAddress').value.trim();
 
-  const selectedCourseIds = Array.from(
-    document.querySelectorAll('.facility-course-cb:checked')
-  ).map(cb => cb.value);
+      const selectedCourseIds = Array.from(
+        document.querySelectorAll('.facility-course-cb:checked')
+      ).map(cb => cb.value);
 
-  if (!name || !address) {
-    showAlert('Please enter a facility name and address.');
-    return;
-  }
-
-  const csrfToken = typeof getCsrfToken === 'function' ?
-    getCsrfToken() :
-    document.querySelector('meta[name="csrf-token"]')?.getAttribute(
-      'content');
-
-  fetch('/admin/facility/save', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': csrfToken,
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        id: id,
-        name: name,
-        address: address,
-        course_ids: selectedCourseIds
-      })
-    })
-    .then(async response => {
-      const data = await response.json().catch(() => null);
-
-      if (response.ok && data && data.success) {
-        showAlert(data.message || 'Facility details saved successfully!');
-        closeFacilityModal();
-
-        localStorage.setItem('activeAdminTab', 'view-facilities');
-        location.reload();
-      } else {
-        let errorMsg = 'Failed to save facility details.';
-        if (data && data.errors) {
-          errorMsg = Object.values(data.errors).flat().join('\n');
-        } else if (data && data.message) {
-          errorMsg = data.message;
-        }
-        showAlert(errorMsg);
+      if (!name || !address) {
+        showAlert('Please enter a facility name and address.');
+        return;
       }
-    })
-    .catch(error => {
-      console.error('Facility save error:', error);
-      showAlert('An error occurred while saving the facility.');
-    });
-};
+
+      const csrfToken = typeof getCsrfToken === 'function' ?
+        getCsrfToken() :
+        document.querySelector('meta[name="csrf-token"]')?.getAttribute(
+          'content');
+
+      fetch('/admin/facility/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            id: id,
+            name: name,
+            address: address,
+            course_ids: selectedCourseIds
+          })
+        })
+        .then(async response => {
+          const data = await response.json().catch(() => null);
+
+          if (response.ok && data && data.success) {
+            showAlert(data.message ||
+              'Facility details saved successfully!');
+            closeFacilityModal();
+
+            localStorage.setItem('activeAdminTab', 'view-facilities');
+            location.reload();
+          } else {
+            let errorMsg = 'Failed to save facility details.';
+            if (data && data.errors) {
+              errorMsg = Object.values(data.errors).flat().join('\n');
+            } else if (data && data.message) {
+              errorMsg = data.message;
+            }
+            showAlert(errorMsg);
+          }
+        })
+        .catch(error => {
+          console.error('Facility save error:', error);
+          showAlert('An error occurred while saving the facility.');
+        });
+    };
 
     /* ========================================================== */
     /* ANNOUNCEMENT MODAL & ACTIONS HANDLERS                      */
@@ -6512,13 +6546,13 @@ document.getElementById('facilityForm').onsubmit = function(e) {
 
       <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
         ${m.file_path ? `
-                                                                                                                                                                                                                                                                                                                                                                                                  <a href="/admin/module/file/${m.id}/${encodeURIComponent(m.title)}.pdf" target="_blank" 
-                                                                                                                                                                                                                                                                                                                                                                                                     style="font-size:11px; padding:6px 12px; border-radius:6px; background:#e8f5e9; color:#025628; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; transition: background 0.2s;">
-                                                                                                                                                                                                                                                                                                                                                                                                    <i class="fa-solid fa-file-pdf"></i> View File
-                                                                                                                                                                                                                                                                                                                                                                                                  </a>
-                                                                                                                                                                                                                                                                                                                                                                                                ` : `
-                                                                                                                                                                                                                                                                                                                                                                                                  <span style="font-size:11px; color:#9ca3af; padding:4px 8px; font-style:italic;">No PDF</span>
-                                                                                                                                                                                                                                                                                                                                                                                                `}
+                                                                                                                                                                                                                                                                                                                                                                                                      <a href="/admin/module/file/${m.id}/${encodeURIComponent(m.title)}.pdf" target="_blank" 
+                                                                                                                                                                                                                                                                                                                                                                                                         style="font-size:11px; padding:6px 12px; border-radius:6px; background:#e8f5e9; color:#025628; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; transition: background 0.2s;">
+                                                                                                                                                                                                                                                                                                                                                                                                        <i class="fa-solid fa-file-pdf"></i> View File
+                                                                                                                                                                                                                                                                                                                                                                                                      </a>
+                                                                                                                                                                                                                                                                                                                                                                                                    ` : `
+                                                                                                                                                                                                                                                                                                                                                                                                      <span style="font-size:11px; color:#9ca3af; padding:4px 8px; font-style:italic;">No PDF</span>
+                                                                                                                                                                                                                                                                                                                                                                                                    `}
 
         <button type="button" onclick="deleteModule(${m.id})"
           style="font-size:11px; padding:6px 12px; border-radius:6px; background:#FCEBEB; color:#A32D2D; border:none; cursor:pointer; font-family:inherit; font-weight:700; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
@@ -7618,26 +7652,28 @@ document.getElementById('facilityForm').onsubmit = function(e) {
         )`);
             }
 
-        showToast(data.message || 'User profile updated successfully!', 'success');
-                if (typeof closeUserModal === 'function') closeUserModal();
-              } else {
-                showToast(data?.message || 'An error occurred while updating.', 'error');
-              }
-            })
-            .catch(err => {
-              console.error("Update error:", err);
-              showToast(err.message ||
-                'An error occurred while updating. Please try again.', 'error');
-            })
-            .finally(() => {
-              if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.style.opacity = '1';
-                submitBtn.style.cursor = 'pointer';
-                submitBtn.innerHTML = originalSubmitHtml;
-              }
-            });
-        };
+            showToast(data.message || 'User profile updated successfully!',
+              'success');
+            if (typeof closeUserModal === 'function') closeUserModal();
+          } else {
+            showToast(data?.message || 'An error occurred while updating.',
+              'error');
+          }
+        })
+        .catch(err => {
+          console.error("Update error:", err);
+          showToast(err.message ||
+            'An error occurred while updating. Please try again.', 'error');
+        })
+        .finally(() => {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+            submitBtn.innerHTML = originalSubmitHtml;
+          }
+        });
+    };
 
     // 2. DELETE USER FUNCTION
     function deleteUser() {

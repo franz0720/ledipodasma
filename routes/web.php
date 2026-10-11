@@ -5,6 +5,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\TrainerController;
+use App\Http\Controllers\OnsiteGradeController;
 
 // ── PUBLIC ROUTES (walang login needed) ──────────────────────────────────────
 Route::get('/', [UserController::class, 'index'])->name('index');
@@ -223,3 +224,18 @@ Route::get("/trainer/quiz/{id}/edit", [UserController::class, "editQuiz"])
 Route::put("/trainer/quiz/{id}", [UserController::class, "updateQuiz"])
     ->name("trainer.quiz.update");
 
+  Route::post('/trainer/course/{id}/syllabus', [TrainerController::class, 'updateSyllabus'])
+    ->name('trainer.course.syllabus.update');
+
+    Route::delete('/trainer/course/{id}/syllabus', [App\Http\Controllers\TrainerController::class, 'deleteSyllabus'])
+    ->name('trainer.course.syllabus.delete');
+
+    Route::middleware(['web', 'trainer'])->prefix('trainer')->name('trainer.')->group(function () {
+    // Activity management
+    Route::post('/onsite-activities/store', [OnsiteGradeController::class, 'storeActivity'])->name('onsite-activities.store');
+    Route::delete('/onsite-activities/{activity}', [OnsiteGradeController::class, 'destroyActivity'])->name('onsite-activities.destroy');
+
+    // Grade encoding
+    Route::get('/onsite-activities/{activity}/grades', [OnsiteGradeController::class, 'getGrades'])->name('onsite-activities.grades');
+    Route::post('/onsite-grades/store', [OnsiteGradeController::class, 'storeGrades'])->name('onsite-grades.store');
+});
