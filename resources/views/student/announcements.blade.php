@@ -291,175 +291,139 @@
   </style>
 @endsection
 
+
 @section('content')
-  <div class="announcements-wrap">
+<div class="announcements-wrap">
 
     <div>
-      <h1 class="page-header-title">Announcements & Updates</h1>
-      <p class="page-header-sub">Official announcements and notices from the
-        administration.</p>
+        <h1 class="page-header-title">Announcements & Updates</h1>
+        <p class="page-header-sub">
+            Official announcements and notices from the administration.
+        </p>
     </div>
 
     {{-- Search & Filter Controls --}}
     <div class="announcement-filter-bar">
-      <div class="search-box-wrap">
-        <i class="fa fa-search"></i>
-        <input type="text" id="announcementSearch" oninput="applyFilters()"
-          placeholder="Search title or content...">
-      </div>
+        <div class="search-box-wrap">
+            <i class="fa fa-search"></i>
+            <input
+                type="text"
+                id="announcementSearch"
+                oninput="applyFilters()"
+                placeholder="Search title or content..."
+            >
+        </div>
 
-      <div class="filter-pills">
-        <button class="filter-pill active"
-          onclick="setCategoryFilter('all', this)">All</button>
-        <button class="filter-pill"
-          onclick="setCategoryFilter('urgent', this)">Urgent</button>
-        <button class="filter-pill"
-          onclick="setCategoryFilter('notice', this)">Notices</button>
-        <button class="filter-pill"
-          onclick="setCategoryFilter('reminder', this)">Reminders</button>
-      </div>
+        <div class="filter-pills">
+            <button class="filter-pill active"
+                onclick="setCategoryFilter('all', this)">All</button>
+            <button class="filter-pill"
+                onclick="setCategoryFilter('urgent', this)">Urgent</button>
+            <button class="filter-pill"
+                onclick="setCategoryFilter('notice', this)">Notices</button>
+            <button class="filter-pill"
+                onclick="setCategoryFilter('reminder', this)">Reminders</button>
+        </div>
     </div>
 
-    {{-- Announcements Feed --}} <div class="announcements-feed"
-      id="announcementFeed">
-      @forelse($announcements ?? [] as $announcement)
-        @php
-          $dateTimestamp =
-              $announcement->publish_at ?? $announcement->created_at;
-          $formattedDate = $dateTimestamp
-              ? \Carbon\Carbon::parse($dateTimestamp)->format('M d, Y')
-              : 'Date unset';
-          $timeAgo = $dateTimestamp
-              ? \Carbon\Carbon::parse($dateTimestamp)->diffForHumans()
-              : '';
+    {{-- Announcements Feed --}}
+    <div class="announcements-feed" id="announcementFeed">
 
-          $avatarText = match ($announcement->type) {
-              'urgent' => '!',
-              'notice' => 'NT',
-              'reminder' => 'RM',
-              default => 'AD',
-          };
-        @endphp
+        @forelse($announcements ?? [] as $announcement)
 
-        <div
-          class="announcement-card type-{{ $announcement->type }} {{ isset($announcement->is_active) && !$announcement->is_active ? 'inactive-item' : '' }}"
-          id="announcement-{{ $announcement->id }}"
-          data-category="{{ $announcement->type }}">
+            @php
+                $type = strtolower($announcement->type ?? 'notice');
 
-          {{-- Badges --}}
-          <div class="badge-row">
-            <span class="category-badge badge-{{ $announcement->type }}">
-              {{ ucfirst($announcement->type) }}
-            </span>
+                if (!in_array($type, ['urgent', 'notice', 'reminder'])) {
+                    $type = 'notice';
+                }
 
-            @if (isset($announcement->is_active) && !$announcement->is_active)
-              <span class="badge-status">Inactive</span>
-            @endif
-          </div>
+                $dateTimestamp = $announcement->created_at ?? null;
 
-          {{-- Sender Information --}}
-          <div class="author-meta-row">
-            <div class="author-avatar type-{{ $announcement->type }}">
-              {{ $avatarText }}
-            </div>
-            <div class="author-info">
-              <div class="name">Administration Office</div>
-              <div class="role-time">
-                Posted {{ $timeAgo }} &bull; {{ $formattedDate }}
-              </div>
-              {{-- Announcement Stream --}}
-              <div class="announcements-feed" id="announcementFeed">
+                $timeAgo = $dateTimestamp
+                    ? \Carbon\Carbon::parse($dateTimestamp)->diffForHumans()
+                    : '';
 
-                @forelse ($announcements as $announcement)
+                $formattedDate = $dateTimestamp
+                    ? \Carbon\Carbon::parse($dateTimestamp)->format('M d, Y')
+                    : 'Date unset';
 
-                  @php
-                    $type = strtolower($announcement->type ?? 'notice');
+                $avatarText = match ($type) {
+                    'urgent' => '!',
+                    'notice' => 'NT',
+                    'reminder' => 'RM',
+                    default => 'AD',
+                };
+            @endphp
 
-                    // Map Admin announcement types to the Student page categories
-                    if ($type === 'urgent') {
-                        $category = 'urgent';
-                        $categoryLabel = 'Urgent Reminder';
-                        $badgeClass = 'badge-urgent';
-                    } elseif ($type === 'reminder') {
-                        $category = 'schedule';
-                        $categoryLabel = 'Schedule Notice';
-                        $badgeClass = 'badge-schedule';
-                    } else {
-                        $category = 'general';
-                        $categoryLabel = 'General';
-                        $badgeClass = 'badge-general';
-                    }
-
-                    $audienceLabel = match (
-                        $announcement->audience ?? 'general'
-                    ) {
-                        'student' => 'Students',
-                        'trainer' => 'Trainers',
-                        default => 'All Users',
-                    };
-                  @endphp
-
-                  <div class="announcement-card"
-                    data-category="{{ $category }}">
-
-                    {{-- Category --}}
-                    <span class="category-badge {{ $badgeClass }}">
-                      {{ $categoryLabel }}
+            <div
+                class="announcement-card type-{{ $type }}"
+                id="announcement-{{ $announcement->id }}"
+                data-category="{{ $type }}"
+            >
+                {{-- Category --}}
+                <div class="badge-row">
+                    <span class="category-badge badge-{{ $type }}">
+                        {{ ucfirst($type) }}
                     </span>
 
-                    {{-- Author --}}
-                    <div class="author-meta-row">
+                    @if(isset($announcement->is_active) && !$announcement->is_active)
+                        <span class="badge-status">Inactive</span>
+                    @endif
+                </div>
 
-                      <div class="author-avatar">
-                        LD
-                      </div>
-
-                      <div class="author-info">
-
-                        <div class="name">
-                          LEDIPO Main Office
-                        </div>
-
-                        <div class="role-time">
-                          Administrator • Posted
-                          {{ $announcement->created_at?->format('M j, Y') }}
-                        </div>
-
-                      </div>
-
-                      </div>
-                  </div>
-
-                  {{-- Content --}}
-                  <h2 class="announcement-title">{{ $announcement->title }}</h2>
-                  <div class="announcement-body">{{ $announcement->message }}
-                  </div>
-
-                  {{-- Footer --}}
-                  <div class="announcement-footer">
-                    <div class="footer-actions">
-                      <button class="action-btn"
-                        onclick="copyDirectLink('{{ $announcement->id }}', this)">
-                        <i class="fa fa-share"></i> <span>Share</span>
-                      </button>
+                {{-- Author --}}
+                <div class="author-meta-row">
+                    <div class="author-avatar type-{{ $type }}">
+                        {{ $avatarText }}
                     </div>
-                  </div>
-              </div>
-            @empty
-              <div class="empty-state">
+
+                    <div class="author-info">
+                        <div class="name">LEDIPO Main Office</div>
+                        <div class="role-time">
+                            Administrator &bull; Posted {{ $timeAgo }}
+                            &bull; {{ $formattedDate }}
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Announcement Content --}}
+                <h2 class="announcement-title">
+                    {{ $announcement->title ?? 'Announcement' }}
+                </h2>
+
+                <div class="announcement-body">{{ $announcement->message ?? '' }}</div>
+
+                {{-- Footer --}}
+                <div class="announcement-footer">
+                    <div class="footer-actions">
+                        <button
+                            class="action-btn"
+                            onclick="copyDirectLink('{{ $announcement->id }}', this)"
+                        >
+                            <i class="fa fa-share"></i>
+                            <span>Share</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        @empty
+            <div class="empty-state">
                 <i class="fa fa-bullhorn"></i>
                 <p>No announcements found in the database.</p>
-              </div>
-      @endforelse
+            </div>
+        @endforelse
 
-      <div id="noSearchResults" class="empty-state" style="display: none;">
-        <i class="fa fa-search"></i>
-        <p>No announcements match your search criteria.</p>
-      </div>
-  </div>
+        <div id="noSearchResults" class="empty-state" style="display: none;">
+            <i class="fa fa-search"></i>
+            <p>No announcements match your search criteria.</p>
+        </div>
 
-  </div>
+    </div>
+</div>
 @endsection
+
 
 @section('scripts')
   <script>

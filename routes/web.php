@@ -6,6 +6,7 @@ use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\OnsiteGradeController;
+use App\Http\Controllers\SuperAdminController;
 
 // ── PUBLIC ROUTES (walang login needed) ──────────────────────────────────────
 Route::get('/', [UserController::class, 'index'])->name('index');
@@ -119,13 +120,17 @@ Route::middleware("admin")->group(function () {
 
 // ── SUPERADMIN ROUTES ───────────────────────────────────
 
+
 Route::middleware("super_admin")->group(function () {
 
-    Route::get('/superadmin', function () {
-        return view('superadmin.dashboard');
-    })->name('superadmin.dashboard');
+    Route::get('/superadmin', [SuperAdminController::class, 'adminAccounts'])
+        ->name('superadmin.dashboard');
+
+    Route::post('/superadmin/admin-accounts', [SuperAdminController::class, 'storeAdmin'])
+        ->name('superadmin.admin.store');
 
 });
+
 
 // ── TRAINER ROUTES ────────────────────────────────────────────────────────────
     Route::middleware("trainer")->group(function () {
