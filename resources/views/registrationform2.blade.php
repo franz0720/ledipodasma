@@ -396,12 +396,13 @@ as a base64 PNG in the hidden field `signature_data`.
       text-align: center;
       }
 
-      .photo-thumb-row {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-      }
+    .photo-thumb-row {
+        display: flex;
+        gap: 40px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        align-items: flex-start;
+    }
 
       .photo-thumb {
       width: 100px;
