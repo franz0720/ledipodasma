@@ -25,7 +25,27 @@ class RegistrationController extends Controller
      */
     public function showStep1()
     {
-        $step1 = Session::get('reg_step1', []);
+        if (
+            Auth::check() &&
+            Registration::where('user_id', Auth::id())->exists() &&
+            !request()->boolean('another')
+        ) {
+            return redirect()
+                ->route('homepage')
+                ->with('info', 'You have already submitted your registration.');
+        }
+
+        if (request()->boolean('another') && Auth::check()) {
+        $previousRegistration = Registration::where('user_id', Auth::id())
+            ->latest('id')
+            ->first();
+
+        $step1 = $previousRegistration
+            ? $previousRegistration->toArray()
+            : [];
+        } else {
+            $step1 = Session::get('reg_step1', []);
+        }
 
         return view('registrationform1', ['step1' => $step1]);
     }
@@ -81,7 +101,10 @@ class RegistrationController extends Controller
         // only the stored path (already captured above) should be kept.
         unset($validated['id_picture']);
 
-        Session::put('reg_step1', $validated);
+        Session::put('reg_step1', array_merge(
+        Session::get('reg_step1', []),
+        $validated
+    ));
 
         return redirect()->route('registration.step2.show');
     }
@@ -89,16 +112,28 @@ class RegistrationController extends Controller
     /**
      * GET /register/step-2 — show step 2, but only if step 1 was completed.
      */
-    public function showStep2()
-    {
-        if (! Session::has('reg_step1')) {
-            return redirect()
-                ->route('registration.step1')
-                ->with('error', 'Please complete page 1 first.');
-        }
 
-        return view('registrationform2');
+public function showStep2()
+{
+    if (! Session::has('reg_step1')) {
+        return redirect()
+            ->route('registration.step1')
+            ->with('error', 'Please complete page 1 first.');
     }
+
+    $previousRegistration = null;
+
+    if (Auth::check()) {
+        $previousRegistration = Registration::where('user_id', Auth::id())
+            ->latest('id')
+            ->first();
+    }
+
+    return view('registrationform2', [
+        'previousRegistration' => $previousRegistration,
+    ]);
+}
+
 
     /**
      * POST /register/submit — validate step 2, merge with step 1, save to DB.
@@ -171,7 +206,7 @@ class RegistrationController extends Controller
         Session::forget('reg_step1');
 
         return redirect()
-            ->route('registration.step1')
+            ->route('handle')
             ->with('success', "Registration submitted! Reference #{$registration->id}.");
     }
 

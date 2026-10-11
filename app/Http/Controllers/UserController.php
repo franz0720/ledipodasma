@@ -115,9 +115,13 @@ class UserController extends Controller
         }
 
         // Role-based routing
-
         return match ($user->role) {
-            'student'     => redirect()->route('homepage'),
+        'student' => \App\Models\Registration::where('user_id', $user->id)->exists()
+            ? tap(redirect()->route('homepage'), function () {
+                session()->keep(['success', 'info']);
+            })
+            : redirect()->route('registration.step1'),
+
             'trainer'     => redirect()->route('teacher'),
             'admin'       => redirect()->route('admin1'),
             'super_admin' => redirect()->route('superadmin.dashboard'),

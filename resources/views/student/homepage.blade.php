@@ -662,6 +662,89 @@
     </div>
 
   </div>
+  
+
+@if (session('success') || session('info'))
+    <div id="registration-popup"
+         style="position:fixed;inset:0;background:rgba(15,23,42,0.48);
+                display:flex;align-items:center;justify-content:center;
+                z-index:9999;padding:20px;">
+
+        <div style="background:#fff;padding:32px;border-radius:20px;
+                    max-width:560px;width:100%;text-align:center;
+                    box-shadow:0 20px 60px rgba(0,0,0,0.22);
+                    position:relative;">
+
+            <button type="button"
+                    onclick="document.getElementById('registration-popup').remove()"
+                    aria-label="Close popup"
+                    style="position:absolute;top:16px;right:18px;
+                           background:transparent;border:0;font-size:25px;
+                           color:#64748b;cursor:pointer;">
+                &times;
+            </button>
+
+            <div style="width:100px;height:100px;margin:0 auto 18px;
+                        border-radius:50%;background:#e8f5ec;
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:48px;">
+                {{ session('success') ? '🎉' : '📋' }}
+            </div>
+
+            <h2 style="color:#195b38;font-size:30px;font-weight:700;
+                       margin:0 0 12px;">
+                {{ session('success') ? 'Registration Submitted!' : 'Already Submitted' }}
+            </h2>
+
+            @if (session('success'))
+                <p style="color:#536176;font-size:17px;line-height:1.6;
+                          margin:0 0 22px;">
+                    {{ session('success') }}
+                </p>
+            @endif
+
+            @if (session('info'))
+                <div style="background:#edf7ef;border-radius:12px;
+                            padding:16px;margin-bottom:24px;
+                            color:#245c3b;font-size:15px;line-height:1.6;">
+                    Your registration form is already on file.
+                    You can still register for another training program if you want.
+                </div>
+            @endif
+
+            <div style="display:flex;gap:14px;justify-content:center;
+                        flex-wrap:wrap;">
+
+                <button type="button"
+                        onclick="document.getElementById('registration-popup').remove()"
+                        style="background:#195b38;color:white;border:0;
+                               padding:13px 34px;border-radius:10px;
+                               cursor:pointer;font-size:15px;font-weight:600;
+                               min-width:130px;">
+                    OK
+                </button>
+
+                @if (session('info'))
+                    <a href="{{ route('registration.step1', ['another' => 1]) }}"
+                       style="display:inline-flex;align-items:center;
+                              justify-content:center;gap:10px;
+                              background:white;color:#195b38;
+                              border:1.5px solid #25834f;
+                              padding:13px 18px;border-radius:10px;
+                              text-decoration:none;font-size:15px;
+                              font-weight:600;">
+                        <span style="font-size:20px;">+</span>
+                        Want another registration form?
+                        <span>→</span>
+                    </a>
+                @endif
+
+            </div>
+        </div>
+    </div>
+@endif
+
+
 @endsection
 
 @section('scripts')

@@ -536,6 +536,14 @@ as a base64 PNG in the hidden field `signature_data`.
             <h2>Learner / Trainee / Student (Clients) Classification <span class="optional">(optional)</span></h2>
           </div>
           @php
+          $previousClassifications = $previousRegistration?->classification ?? [];
+
+          if (is_string($previousClassifications)) {
+              $previousClassifications = json_decode($previousClassifications, true) ?? [];
+          }
+
+          $classifications = [
+          @php
             $classifications = [
             '4Ps Beneficiary',
             'Agrarian Reform Beneficiary',
@@ -567,16 +575,17 @@ as a base64 PNG in the hidden field `signature_data`.
               <label class="choice">
                 <input type="checkbox" name="classification[]"
                 value="{{ $c }}"
-                @if (is_array(old('classification')) && in_array($c, old('classification'))) checked @endif>
+               @if (in_array($c, old('classification', $previousClassifications))) checked @endif>
                   {{ $c }}
                 </label>
               @endforeach
               <label class="choice">
                 <input type="checkbox" name="classification[]" value="Others"
-                id="classOthersCheck">
+                    id="classOthersCheck"
+                    @if (in_array('Others', old('classification', $previousClassifications))) checked @endif>
                 Others (please specify):
                 <input type="text" name="classification_other" class="inline-input"
-                value="{{ old('classification_other') }}">
+                value="{{ old('classification_other', $previousRegistration?->classification_other ?? '') }}">
               </label>
             </div>
           </div>
@@ -652,7 +661,7 @@ as a base64 PNG in the hidden field `signature_data`.
                       </div>
                       <div class="row">
                         <div class="field wide"><input type="text" name="course_name"
-                          value="{{ old('course_name') }}" required></div>
+                         value="{{ old('course_name', $previousRegistration?->course_name ?? '') }}" required></div>
                         </div>
                       </div>
 
@@ -666,7 +675,7 @@ as a base64 PNG in the hidden field `signature_data`.
                           <div class="field wide">
                             <label>TWSP, PESFA, STEP, others</label>
                             <input type="text" name="scholarship_package"
-                            value="{{ old('scholarship_package') }}">
+                            value="{{ old('scholarship_package', $previousRegistration?->scholarship_package ?? '') }}">
                           </div>
                         </div>
                       </div>
