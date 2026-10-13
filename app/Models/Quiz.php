@@ -19,11 +19,15 @@ class Quiz extends Model
         'quiz_type',
         'passing_score',
         'time_limit',
+        'attempts_allowed',
     ];
 
     protected $casts = [
+        'course_id' => 'integer',
+        'module_id' => 'integer',
         'passing_score' => 'integer',
         'time_limit' => 'integer',
+        'attempts_allowed' => 'integer',
     ];
 
     public function course()
@@ -38,11 +42,17 @@ class Quiz extends Model
 
     public function questions()
     {
-        return $this->hasMany(QuizQuestion::class)->orderBy('order');
+        return $this->hasMany(QuizQuestion::class, 'quiz_id')
+            ->orderBy('order');
     }
 
     public function results()
     {
-        return $this->hasMany(QuizResult::class);
+        return $this->hasMany(QuizResult::class, 'quiz_id');
+    }
+
+    public function attemptHistories()
+    {
+        return $this->hasMany(QuizAttemptHistory::class, 'quiz_id');
     }
 }

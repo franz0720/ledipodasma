@@ -20,6 +20,8 @@ use App\Models\Facility;
 use App\Models\LandingSection;
 use App\Models\CarouselSlide;
 use App\Models\HandsOnEvaluation;
+use App\Models\QuizResult;
+use App\Models\QuizAttemptHistory;
 
 class UserController extends Controller
 {
@@ -1690,223 +1692,327 @@ public function destroyQuizQuestion($id)
 
 // ── QUIZ TAKING (Student) ─────────────────────────────────────────────────
 
+
 public function getQuizForStudent($quizId)
 {
-    $userId = \Auth::id();
+    $userId = Auth::id();
 
-    // Check if already taken
-    $existing = \App\Models\QuizResult::where('quiz_id', $quizId)
-                    ->where('user_id', $userId)
-                    ->first();
+    $quiz = Quiz::with('questions')->findOrFail($quizId);
 
-    $quiz = \App\Models\Quiz::with('questions')->findOrFail($quizId);
-
-    return response()->json([
-        'success'  => true,
-        'quiz'     => $quiz,
-        'taken'    => $existing ? true : false,
-        'result'   => $existing,
-    ]);
-}
-
-    public function submitQuiz(Request $request)
-    {
-    $request->validate([
-        'quiz_id' => 'required|exists:quizzes,id',
-        'answers' => 'required|array',
-    ]);
-
-    $userId = \Auth::id();
-    $quiz   = \App\Models\Quiz::with('questions')->findOrFail($request->quiz_id);
-
-    // Check if already taken
-    $existing = \App\Models\QuizResult::where('quiz_id', $request->quiz_id)
-                    ->where('user_id', $userId)
-                    ->first();
-    if ($existing) {
-        return response()->json(['success' => false, 'message' => 'Already taken.']);
-    }
-
-    // Score
-    $score = 0;
-    $total = $quiz->questions->count();
-
-    foreach ($quiz->questions as $q) {
-        $answer = $request->answers[$q->id] ?? null;
-        if ($answer && strtolower($answer) === $q->correct_answer) {
-            $score++;
-        }
-    }
-
-    $percentage = $total > 0 ? round(($score / $total) * 100) : 0;
-    $status     = $percentage >= $quiz->passing_score ? 'passed' : 'failed';
-
-    $result = \App\Models\QuizResult::create([
-        'quiz_id'     => $request->quiz_id,
-        'user_id'     => $userId,
-        'score'       => $score,
-        'total_items' => $total,
-        'percentage'  => $percentage,
-        'status'      => $status,
-    ]);
-
-        // I-update ang enrollment progress
-    $enrollment = \App\Models\Enrollment_tbl::where('user_id', $userId)
+    // Only enrolled students should access this quiz.
+    $isEnrolled = \App\Models\Enrollment_tbl::where('user_id', $userId)
         ->where('course_id', $quiz->course_id)
-        ->first();
-
-    if ($enrollment) {
-        // Kunin lahat ng quizzes ng course
-        $totalQuizzes = \App\Models\Quiz::where('course_id', $quiz->course_id)->count();
-        
-        // Kunin kung ilan na ang natapos ng student
-        $completedQuizzes = \App\Models\QuizResult::where('user_id', $userId)
-            ->whereIn('quiz_id', \App\Models\Quiz::where('course_id', $quiz->course_id)->pluck('id'))
-            ->count();
-
-        // I-compute ang progress percentage
-        $progress = $totalQuizzes > 0
-            ? round(($completedQuizzes / $totalQuizzes) * 100)
-            : 0;
-
-        $enrollment->progress = $progress;
-
-
-// Check if all modules are completed
-$moduleIds = \App\Models\Module::where('course_id', $quiz->course_id)
-    ->active()
-    ->pluck('id');
-
-$completedModules = \App\Models\ModuleCompletion::where('user_id', $userId)
-    ->whereIn('module_id', $moduleIds)
-    ->count();
-
-$allModulesCompleted = $moduleIds->count() > 0
-    && $completedModules >= $moduleIds->count();
-
-// Check if Post-Test is passed
-$postTest = \App\Models\Quiz::where('course_id', $quiz->course_id)
-    ->where('quiz_type', 'post_test')
-    ->first();
-
-$postTestPassed = $postTest
-    && \App\Models\QuizResult::where('user_id', $userId)
-        ->where('quiz_id', $postTest->id)
-        ->where('status', 'passed')
         ->exists();
 
-// Check if Hands-On Test is passed
-$handsOnPassed = \App\Models\HandsOnEvaluation::where('user_id', $userId)
-    ->where('course_id', $quiz->course_id)
-    ->where('result', 'passed')
-    ->exists();
-
-// Final completion requirement
-if ($allModulesCompleted && $postTestPassed && $handsOnPassed) {
-    $enrollment->status = 'completed';
-    $enrollment->completed_at = now();
-}
-
-        $enrollment->save();
+    if (!$isEnrolled) {
+        return response()->json([
+            'success' => false,
+            'message' => 'You are not enrolled in this course.',
+        ], 403);
     }
+
+    $result = QuizResult::where('quiz_id', $quiz->id)
+        ->where('user_id', $userId)
+        ->first();
+
+    $history = QuizAttemptHistory::where('quiz_id', $quiz->id)
+        ->where('user_id', $userId);
+
+    $historyCount = (clone $history)->count();
+
+    $attemptsUsed = max(
+        (int) ($result->attempts_used ?? 0),
+        (int) ($history->max('attempt_number') ?? 0)
+    );
+
+    $attemptsAllowed = max(1, (int) ($quiz->attempts_allowed ?? 2));
+
+    $hasPassed = ($result && $result->status === 'passed')
+        || QuizAttemptHistory::where('quiz_id', $quiz->id)
+            ->where('user_id', $userId)
+            ->where('status', 'passed')
+            ->exists();
+
+    // Never send the answer key to the student.
+    $quiz->questions->each(function ($question) {
+        $question->makeHidden([
+            'correct_answer',
+            'correct_answers',
+        ]);
+    });
 
     return response()->json([
-        'success'    => true,
-        'score'      => $score,
-        'total'      => $total,
-        'percentage' => $percentage,
-        'status'     => $status,
-        'passing'    => $quiz->passing_score,
-        'progress'   => $progress ?? 0, 
-    ]);
-    }
-
-
-public function trainerStudents()
-{
-    $trainer = Auth::user();
-
-    // Kunin ang course na naka-assign sa trainer
-    $course = Course_tbl::where('trainer_id', $trainer->id)->first();
-
-    // Kung walang course, i-return agad ng empty
-    if (!$course) {
-        return view('trainer.students', [
-            'course'   => null,
-            'students' => collect(),
-        ]);
-    }
-
-    // Kunin lahat ng students enrolled sa course ng trainer
-    // via enrollment_tbls JOIN user_tbls
-    $students = User_tbl::join('enrollment_tbls', 'user_tbls.id', '=', 'enrollment_tbls.user_id')
-        ->where('enrollment_tbls.course_id', $course->id)
-        ->where('user_tbls.role', 'student')   // i-adjust kung iba ang role name mo
-        ->select(
-            'user_tbls.id',
-            'user_tbls.firstname',
-            'user_tbls.lastname',
-            'user_tbls.email',
-            'enrollment_tbls.status',
-            'enrollment_tbls.progress',
-            'enrollment_tbls.enrolled_at',
-        )
-        ->orderBy('enrollment_tbls.enrolled_at', 'desc')
-        ->get();
-
-    $handsOnEvaluations = HandsOnEvaluation::where('course_id', $course->id)
-    ->get()
-    ->keyBy('user_id');
-
-    return view('trainer.students', compact(
-    'course',
-    'students',
-    'handsOnEvaluations'
-    ));
-    }
-
-    public function attendance()
-{
-    $trainer = Auth::user();
-    $course = Course_tbl::where('trainer_id', $trainer->id)->first();
-
-    if (!$course) {
-        return view('trainer.attendance', [
-            'course'   => null,
-            'students' => collect(),
-            'today'    => now()->format('l, F j, Y'),
-        ]);
-    }
-    $inSessionToday = app(\App\Services\CourseScheduleService::class)->isInSessionToday($course);
-
-    $today = now()->toDateString();
-
-    // Everyone actively enrolled in the trainer's course
-    $students = User_tbl::join('enrollment_tbls', 'user_tbls.id', '=', 'enrollment_tbls.user_id')
-        ->where('enrollment_tbls.course_id', $course->id)
-        ->where('enrollment_tbls.status', 'active')
-        ->select(
-            'user_tbls.id as user_id',
-            'user_tbls.firstname',
-            'user_tbls.lastname',
-            'enrollment_tbls.id as enrollment_id'
-        )
-        ->orderBy('user_tbls.lastname')
-        ->get();
-
-    // Today's attendance, if the trainer already submitted (or auto-fill ran)
-    $existing = \App\Models\Attendance::where('date', $today)
-        ->whereIn('enrollment_id', $students->pluck('enrollment_id'))
-        ->pluck('status', 'enrollment_id');
-
-    return view('trainer.attendance', [
-        'course'   => $course,
-        'students' => $students,
-        'existing' => $existing,
-        'today'    => now()->format('l, F j, Y'),
-        'inSessionToday' => $inSessionToday,
+        'success' => true,
+        'quiz' => $quiz,
+        'taken' => $hasPassed || $attemptsUsed >= $attemptsAllowed,
+        'result' => $result,
+        'attempts_used' => $attemptsUsed,
+        'attempts_allowed' => $attemptsAllowed,
+        'attempts_remaining' => max(0, $attemptsAllowed - $attemptsUsed),
+        'has_passed' => $hasPassed,
     ]);
 }
+
+public function submitQuiz(Request $request)
+{
+    $validated = $request->validate([
+        'quiz_id' => 'required|integer|exists:quizzes,id',
+        'answers' => 'sometimes|array',
+        'timed_out' => 'sometimes|boolean',
+    ]);
+
+    $userId = Auth::id();
+    $answers = $validated['answers'] ?? [];
+    $timedOut = $request->boolean('timed_out');
+
+    $responseData = DB::transaction(function () use (
+        $validated,
+        $userId,
+        $answers,
+        $timedOut
+    ) {
+        // Lock the quiz while processing an attempt.
+        $quiz = Quiz::whereKey($validated['quiz_id'])
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        $isEnrolled = \App\Models\Enrollment_tbl::where('user_id', $userId)
+            ->where('course_id', $quiz->course_id)
+            ->exists();
+
+        if (!$isEnrolled) {
+            return [
+                'http_status' => 403,
+                'body' => [
+                    'success' => false,
+                    'message' => 'You are not enrolled in this course.',
+                ],
+            ];
+        }
+
+        $questions = QuizQuestion::where('quiz_id', $quiz->id)
+            ->orderBy('order')
+            ->get();
+
+        $bestResult = QuizResult::where('quiz_id', $quiz->id)
+            ->where('user_id', $userId)
+            ->lockForUpdate()
+            ->first();
+
+        $historyQuery = QuizAttemptHistory::where('quiz_id', $quiz->id)
+            ->where('user_id', $userId);
+
+        $latestAttemptNumber = (int) (
+            (clone $historyQuery)->max('attempt_number') ?? 0
+        );
+
+        $attemptsUsed = max(
+            (int) ($bestResult->attempts_used ?? 0),
+            (int) ($bestResult->attempt_number ?? 0),
+            $latestAttemptNumber
+        );
+
+        $attemptsAllowed = max(
+            1,
+            (int) ($quiz->attempts_allowed ?? 2)
+        );
+
+        $hasPassed = ($bestResult && $bestResult->status === 'passed')
+            || QuizAttemptHistory::where('quiz_id', $quiz->id)
+                ->where('user_id', $userId)
+                ->where('status', 'passed')
+                ->exists();
+
+        if ($hasPassed) {
+            return [
+                'http_status' => 409,
+                'body' => [
+                    'success' => false,
+                    'message' => 'You have already passed this quiz.',
+                    'attempts_used' => $attemptsUsed,
+                    'attempts_allowed' => $attemptsAllowed,
+                    'attempts_remaining' => 0,
+                ],
+            ];
+        }
+
+        if ($attemptsUsed >= $attemptsAllowed) {
+            return [
+                'http_status' => 409,
+                'body' => [
+                    'success' => false,
+                    'message' => 'You have used all attempts allowed for this quiz.',
+                    'attempts_used' => $attemptsUsed,
+                    'attempts_allowed' => $attemptsAllowed,
+                    'attempts_remaining' => 0,
+                ],
+            ];
+        }
+
+        // Score using the existing single-answer question format.
+        $score = 0;
+        $total = $questions->count();
+
+        foreach ($questions as $question) {
+            $answer = $answers[$question->id] ?? null;
+            $correctAnswer = $question->correct_answer;
+
+            if (
+                is_scalar($answer)
+                && $correctAnswer !== null
+                && trim((string) $answer) !== ''
+                && mb_strtolower(trim((string) $answer))
+                    === mb_strtolower(trim((string) $correctAnswer))
+            ) {
+                $score++;
+            }
+        }
+
+        $percentage = $total > 0
+            ? round(($score / $total) * 100)
+            : 0;
+
+        $status = $percentage >= (int) $quiz->passing_score
+            ? 'passed'
+            : 'failed';
+
+        $attemptNumber = $attemptsUsed + 1;
+        $newAttemptsUsed = $attemptNumber;
+
+        // Save every attempt, including attempts submitted after timeout.
+        QuizAttemptHistory::create([
+            'quiz_id' => $quiz->id,
+            'user_id' => $userId,
+            'attempt_number' => $attemptNumber,
+            'score' => $score,
+            'total_items' => $total,
+            'percentage' => $percentage,
+            'status' => $status,
+            'timed_out' => $timedOut,
+        ]);
+
+        // Keep one summary result per student and quiz.
+        // Update the score only when the new attempt is better.
+        if (!$bestResult) {
+            $bestResult = QuizResult::create([
+                'quiz_id' => $quiz->id,
+                'user_id' => $userId,
+                'score' => $score,
+                'total_items' => $total,
+                'percentage' => $percentage,
+                'status' => $status,
+                'attempt_number' => $attemptNumber,
+                'attempts_used' => $newAttemptsUsed,
+            ]);
+        } else {
+            $isBetter = $percentage > (float) $bestResult->percentage
+                || (
+                    $percentage == (float) $bestResult->percentage
+                    && $score > (int) $bestResult->score
+                );
+
+            $bestResult->attempts_used = $newAttemptsUsed;
+
+            if ($isBetter) {
+                $bestResult->score = $score;
+                $bestResult->total_items = $total;
+                $bestResult->percentage = $percentage;
+                $bestResult->status = $status;
+                $bestResult->attempt_number = $attemptNumber;
+            }
+
+            $bestResult->save();
+        }
+
+        // Preserve the existing enrollment progress calculation.
+        $enrollment = \App\Models\Enrollment_tbl::where('user_id', $userId)
+            ->where('course_id', $quiz->course_id)
+            ->first();
+
+        $progress = 0;
+
+        if ($enrollment) {
+            $courseQuizIds = Quiz::where('course_id', $quiz->course_id)
+                ->pluck('id');
+
+            $totalQuizzes = $courseQuizIds->count();
+
+            $completedQuizzes = QuizResult::where('user_id', $userId)
+                ->whereIn('quiz_id', $courseQuizIds)
+                ->count();
+
+            $progress = $totalQuizzes > 0
+                ? round(($completedQuizzes / $totalQuizzes) * 100)
+                : 0;
+
+            $enrollment->progress = $progress;
+
+            $moduleIds = Module::where('course_id', $quiz->course_id)
+                ->active()
+                ->pluck('id');
+
+            $completedModules = \App\Models\ModuleCompletion::where(
+                'user_id',
+                $userId
+            )
+                ->whereIn('module_id', $moduleIds)
+                ->count();
+
+            $allModulesCompleted = $moduleIds->count() > 0
+                && $completedModules >= $moduleIds->count();
+
+            $postTest = Quiz::where('course_id', $quiz->course_id)
+                ->where('quiz_type', 'post_test')
+                ->first();
+
+            $postTestPassed = $postTest
+                && QuizResult::where('user_id', $userId)
+                    ->where('quiz_id', $postTest->id)
+                    ->where('status', 'passed')
+                    ->exists();
+
+            $handsOnPassed = HandsOnEvaluation::where('user_id', $userId)
+                ->where('course_id', $quiz->course_id)
+                ->where('result', 'passed')
+                ->exists();
+
+            if ($allModulesCompleted && $postTestPassed && $handsOnPassed) {
+                $enrollment->status = 'completed';
+                $enrollment->completed_at = now();
+            }
+
+            $enrollment->save();
+        }
+
+        return [
+            'http_status' => 200,
+            'body' => [
+                'success' => true,
+                'score' => $score,
+                'total' => $total,
+                'percentage' => $percentage,
+                'status' => $status,
+                'passing' => (int) $quiz->passing_score,
+                'progress' => $progress,
+                'attempt_number' => $attemptNumber,
+                'attempts_used' => $newAttemptsUsed,
+                'attempts_allowed' => $attemptsAllowed,
+                'attempts_remaining' => max(
+                    0,
+                    $attemptsAllowed - $newAttemptsUsed
+                ),
+                'timed_out' => $timedOut,
+                'best_result' => $bestResult->fresh(),
+            ],
+        ];
+    });
+
+    return response()->json(
+        $responseData['body'],
+        $responseData['http_status']
+    );
+}
+
 
 public function storeHandsOnEvaluation(Request $request)
 {

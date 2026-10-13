@@ -3258,14 +3258,30 @@
       status.textContent = passed ? 'PASSED' : 'FAILED';
       status.classList.toggle('failed', !passed);
       document.getElementById('quizModuleCompletionMessage').textContent =
-        isPreviousResult ?
-        'This is your previously saved quiz result.' :
-        (moduleCompletion.success ?
-          (moduleCompletion.alreadyDone ?
-            'This module was already marked as done.' :
-            'Quiz submitted successfully. Module marked as done.') :
-          (moduleCompletion.message ||
-            'Quiz submitted, but module completion could not be updated.'));
+        isPreviousResult
+          ? 'This is your previously saved quiz result.'
+          : passed
+            ? (
+                moduleCompletion?.success
+                  ? (
+                      moduleCompletion.alreadyDone
+                        ? 'You passed! This module was already completed.'
+                        : 'You passed! The module has been marked as complete.'
+                    )
+                  : (
+                      moduleCompletion?.message ||
+                      'You passed, but module completion could not be updated.'
+                    )
+              )
+            : (
+                data.attempts_remaining !== undefined
+                  ? (
+                      Number(data.attempts_remaining) > 0
+                        ? `You did not pass. ${data.attempts_remaining} attempt(s) remaining.`
+                        : 'You did not pass and have used all allowed attempts.'
+                    )
+                  : 'You did not pass. Review the learning materials and retry if attempts remain.'
+              );
       document.getElementById('quizResultModal').style.display = 'flex';
     }
 
@@ -3332,7 +3348,8 @@
           credentials: 'same-origin',
           body: JSON.stringify({
             quiz_id: _currentQuizId,
-            answers
+            answers,
+            timed_out: autoSubmit
           })
         });
 
@@ -3367,12 +3384,25 @@
           closeButton.title = 'Close assessment';
         }
 
-        // Update the module's completion status.
-        const moduleCompletion = await completeModuleAfterQuiz(
-          _currentQuizModuleId
-        );
+         // Only mark the module complete if the student passed.
+        const passed =
+          String(data.status || '').toLowerCase() === 'passed' ||
+          Number(data.percentage ?? 0) >= Number(data.passing_score ?? 75);
 
-        // Hide the assessment and display the saved result.
+        let moduleCompletion;
+
+        if (passed) {
+          moduleCompletion = await completeModuleAfterQuiz(
+            _currentQuizModuleId
+          );
+        } else {
+          moduleCompletion = {
+            success: false,
+            message: 'Module remains incomplete. You may retry this quiz if attempts remain.'
+          };
+        }
+
+        // Hide the assessment and display the result.
         document.getElementById('quizModal').style.display = 'none';
 
         showQuizResult(data, moduleCompletion);
