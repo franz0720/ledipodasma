@@ -123,11 +123,11 @@ Route::middleware("admin")->group(function () {
 
 Route::middleware("super_admin")->group(function () {
 
-    Route::get('/superadmin', [SuperAdminController::class, 'adminAccounts'])
-        ->name('superadmin.dashboard');
-
-    Route::post('/superadmin/admin-accounts', [SuperAdminController::class, 'storeAdmin'])
-        ->name('superadmin.admin.store');
+    Route::get('/superadmin', [SuperAdminController::class, 'adminAccounts'])->name('superadmin.dashboard');
+    Route::post('/superadmin/admin-accounts', [SuperAdminController::class, 'storeAdmin'])->name('superadmin.admin.store');
+    Route::put('/superadmin/admin-accounts/{id}', [SuperAdminController::class, 'updateAdmin'])->name('superadmin.admin.update'); 
+    Route::get('/superadmin/trainer-accounts', [SuperAdminController::class, 'trainerAccounts'])->name('superadmin.trainers');
+    Route::post('/superadmin/trainer-accounts', [SuperAdminController::class, 'storeTrainer'])->name('superadmin.trainers.store');
 
 });
 
