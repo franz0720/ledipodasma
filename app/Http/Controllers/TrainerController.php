@@ -12,48 +12,373 @@ use App\Models\TrainerAnnouncement;
 use App\Models\AnnouncementComment;
 use App\Models\Course_tbl as Course;
 use App\Models\OnsiteActivity; // <-- Replace with your actual model name
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class TrainerController extends Controller
 {
     /**
      * Dashboard — single-course trainer view
      */
-    public function dashboard()
-    {
-        $trainer = Auth::user();
+ public function dashboard()
+{
+    $trainer = Auth::user();
 
-        // Assigned course of the trainer
-        $course = Course_tbl::where('trainer_id', $trainer->id)
-            ->withCount('students')
-            ->first();
+    /*
+    |--------------------------------------------------------------------------
+    | 1. TRAINER COURSES
+    |--------------------------------------------------------------------------
+    */
+    $courses = Course_tbl::where('trainer_id', $trainer->id)
+        ->withCount('students')
+        ->get();
 
-        // Stat counts
-        $totalStudents = $course ? $course->students_count : 0;
-        $totalCourses  = Course_tbl::where('trainer_id', $trainer->id)->count();
+    $courseIds = $courses->pluck('id');
 
-        // Completion rate
-        $totalEnrolled  = $course ? $course->students()->count() : 0;
-        $totalCompleted = $course ? $course->students()->wherePivot('status', 'completed')->count() : 0;
-        $completionRate = $totalEnrolled > 0
-            ? round(($totalCompleted / $totalEnrolled) * 100)
-            : 0;
+    // Preserve the existing single-course variable used by the dashboard.
+    $course = $courses->first();
 
-        // Recent 5 students
-        $recentStudents = $course
-            ? $course->students()
-                ->orderByPivot('created_at', 'desc')
-                ->take(5)
-                ->get()
-            : collect();
+    /*
+    |--------------------------------------------------------------------------
+    | 2. ENROLLMENTS
+    |--------------------------------------------------------------------------
+    | All dashboard statistics are scoped to the authenticated trainer.
+    */
+    $enrollments = DB::table('enrollment_tbls as e')
+        ->join('user_tbls as u', 'u.id', '=', 'e.user_id')
+        ->join('course_tbls as c', 'c.id', '=', 'e.course_id')
+        ->whereIn('e.course_id', $courseIds)
+        ->where(function ($query) {
+            $query->whereNull('e.status')
+                ->orWhere('e.status', '!=', 'dropped');
+        })
+        ->select([
+            'e.id as enrollment_id',
+            'e.user_id',
+            'e.course_id',
+            'e.status as enrollment_status',
+            'e.progress',
+            'e.created_at as enrollment_created_at',
+            'u.firstname',
+            'u.lastname',
+            'u.email',
+            'c.title as course_title',
+        ])
+        ->get();
 
-        return view('trainer.teacher', compact(
-            'course',
-            'totalStudents',
-            'totalCourses',
-            'completionRate',
-            'recentStudents'
-        ));
+    $enrollmentIds = $enrollments->pluck('enrollment_id');
+
+    $totalTrainees = $enrollments->count();
+
+    $monthlyEnrollment = $enrollments
+        ->filter(function ($enrollment) {
+            return $enrollment->enrollment_created_at
+                && \Carbon\Carbon::parse(
+                    $enrollment->enrollment_created_at
+                )->isCurrentMonth();
+        })
+        ->count();
+
+    $totalCompleted = $enrollments
+        ->filter(function ($enrollment) {
+            return strtolower(
+                trim((string) $enrollment->enrollment_status)
+            ) === 'completed';
+        })
+        ->count();
+
+    $completionRate = $totalTrainees > 0
+        ? (int) round(($totalCompleted / $totalTrainees) * 100)
+        : 0;
+
+    /*
+    |--------------------------------------------------------------------------
+    | 3. QUIZ RESULTS
+    |--------------------------------------------------------------------------
+    | Results are grouped by course and trainee to avoid mixing scores
+    | when the same trainee is enrolled in different courses.
+    */
+    $quizResults = DB::table('quiz_results as qr')
+        ->join('quizzes as q', 'q.id', '=', 'qr.quiz_id')
+        ->whereIn('q.course_id', $courseIds)
+        ->whereNotNull('qr.percentage')
+        ->whereIn('qr.user_id', $enrollments->pluck('user_id')->unique())
+        ->select([
+            'qr.id',
+            'qr.user_id',
+            'qr.quiz_id',
+            'qr.percentage',
+            'q.course_id',
+        ])
+        ->get()
+        ->groupBy(function ($result) {
+            return $result->course_id . ':' . $result->user_id;
+        });
+
+    /*
+    |--------------------------------------------------------------------------
+    | 4. ONSITE ACTIVITIES AND GRADES
+    |--------------------------------------------------------------------------
+    */
+    $onsiteActivities = DB::table('onsite_activities')
+        ->whereIn('course_id', $courseIds)
+        ->get()
+        ->keyBy('id');
+
+    $onsiteGrades = DB::table('onsite_grades as og')
+        ->join(
+            'onsite_activities as oa',
+            'oa.id',
+            '=',
+            'og.onsite_activity_id'
+        )
+        ->whereIn('oa.course_id', $courseIds)
+        ->whereIn('og.enrollment_id', $enrollmentIds)
+        ->whereNotNull('og.score')
+        ->select([
+            'og.id',
+            'og.enrollment_id',
+            'og.user_id',
+            'og.onsite_activity_id',
+            'og.score',
+            'oa.course_id',
+            'oa.max_score',
+        ])
+        ->get()
+        ->groupBy('enrollment_id');
+
+    /*
+    |--------------------------------------------------------------------------
+    | 5. CALCULATE ASSESSMENT PERFORMANCE
+    |--------------------------------------------------------------------------
+    | Quiz average = average recorded quiz percentages.
+    | Onsite average = average valid onsite score percentages.
+    | Overall = (quiz average + onsite average) / 2.
+    |
+    | Missing either category = Pending Assessment.
+    | 75% or above = Competent.
+    | Below 75% = Not Yet Competent.
+    |
+    | Course completion remains separate from assessment performance.
+    */
+    $performances = collect();
+
+    foreach ($enrollments as $enrollment) {
+        $userId = $enrollment->user_id;
+        $courseId = $enrollment->course_id;
+
+        $resultKey = $courseId . ':' . $userId;
+
+        $studentQuizResults = $quizResults->get(
+            $resultKey,
+            collect()
+        );
+
+        $quizPercentages = $studentQuizResults
+            ->pluck('percentage')
+            ->filter(function ($value) {
+                return $value !== null && $value !== '';
+            })
+            ->map(function ($value) {
+                return min(100, max(0, (float) $value));
+            });
+
+        $quizAverage = $quizPercentages->isNotEmpty()
+            ? round($quizPercentages->avg(), 2)
+            : null;
+
+        // Onsite grades belong to a specific enrollment.
+        $studentGrades = $onsiteGrades->get(
+            $enrollment->enrollment_id,
+            collect()
+        );
+
+        $onsitePercentages = $studentGrades
+            ->map(function ($grade) {
+                $maxScore = (float) $grade->max_score;
+
+                if ($maxScore <= 0) {
+                    return null;
+                }
+
+                return min(
+                    100,
+                    max(
+                        0,
+                        ((float) $grade->score / $maxScore) * 100
+                    )
+                );
+            })
+            ->filter(function ($value) {
+                return $value !== null;
+            });
+
+        $onsiteAverage = $onsitePercentages->isNotEmpty()
+            ? round($onsitePercentages->avg(), 2)
+            : null;
+
+        $isPending = $quizAverage === null
+            || $onsiteAverage === null;
+
+        $overallScore = $isPending
+            ? null
+            : round(($quizAverage + $onsiteAverage) / 2, 2);
+
+        if ($isPending) {
+            $assessmentStatus = 'Pending Assessment';
+        } elseif ($overallScore >= 75) {
+            $assessmentStatus = 'Competent';
+        } else {
+            $assessmentStatus = 'Not Yet Competent';
+        }
+
+        $performances->push((object) [
+            'enrollment_id' => $enrollment->enrollment_id,
+            'user_id' => $userId,
+            'course_id' => $courseId,
+
+            'user' => (object) [
+                'firstname' => $enrollment->firstname,
+                'lastname' => $enrollment->lastname,
+                'email' => $enrollment->email,
+            ],
+
+            'course' => (object) [
+                'title' => $enrollment->course_title,
+            ],
+
+            'progress' => min(
+                100,
+                max(0, (float) ($enrollment->progress ?? 0))
+            ),
+
+            'quiz_average' => $quizAverage,
+            'onsite_average' => $onsiteAverage,
+            'assessment_score' => $overallScore,
+            'assessment_status' => $assessmentStatus,
+        ]);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 6. LOW-PERFORMING TRAINEES
+    |--------------------------------------------------------------------------
+    */
+    $lowPerforming = $performances
+        ->filter(function ($student) {
+            return $student->assessment_status === 'Not Yet Competent';
+        })
+        ->sortBy('assessment_score')
+        ->take(10)
+        ->values();
+
+    /*
+    |--------------------------------------------------------------------------
+    | 7. URGENT ONSITE ASSESSMENTS
+    |--------------------------------------------------------------------------
+    | Count scheduled activities from today through the next three days.
+    */
+    $today = now()->toDateString();
+    $urgentUntil = now()->addDays(3)->toDateString();
+
+    $urgentAssessments = DB::table('onsite_activities')
+        ->whereIn('course_id', $courseIds)
+        ->whereDate('activity_date', '>=', $today)
+        ->whereDate('activity_date', '<=', $urgentUntil)
+        ->count();
+
+    /*
+    |--------------------------------------------------------------------------
+    | 8. COURSE COMPLETION DISTRIBUTION
+    |--------------------------------------------------------------------------
+    | Categories match the dashboard legend.
+    */
+    $normalizedProgress = $enrollments->map(function ($enrollment) {
+        return min(
+            100,
+            max(0, (float) ($enrollment->progress ?? 0))
+        );
+    });
+
+    $progressDistribution = [
+        $normalizedProgress->filter(fn ($p) => $p >= 100)->count(),
+        $normalizedProgress->filter(fn ($p) => $p >= 50 && $p < 100)->count(),
+        $normalizedProgress->filter(fn ($p) => $p > 0 && $p < 50)->count(),
+        $normalizedProgress->filter(fn ($p) => $p == 0)->count(),
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | 9. WEEKLY PROGRESS CHART
+    |--------------------------------------------------------------------------
+    | Generate actual date labels alongside the daily averages.
+    */
+    $weeklyDates = collect(range(6, 0))
+        ->map(function ($daysAgo) {
+            return now()->subDays($daysAgo)->startOfDay();
+        })
+        ->values();
+
+    $weeklyProgressLabels = $weeklyDates
+        ->map(fn ($date) => $date->format('D'))
+        ->all();
+
+    $weeklyProgressData = $weeklyDates
+        ->map(function ($date) use ($enrollmentIds) {
+            $average = DB::table('daily_progress')
+                ->whereIn('enrollment_id', $enrollmentIds)
+                ->whereDate('date', $date->toDateString())
+                ->avg('progress_percent');
+
+            return round((float) ($average ?? 0), 2);
+        })
+        ->all();
+
+    /*
+    |--------------------------------------------------------------------------
+    | 10. ATTENDANCE REMINDER
+    |--------------------------------------------------------------------------
+    */
+    $attendanceTakenToday = DB::table('attendances')
+        ->whereIn('enrollment_id', $enrollmentIds)
+        ->whereDate('date', $today)
+        ->where('marked_by', $trainer->id)
+        ->exists();
+
+    /*
+    |--------------------------------------------------------------------------
+    | 11. RECENT STUDENTS
+    |--------------------------------------------------------------------------
+    | Preserve the existing view-compatible student collection for now.
+    */
+    $recentStudents = $course
+        ? $course->students()
+            ->orderByPivot('created_at', 'desc')
+            ->take(5)
+            ->get()
+        : collect();
+
+    /*
+    |--------------------------------------------------------------------------
+    | 12. RETURN DASHBOARD
+    |--------------------------------------------------------------------------
+    | Preserve the existing view and its variables.
+    */
+    return view('trainer.teacher', compact(
+        'course',
+        'courses',
+        'totalTrainees',
+        'completionRate',
+        'monthlyEnrollment',
+        'urgentAssessments',
+        'progressDistribution',
+        'weeklyProgressLabels',
+        'weeklyProgressData',
+        'attendanceTakenToday',
+        'lowPerforming',
+        'recentStudents'
+    ));
+}
 
     public function updateSyllabus(Request $request, $id)
 {
@@ -491,4 +816,142 @@ public function deleteSyllabus($id)
             'onsiteActivities' => $onsiteActivities, // <-- This was missing
         ]);
     }
+
+
+public function attendance()
+{
+    $trainer = Auth::user();
+
+    // Get the trainer's assigned course.
+    $course = Course_tbl::where('trainer_id', $trainer->id)->first();
+
+    $today = Carbon::today()->format('F d, Y');
+    $todayDate = Carbon::today()->toDateString();
+
+    $inSessionToday = false;
+    $enrollments = collect();
+    $students = collect();
+    $existing = [];
+    $dailyAttendance = collect();
+
+    if ($course) {
+        // Retrieve enrolled trainees from the correct tables.
+        $enrollments = DB::table('enrollment_tbls as e')
+            ->join('user_tbls as u', 'u.id', '=', 'e.user_id')
+            ->where('e.course_id', $course->id)
+            ->where(function ($query) {
+                $query->whereNull('e.status')
+                    ->orWhere('e.status', '!=', 'dropped');
+            })
+            ->select([
+                'e.id as enrollment_id',
+                'e.user_id',
+                'u.firstname',
+                'u.lastname',
+            ])
+            ->get();
+
+        // The Blade view uses the same enrolled trainee collection.
+        $students = $enrollments;
+
+        // TEMPORARY: Replace with your actual course schedule check.
+        $inSessionToday = true;
+
+        $enrollmentIds = $enrollments->pluck('enrollment_id');
+
+        if ($enrollmentIds->isNotEmpty()) {
+
+            // Load previously recorded attendance for today.
+            $existing = DB::table('attendances')
+                ->whereIn('enrollment_id', $enrollmentIds)
+                ->whereDate('date', $todayDate)
+                ->where('marked_by', $trainer->id)
+                ->pluck('status', 'enrollment_id')
+                ->toArray();
+
+            // Retrieve saved attendance history for this course.
+            $attendanceRecords = DB::table('attendances as a')
+                ->join(
+                    'enrollment_tbls as e',
+                    'e.id',
+                    '=',
+                    'a.enrollment_id'
+                )
+                ->join(
+                    'user_tbls as u',
+                    'u.id',
+                    '=',
+                    'e.user_id'
+                )
+                ->where('e.course_id', $course->id)
+                ->whereIn('a.enrollment_id', $enrollmentIds)
+                ->where('a.marked_by', $trainer->id)
+                ->select([
+                    'a.enrollment_id',
+                    'a.date as attendance_date',
+                    'a.status',
+                    'u.firstname',
+                    'u.lastname',
+                ])
+                ->orderByDesc('a.date')
+                ->get();
+
+            // Group records by training date, newest date first.
+            $dailyAttendance = $attendanceRecords
+                ->groupBy(function ($record) {
+                    return Carbon::parse(
+                        $record->attendance_date
+                    )->toDateString();
+                })
+                ->sortKeysDesc()
+                ->map(function ($records, $date) {
+                    return [
+                        'date' => $date,
+
+                        'label' => Carbon::parse($date)
+                            ->format('F d, Y'),
+
+                        'records' => $records
+                            ->map(function ($record) {
+                                $firstName = trim(
+                                    (string) ($record->firstname ?? '')
+                                );
+
+                                $lastName = trim(
+                                    (string) ($record->lastname ?? '')
+                                );
+
+                                return (object) [
+                                    'enrollment_id' =>
+                                        $record->enrollment_id,
+
+                                    'student_name' => trim(
+                                        $firstName . ' ' . $lastName
+                                    ) ?: 'Unnamed trainee',
+
+                                    'status' => strtolower(
+                                        (string) $record->status
+                                    ),
+                                ];
+                            })
+                            ->values(),
+                    ];
+                })
+                ->values();
+        }
+    }
+
+    return view('trainer.attendance', compact(
+        'today',
+        'course',
+        'inSessionToday',
+        'enrollments',
+        'students',
+        'existing',
+        'dailyAttendance'
+    ));
 }
+
+}
+
+

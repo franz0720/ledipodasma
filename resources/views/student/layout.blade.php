@@ -35,18 +35,13 @@
     integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
     crossorigin="anonymous">
 
-  <!-- Tab Icon -->
-
   <link rel="icon" type="image/png"
     href="{{ asset('images/logo_ledipo.png') }}">
 
   @yield('css')
 
   <style>
-    /* =========================================================
-      LOGGED-IN PROFILE AVATAR / DROPDOWN
-      Matches the student homepage profile-circle design
-      ========================================================= */
+    /* Logged-in profile avatar and dropdown */
     .landing-profile {
       position: relative;
       display: flex;
@@ -154,8 +149,10 @@
       text-transform: capitalize;
     }
 
+    *
+
     /* ── MODAL STYLES ────────────────────────────────────── */
-    .modal {
+    * .modal {
       position: fixed;
       top: 0;
       left: 0;
@@ -179,8 +176,10 @@
       padding: 8px 15px;
     }
 
+    *
+
     /* ── SIDEBAR INDEX STYLES ────────────────────────────────────── */
-    .sidebar-index-title {
+    * .sidebar-index-title {
       font-size: 10px;
       font-weight: 700;
       color: #A0AEC0;
@@ -295,8 +294,60 @@
       font-style: italic;
     }
 
+    .completion-index-item {
+      justify-content: flex-start;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .completion-index-item:hover,
+    .completion-index-item.active {
+      background: #eaf5ee;
+      color: #025628;
+    }
+
+    .completion-index-item:focus-visible {
+      outline: 2px solid #27834c;
+      outline-offset: 2px;
+    }
+
+    /* Onsite Activities appears as a standalone item in COURSE CONTENT. */
+    .onsite-activities-sidebar-link {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 9px;
+      margin-top: 5px;
+      border-radius: 8px;
+      color: #025628;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 12px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .onsite-activities-sidebar-link>span {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .onsite-activities-sidebar-link:hover,
+    .onsite-activities-sidebar-link.active {
+      background: #eaf5ee;
+      color: #025628;
+    }
+
+    .onsite-activities-screen {
+      width: 100%;
+      min-width: 0;
+    }
+
+    *
+
     /* ── MODAL STYLES ────────────────────────────────────── */
-    .pretest-modal-overlay {
+    * .pretest-modal-overlay {
       display: none;
       position: fixed;
       top: 0;
@@ -489,8 +540,10 @@
       text-align: center;
     }
 
+    *
+
     /* Scaled Geometric Corner Accents */
-    .cert-corner-top-left {
+    * .cert-corner-top-left {
       position: absolute;
       top: 0;
       left: 0;
@@ -742,6 +795,98 @@
         margin: 0;
       }
     }
+
+    /* ── STUDENT SCORES SIDEBAR GROUP ── */
+    .student-scores-group {
+      width: 100%;
+      margin: 3px 0;
+    }
+
+    .student-scores-toggle {
+      width: 100%;
+      font-family: inherit;
+      text-align: left;
+      cursor: pointer;
+      border: 0;
+      background: transparent;
+    }
+
+    .student-scores-toggle>span {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .student-scores-toggle>span>i {
+      width: 15px;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    .scores-chevron {
+      font-size: 10px;
+      transition: transform .18s ease;
+    }
+
+    .student-scores-toggle[aria-expanded="true"] .scores-chevron {
+      transform: rotate(180deg);
+    }
+
+    .student-scores-submenu {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      padding: 5px 0 8px 16px;
+      margin-left: 12px;
+      border-left: 2px solid #dceee2;
+    }
+
+    .student-scores-submenu.show {
+      display: flex;
+    }
+
+    .student-scores-link {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      padding: 8px 9px;
+      margin: 1px 6px 1px 0;
+      border-radius: 7px;
+      color: #718096;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.45;
+      text-decoration: none;
+      overflow-wrap: anywhere;
+      transition: background .18s ease, color .18s ease;
+    }
+
+    .student-scores-link .fa-solid {
+      flex: 0 0 13px;
+      margin-top: 2px;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .student-scores-link:hover,
+    .student-scores-link.active {
+      background: #eaf5ee;
+      color: #025628;
+    }
+
+    .student-scores-toggle:focus-visible,
+    .student-scores-link:focus-visible {
+      outline: 2px solid #27834c;
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 768px) {
+      .student-scores-link {
+        padding: 10px 9px;
+        font-size: 13px;
+      }
+    }
   </style>
 
 </head>
@@ -937,7 +1082,11 @@
 
       @endphp
 
-      @if ($sidebarUnitNumbers->isNotEmpty())
+      @if (request()->routeIs('student.modules') &&
+              request()->filled('course_id') &&
+              isset($enrollment) &&
+              $enrollment &&
+              $sidebarUnitNumbers->isNotEmpty())
 
         <div id="sidebarIndexMenu">
 
@@ -963,7 +1112,7 @@
 
           @foreach ($sidebarUnitNumbers as $unitNum)
             <div class="index-item" role="button" tabindex="0"
-              onclick="toggleSubMenu('unit{{ $unitNum }}Sub'); showUnitScreen({{ $unitNum }});">
+              onclick="toggleUnitMenu({{ $unitNum }});">
 
               <span><i class="fa fa-layer-group"></i> Unit
 
@@ -1008,30 +1157,32 @@
             </div>
           @endforeach
 
-          <div class="index-item" role="button" tabindex="0"
-            onclick="toggleSubMenu('completionSub'); showAllCourseContent();">
-
-            <span><i class="fa fa-graduation-cap"></i> Completion</span>
-
-            <i class="fa fa-chevron-down index-chevron"></i>
-
-          </div>
-
-          <div class="index-sub-menu" id="completionSub">
-
-            <a href="#courseOverview" class="index-sub-link"
-              onclick="showIntroScreen();">• Course progress</a>
-
+          {{-- COMPLETION: standalone index item, no submenu --}}
+          <div class="index-item completion-index-item"
+            id="completionIndexItem" role="button" tabindex="0"
+            onclick="showCompletionScreen()"
+            onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); showCompletionScreen(); }">
+            <span>
+              <i class="fa fa-graduation-cap"></i>
+              Completion
+            </span>
           </div>
 
         </div>
 
       @endif
 
+      <a href="{{ Route::has('student.grades') ? route('student.grades') : url('/student/grades') }}"
+   class="nav-item {{ request()->routeIs('student.grades') ? 'active' : '' }}">
+
+    
+    <span>My Grades</span>
+</a>
+
       <a href="{{ Route::has('student.announcements') ? route('student.announcements') : '/student/announcements' }}"
         class="nav-item {{ request()->routeIs('student.announcements') ? 'active' : '' }}">
 
-        <span>Announcement</span>
+        <span>Announcements</span>
 
       </a>
 
@@ -1040,6 +1191,15 @@
     <main class="main-content">
 
       @yield('content')
+
+      {{--
+        The student course view can provide this section with its onsite activity
+        cards/table. This screen is shown alone when Onsite Activities is clicked.
+      --}}
+      <section id="onsiteActivitiesScreen" class="onsite-activities-screen"
+        data-content-screen="onsite-activities" style="display:none;">
+        @yield('onsite-activities-content')
+      </section>
 
     </main>
 
@@ -1390,7 +1550,7 @@
 
           </button>
 
-          <button onclick="window\.print()"
+          <button onclick="window.print()"
             style="background:#D4D120; color:#1A1A1A; border:none; padding:6px 18px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">
 
             <i class="fa fa-print"></i> Print / Download PDF
@@ -1412,492 +1572,561 @@
   <script>
     const hamburger = document.getElementById('hamburger');
 
-
-
-
-
-
-
     const sidebar = document.getElementById('sidebar');
-
-
-
-
-
-
 
     const overlay = document.getElementById('overlay');
 
-
-
-
-
-
-
     const avatarBtn = document.getElementById('avatarBtn');
-
-
-
-
-
-
 
     const dropdown = document.getElementById('dropdown');
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     if (hamburger) {
-
-
-
-
-
-
 
       hamburger.addEventListener('click', function() {
 
-
-
-
-
-
-
         sidebar.classList.toggle('sidebar-open');
-
-
-
-
-
-
 
         overlay.classList.toggle('show');
 
-
-
-
-
-
-
       });
 
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     if (overlay) {
 
-
-
-
-
-
-
       overlay.addEventListener('click', function() {
-
-
-
-
-
-
 
         sidebar.classList.remove('sidebar-open');
 
-
-
-
-
-
-
         overlay.classList.remove('show');
-
-
-
-
-
-
 
       });
 
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     if (avatarBtn) {
 
-
-
-
-
-
-
       avatarBtn.addEventListener('click', function(e) {
-
-
-
-
-
-
 
         e.stopPropagation();
 
-
-
-
-
-
-
         dropdown.classList.toggle('open');
-
-
-
-
-
-
 
       });
 
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     document.addEventListener('click', function(e) {
 
-
-
-
-
-
-
       if (dropdown && !e.target.closest('.landing-profile')) {
-
-
-
-
-
-
 
         dropdown.classList.remove('open');
 
-
-
-
-
-
-
       }
-
-
-
-
-
-
 
     });
 
+    function toggleStudentScoresMenu() {
+      const toggle = document.getElementById('studentScoresToggle');
+      const submenu = document.getElementById('studentScoresSubmenu');
+      if (!toggle || !submenu) return;
 
-
-
-
-
-
-
-
-
-
-
-
-
+      const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!isExpanded));
+      submenu.classList.toggle('show', !isExpanded);
+    }
 
     function toggleSubMenu(id) {
 
+      const targetMenu = document.getElementById(id);
 
+      if (!targetMenu) return;
 
-      const el = document.getElementById(id);
+      const shouldOpen = !targetMenu.classList.contains('show');
 
+      // Close every submenu first, so only one accordion section is open.
+      document.querySelectorAll('#sidebarIndexMenu .index-sub-menu').forEach(
 
+        menu => {
 
-      if (!el) return;
+          menu.classList.remove('show');
 
+        });
 
+      document.querySelectorAll('#sidebarIndexMenu .index-item').forEach(
 
-      el.classList.toggle('show');
+        heading => {
 
+          heading.setAttribute('aria-expanded', 'false');
 
+        });
 
-      const heading = el.previousElementSibling;
+      // Reopen the clicked submenu only if it was previously closed.
+      if (shouldOpen) {
 
+        targetMenu.classList.add('show');
 
+        const heading = targetMenu.previousElementSibling;
 
-      if (heading && heading.classList.contains('index-item')) {
+        if (heading && heading.classList.contains('index-item')) {
 
+          heading.setAttribute('aria-expanded', 'true');
 
-
-        heading.setAttribute('aria-expanded', el.classList.contains('show') ?
-
-
-
-          'true' : 'false');
-
-
+        }
 
       }
 
-
+      return shouldOpen;
 
     }
 
+    function toggleUnitMenu(unitNumber) {
 
+      const menuId = 'unit' + String(unitNumber) + 'Sub';
 
+      const wasOpened = toggleSubMenu(menuId);
 
+      // showUnitScreen() opens the unit submenu itself, so call it only
+      // when the user is opening this unit, not when they are closing it.
+      if (wasOpened) {
 
+        showUnitScreen(unitNumber);
 
+      }
+
+    }
 
     function hideAllModuleContent() {
+
+      const onsiteScreen = document.getElementById('onsiteActivitiesScreen');
+      if (onsiteScreen) onsiteScreen.style.display = 'none';
+
       document.querySelectorAll(
+
         '.sidebar-unit-heading, .module-action-row, .module-quizzes-wrap, .module-pdf-preview, .course-level-quizzes-wrap'
+
       ).forEach((element) => {
+
         element.style.display = 'none';
+
       });
+
     }
 
     function setIntroContentVisibility(show) {
+
       const selectors = [
+
         '#courseOverview',
+
         '#courseSyllabus',
+
         '.course-syllabus',
+
         '.syllabus-section',
+
         '[data-content-screen="introduction"]'
+
       ];
 
       selectors.forEach((selector) => {
+
         document.querySelectorAll(selector).forEach((element) => {
+
           element.style.display = show ? '' : 'none';
+
         });
+
       });
 
-      // Introduction and module content are separate screens.
+      // Introduction and module content are separate screens.*
       document.querySelectorAll('#modulesSection').forEach((element) => {
+
         element.style.display = show ? 'none' : '';
+
       });
+
     }
 
     function clearCourseIndexActiveState() {
+
       document.querySelectorAll(
+
         '#sidebarIndexMenu .index-item, #sidebarIndexMenu .index-sub-link'
+
       ).forEach((element) => element.classList.remove('active'));
+
+    }
+
+    function showOnsiteActivitiesScreen(event) {
+
+      if (event) event.preventDefault();
+
+      // Hide all unit/module/quiz and introduction content first.
+      hideAllModuleContent();
+      setIntroContentVisibility(false);
+
+      document.querySelectorAll('.course-level-quizzes-wrap').forEach((
+        element) => {
+        element.style.display = 'none';
+      });
+
+      // Hide the normal course view so onsite activities are the only content shown.
+      const mainContent = document.querySelector('.main-content');
+      const onsiteScreen = document.getElementById('onsiteActivitiesScreen');
+      if (!mainContent || !onsiteScreen) return;
+
+      Array.from(mainContent.children).forEach((element) => {
+        if (element !== onsiteScreen) element.style.display = 'none';
+      });
+      onsiteScreen.style.display = 'block';
+
+      clearCourseIndexActiveState();
+      document.querySelectorAll('#sidebarIndexMenu .index-sub-menu').forEach((
+        menu) => {
+        menu.classList.remove('show');
+      });
+      document.querySelectorAll('#sidebarIndexMenu .index-item').forEach((
+        item) => {
+        item.setAttribute('aria-expanded', 'false');
+      });
+
+      const onsiteLink = document.getElementById('onsiteActivitiesSidebarLink');
+      if (onsiteLink) onsiteLink.classList.add('active');
+
+      // Persist this screen so refresh restores the same view.
+      if (typeof saveLmsPosition === 'function') {
+        saveLmsPosition('screen', 'onsite-activities');
+        saveLmsPosition('unit', null);
+        saveLmsPosition('module', null);
+        saveLmsPosition('quiz', null);
+      }
+    }
+
+    function restoreMainCourseContent() {
+      const mainContent = document.querySelector('.main-content');
+      const onsiteScreen = document.getElementById('onsiteActivitiesScreen');
+      if (mainContent) {
+        Array.from(mainContent.children).forEach((element) => {
+          if (element !== onsiteScreen) element.style.display = '';
+        });
+      }
+      if (onsiteScreen) onsiteScreen.style.display = 'none';
     }
 
     function showIntroScreen() {
-      // Remember the current screen in the URL
+      restoreMainCourseContent();
+
+      // Remember the current screen in the URL*
       saveLmsPosition('screen', 'intro');
+
       saveLmsPosition('unit', null);
+
       saveLmsPosition('module', null);
+
       saveLmsPosition('quiz', null);
 
       hideAllModuleContent();
+
       setIntroContentVisibility(true);
 
       document.querySelectorAll('.course-level-quizzes-wrap').forEach(
+
         (element) => {
+
           element.style.display = '';
+
         }
+
       );
 
       clearCourseIndexActiveState();
 
       const introMenu = document.getElementById('introSub');
+
       if (introMenu) introMenu.classList.add('show');
 
       const introHeading = introMenu ?
+
         introMenu.previousElementSibling :
+
         null;
 
       if (introHeading) introHeading.classList.add('active');
 
       const introLink = document.querySelector('#introSub .index-sub-link');
+
       if (introLink) introLink.classList.add('active');
+
     }
 
     function showUnitScreen(unitNumber) {
+
+      restoreMainCourseContent();
       const selectedUnit = String(unitNumber);
+
       hideAllModuleContent();
+
       setIntroContentVisibility(false);
+
       clearCourseIndexActiveState();
 
       document.querySelectorAll('.sidebar-unit-heading').forEach((heading) => {
+
         if (String(heading.dataset.unitNumber) === selectedUnit) {
+
           heading.style.display = '';
+
         }
+
       });
 
       document.querySelectorAll('.module-action-row').forEach((module) => {
+
         if (String(module.dataset.unitNumber) === selectedUnit) {
+
           module.style.display = '';
+
         }
+
       });
 
-      // Show only previews/quizzes that belong to the selected unit. If a child
-      // element has no unit number, resolve its unit from its linked module.
+      // Show only previews/quizzes that belong to the selected unit. If a child*
+      // element has no unit number, resolve its unit from its linked module.*
       document.querySelectorAll('.module-quizzes-wrap, .module-pdf-preview')
+
         .forEach((element) => {
+
           let elementUnit = element.dataset.unitNumber;
+
           if (!elementUnit && element.dataset.moduleId) {
+
             const linkedModule = document.getElementById('module-item-' +
+
               element.dataset.moduleId);
+
             elementUnit = linkedModule ? linkedModule.dataset.unitNumber : '';
+
           }
+
           if (String(elementUnit) === selectedUnit) element.style.display = '';
+
         });
 
       const unitMenu = document.getElementById('unit' + selectedUnit + 'Sub');
+
       if (unitMenu) {
+
         unitMenu.classList.add('show');
+
         if (unitMenu.previousElementSibling) {
+
           unitMenu.previousElementSibling.classList.add('active');
+
         }
+
       }
+
     }
 
     function showAllCourseContent() {
+
       showIntroScreen();
+
     }
 
     function showOnlySelectedModule(moduleId, unitNumber) {
+
+      restoreMainCourseContent();
       const selectedId = String(moduleId);
+
       const selectedUnit = String(unitNumber);
+
       hideAllModuleContent();
+
       setIntroContentVisibility(false);
+
       clearCourseIndexActiveState();
 
       document.querySelectorAll('.sidebar-unit-heading').forEach((heading) => {
+
         if (String(heading.dataset.unitNumber) === selectedUnit) {
+
           heading.style.display = '';
+
         }
+
       });
 
       const moduleElement = document.getElementById('module-item-' + selectedId);
+
       if (moduleElement) moduleElement.style.display = '';
 
       document.querySelectorAll('.module-pdf-preview, .module-quizzes-wrap')
+
         .forEach((element) => {
+
           if (String(element.dataset.moduleId) === selectedId) {
+
             element.style.display = '';
+
           }
+
         });
 
       const unitMenu = document.getElementById('unit' + selectedUnit + 'Sub');
+
       if (unitMenu) unitMenu.classList.add('show');
 
       const selectedLink = document.querySelector(
+
         '#unit' + selectedUnit + 'Sub a[href="#module-item-' + selectedId + '"]'
+
       );
+
       if (selectedLink) selectedLink.classList.add('active');
+
     }
 
     function openSidebarModule(event, moduleId, unitNumber) {
+
       if (event) event.preventDefault();
+
       showOnlySelectedModule(moduleId, unitNumber);
 
       const target = document.getElementById('module-item-' + moduleId);
+
       if (target) target.scrollIntoView({
+
         behavior: 'smooth',
+
+        block: 'start'
+
+      });
+
+    }
+
+    function openSidebarQuiz(event, quizId, quizTitle, unitNumber) {
+
+      if (event) event.preventDefault();
+
+      const quizElement = document.getElementById('quiz-item-' + quizId);
+
+      const moduleId = quizElement ? quizElement.dataset.moduleId : null;
+
+      if (moduleId) {
+
+        showOnlySelectedModule(moduleId, unitNumber);
+
+      } else {
+
+        hideAllModuleContent();
+
+        setIntroContentVisibility(false);
+
+        clearCourseIndexActiveState();
+
+      }
+
+      if (event && event.currentTarget) event.currentTarget.classList.add(
+
+        'active');
+
+      if (typeof openQuiz === 'function') {
+
+        openQuiz(quizId, quizTitle);
+
+      } else if (quizElement) {
+
+        quizElement.style.display = '';
+
+        quizElement.scrollIntoView({
+
+          behavior: 'smooth',
+
+          block: 'center'
+
+        });
+
+      }
+
+    }
+
+
+
+    function showCompletionScreen() {
+      // Restore the normal course layout before switching screens.
+      if (typeof restoreMainCourseContent === 'function') {
+        restoreMainCourseContent();
+      }
+
+      // Hide the introduction, modules, quizzes, and PDF previews.
+      if (typeof hideAllModuleContent === 'function') {
+        hideAllModuleContent();
+      }
+
+      if (typeof setIntroContentVisibility === 'function') {
+        setIntroContentVisibility(false);
+      }
+
+      document.querySelectorAll('.course-level-quizzes-wrap').forEach(element => {
+        element.style.display = 'none';
+      });
+
+      // Close expanded sidebar submenus.
+      document.querySelectorAll('#sidebarIndexMenu .index-sub-menu').forEach(
+        menu => {
+          menu.classList.remove('show');
+        });
+
+      document.querySelectorAll('#sidebarIndexMenu .index-item').forEach(item => {
+        item.setAttribute('aria-expanded', 'false');
+      });
+
+      // Highlight Completion as one standalone sidebar item.
+      if (typeof clearCourseIndexActiveState === 'function') {
+        clearCourseIndexActiveState();
+      }
+
+      const completionItem = document.getElementById('completionIndexItem');
+
+      if (completionItem) {
+        completionItem.classList.add('active');
+        completionItem.setAttribute('aria-expanded', 'false');
+      }
+
+      // Show the existing certificate preview from the student course Blade.
+      const certificateSection = document.getElementById(
+        'courseCompletionCertificate');
+
+      if (certificateSection) {
+        certificateSection.hidden = false;
+        certificateSection.removeAttribute('hidden');
+        document.body.classList.add('completion-screen-active');
+      } else {
+        console.error(
+          'Completion preview not found. Check the course Blade file.'
+        );
+        return;
+      }
+
+      // Save Completion as the selected screen.
+      if (typeof saveLmsPosition === 'function') {
+        saveLmsPosition('screen', 'completion');
+        saveLmsPosition('unit', null);
+        saveLmsPosition('module', null);
+        saveLmsPosition('quiz', null);
+      }
+
+      certificateSection.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)')
+          .matches ?
+          'auto' : 'smooth',
         block: 'start'
       });
     }
 
-    function openSidebarQuiz(event, quizId, quizTitle, unitNumber) {
-      if (event) event.preventDefault();
 
-      const quizElement = document.getElementById('quiz-item-' + quizId);
-      const moduleId = quizElement ? quizElement.dataset.moduleId : null;
-
-      if (moduleId) {
-        showOnlySelectedModule(moduleId, unitNumber);
-      } else {
-        hideAllModuleContent();
-        setIntroContentVisibility(false);
-        clearCourseIndexActiveState();
-      }
-
-      if (event && event.currentTarget) event.currentTarget.classList.add(
-        'active');
-
-      if (typeof openQuiz === 'function') {
-        openQuiz(quizId, quizTitle);
-      } else if (quizElement) {
-        quizElement.style.display = '';
-        quizElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
-      }
-    }
 
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -1907,11 +2136,21 @@
       const unit = params.get('unit');
       const moduleId = params.get('module');
 
-      if (screen === 'module' && moduleId && unit) {
+      if (screen === 'completion') {
+        // Restore the standalone Completion screen.
+        showCompletionScreen();
+
+      } else if (screen === 'onsite-activities') {
+        showOnsiteActivitiesScreen();
+
+      } else if (screen === 'module' && moduleId && unit) {
         showOnlySelectedModule(moduleId, unit);
+
       } else if (screen === 'unit' && unit) {
         showUnitScreen(unit);
+
       } else {
+        // Preserve the existing default screen.
         showIntroScreen();
       }
     });
@@ -1919,499 +2158,101 @@
 
     function openPretestSidebarModal() {
 
-
-
-
-
-
-
       document.getElementById('pretestSidebarModal').style.display = 'flex';
 
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function closePretestSidebarModal() {
 
-
-
-
-
-
-
       document.getElementById('pretestSidebarModal').style.display = 'none';
 
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function triggerStartPretest() {
 
-
-
-
-
-
-
       closePretestSidebarModal();
 
-
-
-
-
-
-
       if (typeof openQuizModal === 'function') {
-
-
-
-
-
-
 
         openQuizModal(1, 'Baseline Pre-test');
 
-
-
-
-
-
-
       } else {
-
-
-
-
-
-
 
         alert('Starting Pre-test...');
 
-
-
-
-
-
-
       }
-
-
-
-
-
-
 
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // ── Post-test Modal Handlers ──────────────────────────
-
-
-
-
-
-
-
+    // ── Post-test Modal Handlers ──────────────────────────*
     function openPosttestSidebarModal() {
-
-
-
-
-
-
 
       document.getElementById('posttestSidebarModal').style.display = 'flex';
 
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function closePosttestSidebarModal() {
 
-
-
-
-
-
-
       document.getElementById('posttestSidebarModal').style.display = 'none';
 
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function triggerStartPosttest() {
 
-
-
-
-
-
-
       closePosttestSidebarModal();
-
-
-
-
-
-
 
       if (typeof openQuizModal === 'function') {
 
-
-
-
-
-
-
         openQuizModal(2, 'Final Post-Test (80 Items)');
-
-
-
-
-
-
 
       } else {
 
-
-
-
-
-
-
         alert('Starting 80-Item Post-Test...');
-
-
-
-
-
-
 
       }
 
-
-
-
-
-
-
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // ── Certificate Modal Handlers ────────────────────────
-
-
-
-
-
-
-
+    // ── Certificate Modal Handlers ────────────────────────*
     function openCertificateModal() {
-
-
-
-
-
-
 
       const activeTitleEl = document.getElementById('activeCourseTitle') ||
 
-
-
-
-
-
-
         document.getElementById('certProgramName');
-
-
-
-
-
-
 
       const certCourseEl = document.getElementById('certDynamicCourseTitle');
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       if (activeTitleEl && certCourseEl) {
-
-
-
-
-
-
 
         certCourseEl.textContent = activeTitleEl.textContent.trim();
 
-
-
-
-
-
-
       }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
       document.getElementById('certificateModal').style.display = 'flex';
 
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function closeCertificateModal() {
 
-
-
-
-
-
-
       document.getElementById('certificateModal').style.display = 'none';
 
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function openLogoutModal() {
 
-
-
-
-
-
-
       document.getElementById('logoutModal').style.display = 'block';
 
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function closeLogoutModal() {
 
-
-
-
-
-
-
       document.getElementById('logoutModal').style.display = 'none';
-
-
-
-
-
-
 
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     function confirmLogout() {
 
-
-
-
-
-
-
       document.getElementById('logout-form').submit();
-
-
-
-
-
-
 
     }
   </script>

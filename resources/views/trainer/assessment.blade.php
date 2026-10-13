@@ -3,823 +3,1793 @@
 @section('title', 'Assessment')
 
 @section('css')
+
   <style>
-    /* ── Page wrap ────────────────────────────────────────────── */
+    :root {
+      --as-green: #075b35;
+      --as-green-dark: #043f26;
+      --as-green-soft: #eaf5ee;
+      --as-yellow: #e1dc36;
+      --as-ink: #183329;
+      --as-muted: #6b7c73;
+      --as-border: #e2ebe5;
+      --as-surface: #fff;
+      --as-red: #a32d2d
+    }
+
     .as-wrap {
-      padding: 28px;
-      max-width: 1100px;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: clamp(16px, 2.4vw, 32px);
+      color: var(--as-ink)
     }
 
     .as-page-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: #025628;
-      margin-bottom: 6px;
+      font-size: clamp(24px, 2vw, 30px);
+      font-weight: 850;
+      letter-spacing: -.035em;
+      color: var(--as-green);
+      margin: 0 0 6px
     }
 
     .as-page-sub {
       font-size: 13px;
-      color: #aaa;
-      margin-bottom: 24px;
+      line-height: 1.6;
+      color: var(--as-muted);
+      margin: 0 0 24px
     }
 
-    /* ── Stat cards ───────────────────────────────────────────── */
     .as-stats {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 24px
     }
 
     .as-stat {
       background: #fff;
-      border: 1px solid #e0ede5;
-      border-radius: 12px;
-      padding: 18px 20px;
+      border: 1px solid var(--as-border);
+      border-radius: 16px;
+      padding: 20px;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 4px 18px rgba(20, 65, 40, .035);
+      transition: transform .18s, box-shadow .18s
     }
 
-    .as-stat::before {
-      content: '';
+    .as-stat:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 26px rgba(20, 65, 40, .08)
+    }
+
+    .as-stat:before {
+      content: "";
       position: absolute;
-      top: 0;
       left: 0;
+      top: 0;
+      bottom: 0;
       width: 4px;
-      height: 100%;
-      background: #025628;
-      border-radius: 12px 0 0 12px;
+      background: var(--as-green)
     }
 
-    .as-stat.urgent::before {
-      background: #A32D2D;
+    .as-stat.urgent:before {
+      background: var(--as-yellow)
     }
 
     .as-stat-val {
-      font-size: 26px;
-      font-weight: 700;
-      color: #025628;
-      margin-bottom: 4px;
+      font-size: clamp(24px, 2vw, 30px);
+      line-height: 1.15;
+      font-weight: 850;
+      color: var(--as-green);
+      margin-bottom: 8px;
+      letter-spacing: -.03em
     }
 
     .as-stat.urgent .as-stat-val {
-      color: #A32D2D;
+      color: var(--as-green)
     }
 
     .as-stat-label {
       font-size: 12px;
-      color: #888;
-      font-weight: 500;
+      color: var(--as-muted);
+      font-weight: 650
     }
 
     .as-stat-link {
-      font-size: 11px;
-      color: #025628;
-      cursor: pointer;
-      text-decoration: underline;
-      display: block;
-      margin-top: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--as-green);
+      font-size: 12px;
+      font-weight: 750;
+      cursor: pointer
     }
 
-    /* ── Filter row ───────────────────────────────────────────── */
+    .as-stat-link:hover {
+      text-decoration: underline
+    }
+
     .as-filters {
+      display: grid;
+      grid-template-columns: minmax(230px, 1.55fr) minmax(190px, 1fr) minmax(190px, 1.15fr) minmax(150px, .9fr) minmax(150px, .9fr) auto;
+      gap: 12px;
+      align-items: end;
+      padding: 18px;
+      background: #fff;
+      border: 1px solid var(--as-border);
+      border-radius: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 18px rgba(20, 65, 40, .035)
+    }
+
+    .as-filter-field {
       display: flex;
-      gap: 10px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0
+    }
+
+    .as-filter-label {
+      display: block;
+      color: #536b5d;
+      font-size: 11px;
+      line-height: 1.2;
+      font-weight: 800;
+      letter-spacing: .045em
+    }
+
+    .as-filter-hint {
+      grid-column: 1 / -1;
+      margin: 0;
+      padding-top: 12px;
+      border-top: 1px solid #edf3ee;
+      color: var(--as-muted);
+      font-size: 11px;
+      line-height: 1.5
+    }
+
+    .as-filter-type {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 44px;
+      padding: 4px;
+      border: 1px solid #dce7df;
+      border-radius: 11px;
+      background: #f5f9f6
+    }
+
+    .as-filter-type button {
+      appearance: none;
+      flex: 1 1 0;
+      min-width: 0;
+      min-height: 34px;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: #587064;
+      font-family: inherit;
+      font-size: 12px;
+      line-height: 1.2;
+      font-weight: 750;
+      cursor: pointer;
+      transition: background .15s, color .15s, box-shadow .15s
+    }
+
+    .as-filter-type button:hover {
+      background: #e8f2eb;
+      color: var(--as-green)
+    }
+
+    .as-filter-type button.active {
+      background: var(--as-green);
+      color: #fff;
+      box-shadow: 0 2px 7px rgba(7, 91, 53, .18)
+    }
+
+    .as-filter-type button:focus-visible {
+      outline: 2px solid var(--as-green);
+      outline-offset: 2px
+    }
+
+    .as-search-wrap {
+      position: relative;
+      display: block;
+      min-width: 0
+    }
+
+    .as-search-wrap i {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8a9a90;
+      font-size: 13px
     }
 
     .as-filter {
-      padding: 7px 14px;
-      border: 1.5px solid #e0ede5;
-      border-radius: 20px;
-      font-size: 13px;
-      font-family: inherit;
+      width: 100%;
+      min-width: 0;
+      padding: 11px 12px;
+      border: 1px solid #dce7df;
+      border-radius: 10px;
+      font: inherit;
+      font-size: 12px;
+      color: #26382e;
       background: #fff;
-      color: #444;
-      cursor: pointer;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color .15s, box-shadow .15s
+    }
+
+    .as-search {
+      padding-left: 36px
     }
 
     .as-filter:focus {
-      border-color: #025628;
+      border-color: var(--as-green);
+      box-shadow: 0 0 0 3px rgba(7, 91, 53, .1)
     }
 
-    /* ── Table card ───────────────────────────────────────────── */
+    .as-reset {
+      padding: 11px 13px;
+      border: 1px solid #dce7df;
+      border-radius: 10px;
+      background: #fff;
+      color: var(--as-green);
+      font-size: 12px;
+      font-weight: 750;
+      white-space: nowrap;
+      cursor: pointer
+    }
+
+    .as-reset:hover {
+      background: var(--as-green-soft);
+      border-color: #b9d5c3
+    }
+
+    .as-filter-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin: -4px 2px 14px;
+      color: var(--as-muted);
+      font-size: 12px
+    }
+
+    .as-filter-summary strong {
+      color: var(--as-green)
+    }
+
     .as-table-card {
       background: #fff;
-      border: 1px solid #e0ede5;
-      border-radius: 12px;
+      border: 1px solid var(--as-border);
+      border-radius: 16px;
       overflow: hidden;
       margin-bottom: 20px;
+      box-shadow: 0 5px 22px rgba(20, 65, 40, .04)
+    }
+
+    .as-section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--as-border);
+      background: linear-gradient(180deg, #fff, #fcfefc)
+    }
+
+    .as-section-head h3 {
+      color: var(--as-green);
+      font-size: 15px;
+      margin: 0;
+      font-weight: 850;
+      letter-spacing: -.01em
+    }
+
+    .as-section-head p {
+      color: var(--as-muted);
+      font-size: 12px;
+      margin: 5px 0 0
+    }
+
+    .as-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--as-green-soft);
+      color: var(--as-green);
+      font-size: 11px;
+      font-weight: 800
+    }
+
+    .as-table-scroll {
+      overflow-x: auto
     }
 
     .as-table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 780px
     }
 
     .as-table thead tr {
-      background: #f0f7f2;
-      border-bottom: 2px solid #e0ede5;
+      background: #f4f9f5
     }
 
-    .as-table thead th {
-      padding: 12px 16px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #025628;
+    .as-table th {
+      padding: 13px 15px;
+      font-size: 10px;
+      font-weight: 850;
+      color: #537261;
       text-align: left;
       text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-
-    .as-table tbody tr {
-      border-bottom: 1px solid #f0f4f0;
-      transition: background 0.15s;
-    }
-
-    .as-table tbody tr:last-child {
-      border-bottom: none;
-    }
-
-    .as-table tbody tr:hover {
-      background: #f9fdf9;
+      letter-spacing: .07em;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--as-border)
     }
 
     .as-table td {
-      padding: 12px 16px;
-      font-size: 13px;
-      color: #333;
+      padding: 14px 15px;
+      font-size: 12px;
+      border-bottom: 1px solid #edf3ee;
+      color: #344239;
+      vertical-align: middle
+    }
+
+    .as-table tbody tr:last-child td {
+      border-bottom: 0
+    }
+
+    .as-table tbody tr {
+      transition: background .15s
+    }
+
+    .as-table tbody tr:hover {
+      background: #f9fcfa
+    }
+
+    .as-table td strong {
+      font-weight: 750;
+      color: #23372b
     }
 
     .as-badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap
     }
 
-    .as-badge.complete {
-      background: #e8f5e9;
-      color: #025628;
+    .as-badge.complete,
+    .as-badge.competent {
+      background: #e7f5eb;
+      color: #12623a
     }
 
     .as-badge.incomplete {
-      background: #FCEBEB;
-      color: #A32D2D;
-    }
-
-    .as-badge.competent {
-      background: #e8f5e9;
-      color: #025628;
+      background: #fff0ef;
+      color: #a32d2d
     }
 
     .as-badge.not-competent {
-      background: #fff8e1;
-      color: #854F0B;
+      background: #fff5d9;
+      color: #80550a
     }
 
-    /* ── Action icons ─────────────────────────────────────────── */
     .as-actions {
       display: flex;
-      gap: 8px;
-      align-items: center;
+      gap: 7px;
+      align-items: center
     }
 
     .as-icon {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
-      display: flex;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
+      border: 1px solid #d8e9de;
       cursor: pointer;
-      font-size: 13px;
-      border: none;
-      transition: background 0.15s;
+      transition: all .15s
     }
 
     .as-icon.view {
-      background: #e8f5e9;
-      color: #025628;
-    }
-
-    .as-icon.edit {
-      background: #e8f0fe;
-      color: #3B5BDB;
-    }
-
-    .as-icon.delete {
-      background: #FCEBEB;
-      color: #A32D2D;
+      background: var(--as-green-soft);
+      color: var(--as-green)
     }
 
     .as-icon:hover {
-      opacity: 0.8;
-    }
-
-    /* ── Bottom row ───────────────────────────────────────────── */
-    .as-bottom {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 4px;
+      background: var(--as-green);
+      color: #fff;
+      border-color: var(--as-green)
     }
 
     .as-btn {
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
+      padding: 10px 15px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 750;
       cursor: pointer;
-      border: none;
+      border: 1px solid var(--as-green);
       font-family: inherit;
-      transition: background 0.2s;
+      transition: all .15s
     }
 
     .as-btn.primary {
-      background: #025628;
-      color: #fff;
+      background: var(--as-green);
+      color: #fff
     }
 
     .as-btn.primary:hover {
-      background: #013d1c;
+      background: var(--as-green-dark)
     }
 
     .as-btn.outline {
       background: #fff;
-      color: #025628;
-      border: 1.5px solid #025628;
+      color: var(--as-green)
     }
 
     .as-btn.outline:hover {
-      background: #f0f7f2;
+      background: var(--as-green-soft)
     }
 
-    /* ── Empty state ──────────────────────────────────────────── */
+    .as-bottom {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin: 4px 0 22px
+    }
+
     .as-empty {
       text-align: center;
-      padding: 40px;
-      color: #aaa;
-      font-size: 13px;
+      padding: 34px 18px;
+      color: #87958c;
+      font-size: 12px
     }
 
     .as-empty i {
-      font-size: 36px;
       display: block;
-      margin-bottom: 10px;
-      opacity: 0.3;
-      color: #025628;
+      color: var(--as-green);
+      opacity: .5;
+      font-size: 26px;
+      margin-bottom: 10px
     }
 
-    /* ── MODALS ───────────────────────────────────────────────── */
     .as-modal {
       display: none;
       position: fixed;
       z-index: 3000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.45);
+      inset: 0;
+      background: rgba(7, 30, 17, .54);
       backdrop-filter: blur(4px);
       align-items: center;
       justify-content: center;
+      padding: 18px
     }
 
     .as-modal.open {
-      display: flex;
+      display: flex
     }
 
     .as-modal-content {
+      width: min(560px, 100%);
+      max-height: 90vh;
+      overflow: auto;
       background: #fff;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 500px;
-      overflow: hidden;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-      animation: asModalIn 0.25s ease;
+      border-radius: 18px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .22);
+      animation: asModalIn .18s ease-out
     }
 
     @keyframes asModalIn {
       from {
-        transform: translateY(-20px);
         opacity: 0;
+        transform: translateY(8px) scale(.99)
       }
 
       to {
-        transform: translateY(0);
         opacity: 1;
+        transform: translateY(0) scale(1)
       }
     }
 
     .as-modal-header {
-      padding: 18px 24px;
-      border-bottom: 1px solid #eee;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #f9fdf9;
+      gap: 12px;
+      padding: 18px 22px;
+      background: #f6fbf7;
+      border-bottom: 1px solid #e7efe9
     }
 
     .as-modal-header h3 {
-      font-size: 15px;
-      font-weight: 700;
-      color: #025628;
       margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      color: var(--as-green);
+      font-size: 15px;
+      font-weight: 850
     }
 
     .as-modal-close {
-      font-size: 20px;
-      color: #aaa;
-      cursor: pointer;
+      border: 0;
+      background: transparent;
+      color: #788078;
+      font-size: 26px;
       line-height: 1;
-      background: none;
-      border: none;
-    }
-
-    .as-modal-close:hover {
-      color: #A32D2D;
+      cursor: pointer
     }
 
     .as-modal-body {
-      padding: 20px 24px;
+      padding: 20px 22px
     }
 
     .as-modal-footer {
-      padding: 14px 24px;
-      border-top: 1px solid #eee;
+      padding: 14px 22px;
       display: flex;
       justify-content: flex-end;
-      gap: 8px;
-      background: #f9fdf9;
+      border-top: 1px solid #edf2ee;
+      background: #fbfdfb
     }
 
-    /* Modal form */
-    .as-form-group {
-      margin-bottom: 14px;
-    }
-
-    .as-form-group label {
-      display: block;
-      font-size: 11px;
-      font-weight: 700;
-      color: #555;
-      margin-bottom: 5px;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-
-    .as-form-group select,
-    .as-form-group input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1.5px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 13px;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.2s;
-      color: #1a1a1a;
-    }
-
-    .as-form-group select:focus,
-    .as-form-group input:focus {
-      border-color: #025628;
-    }
-
-    .as-result-box {
-      background: #f0f7f2;
-      border: 1px solid #e0ede5;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 14px;
-      color: #025628;
-      font-weight: 600;
-      margin-top: 10px;
-    }
-
-    /* Detail rows */
     .as-detail-row {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid #f0f4f0;
-      font-size: 13px;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid #eef3ef;
+      font-size: 12px
     }
 
     .as-detail-row:last-child {
-      border-bottom: none;
+      border-bottom: 0
     }
 
     .as-detail-label {
-      color: #888;
+      color: var(--as-muted)
     }
 
     .as-detail-val {
-      font-weight: 600;
-      color: #1a1a1a;
+      color: #1f3025;
+      font-weight: 750;
+      text-align: right;
+      overflow-wrap: anywhere
     }
 
-    /* Top performers table */
     .as-top-table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: collapse
+    }
+
+    .as-top-table th,
+    .as-top-table td {
+      text-align: left;
+      padding: 12px 14px;
+      font-size: 12px;
+      border-bottom: 1px solid #eef3ef
     }
 
     .as-top-table th {
-      padding: 10px 12px;
-      font-size: 11px;
-      font-weight: 700;
-      color: #025628;
-      text-align: left;
-      border-bottom: 2px solid #e0ede5;
+      color: var(--as-green);
+      font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-
-    .as-top-table td {
-      padding: 10px 12px;
-      font-size: 13px;
-      border-bottom: 1px solid #f0f4f0;
+      letter-spacing: .06em;
+      background: var(--as-green-soft)
     }
 
     .as-top-table tr:last-child td {
-      border-bottom: none;
+      border-bottom: 0
     }
 
-    @media (max-width: 768px) {
+    @media(max-width:1100px) {
       .as-stats {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr))
       }
 
       .as-filters {
-        flex-direction: column;
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+      }
+
+      .as-filter-field.search-field,
+      .as-filter-hint {
+        grid-column: 1 / -1
+      }
+
+      .as-reset {
+        justify-self: start
+      }
+    }
+
+    @media(max-width:600px) {
+      .as-wrap {
+        padding: 14px
+      }
+
+      .as-stats {
+        gap: 10px
+      }
+
+      .as-stat {
+        padding: 15px;
+        border-radius: 13px
+      }
+
+      .as-stat-val {
+        font-size: 23px
+      }
+
+      .as-filters {
+        grid-template-columns: 1fr;
+        padding: 12px
+      }
+
+      .as-filter-field.search-field,
+      .as-filter-hint {
+        grid-column: auto
+      }
+
+      .as-filter-type button {
+        padding: 8px 6px
+      }
+
+      .as-section-head {
+        padding: 15px
+      }
+
+      .as-table-card {
+        border-radius: 13px
+      }
+
+      .as-filter-summary {
+        align-items: flex-start;
+        flex-direction: column
+      }
+
+      .as-bottom {
+        justify-content: stretch
+      }
+
+      .as-bottom .as-btn {
+        width: 100%
+      }
+
+      .as-modal-body {
+        padding: 16px
       }
     }
   </style>
+
 @endsection
 
 @section('content')
+
+  @php
+
+    $course = $course ?? null;
+
+    $results = $results ?? collect();
+
+    $onsiteGrades = $onsiteGrades ?? collect();
+
+    $topPerformers = $topPerformers ?? collect();
+
+    $totalTaken = $totalTaken ?? $results->count();
+
+    $avgScore =
+        $avgScore ??
+        ($results->count() > 0
+            ? round(
+                (float) $results->avg(function ($r) {
+                    return (float) ($r->percentage ?? 0);
+                }),
+
+                1,
+            )
+            : 0);
+
+    $passingRate =
+        $passingRate ??
+        ($results->count() > 0
+            ? round(
+                ($results->where('status', 'passed')->count() /
+                    $results->count()) *
+                    100,
+
+                1,
+            )
+            : 0);
+  @endphp
+
   <div class="as-wrap">
 
-    <div class="as-page-title">Assessment</div>
-    <div class="as-page-sub">Quiz results and competency records ng iyong mga
-      trainees.</div>
+    <h1 class="as-page-title">Assessment</h1>
 
-    {{-- Stat Cards --}}
+    <p class="as-page-sub">Review quiz submissions and onsite competency records
+
+      for your trainees.</p>
+
     <div class="as-stats">
+
       <div class="as-stat">
-        <div class="as-stat-val">{{ $totalTaken }}</div>
+
+        <div class="as-stat-val">{{ number_format((int) $totalTaken) }}</div>
+
         <div class="as-stat-label">Total Quiz Submissions</div>
+
       </div>
+
       <div class="as-stat">
-        <div class="as-stat-val">{{ $avgScore }}%</div>
-        <div class="as-stat-label">Average Class Score</div>
+
+        <div class="as-stat-val">{{ number_format((float) $avgScore, 1) }}%</div>
+
+        <div class="as-stat-label">Average Quiz Score</div>
+
       </div>
+
       <div class="as-stat">
-        <div class="as-stat-val">{{ $passingRate }}%</div>
-        <div class="as-stat-label">Passing Rate</div>
+
+        <div class="as-stat-val">{{ number_format((float) $passingRate, 1) }}%
+
+        </div>
+
+        <div class="as-stat-label">Quiz Passing Rate</div>
+
       </div>
+
       <div class="as-stat urgent">
+
         <div class="as-stat-val">{{ $topPerformers->count() }}</div>
+
         <div class="as-stat-label">Top Performers</div>
-        <span class="as-stat-link" onclick="openModal('topModal')">View all
-          →</span>
+
+        <button type="button" class="as-stat-link"
+          onclick="openModal('topModal')">View ranking →</button>
+
       </div>
+
     </div>
 
-    {{-- Filters --}}
-    <div class="as-filters">
-      <select class="as-filter" id="filterCourse" onchange="applyFilters()">
-        <option value="">All Courses</option>
-        @if ($course)
-          <option value="{{ $course->title }}">{{ $course->title }}</option>
-        @endif
-      </select>
-      <select class="as-filter" id="filterResult" onchange="applyFilters()">
-        <option value="">All Activities</option>
-        <option value="Complete">Complete</option>
-        <option value="Incomplete">Incomplete</option>
-      </select>
-      <select class="as-filter" id="filterCompetency" onchange="applyFilters()">
-        <option value="">All Competency</option>
-        <option value="Competent">Competent</option>
-        <option value="Not Yet Competent">Not Yet Competent</option>
-      </select>
-    </div>
+    @php
+      $quizFilterOptions = $results
+          ->map(function ($item) {
+              return $item->quiz_title ?? ($item->quiz->title ?? null);
+          })
+          ->filter()
+          ->unique()
+          ->sort()
+          ->values();
 
-    {{-- Table --}}
-    <div class="as-table-card">
-      <table class="as-table" id="assessmentTable">
-        <thead>
-          <tr>
-            <th>Trainee ID</th>
-            <th>Full Name</th>
-            <th>Course</th>
-            <th>Activities</th>
-            <th>Competency</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @forelse($results as $result)
-            <tr>
-              <td>{{ $result->user->id }}</td>
-              <td><strong>{{ $result->user->lastname }},
-                  {{ $result->user->firstname }}</strong></td>
-              <td>{{ $course->title }}</td>
-              <td>
-                <span
-                  class="as-badge {{ $result->status === 'passed' ? 'complete' : 'incomplete' }}">
-                  {{ $result->score }}/{{ $result->total_items }}
-                  ({{ $result->percentage }}%)
-                </span>
-              </td>
-              <td>
-                <span
-                  class="as-badge {{ $result->status === 'passed' ? 'competent' : 'not-competent' }}">
-                  {{ $result->status === 'passed' ? 'Passed' : 'Failed' }}
-                </span>
-              </td>
-              <td>
-                <div class="as-actions">
-                  <button class="as-icon view"
-                    onclick="openDetailsModal('{{ $result->user->lastname }}, {{ $result->user->firstname }}', '{{ $result->user->id }}', '{{ $result->quiz->title }}', {{ $result->score }}, {{ $result->total_items }}, {{ $result->percentage }})"
-                    title="View">
-                    <i class="fa fa-eye"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          @empty
-            <tr>
-              <td colspan="6">
-                <div class="as-empty">
-                  <i class="fa fa-inbox"></i>
-                  Walang quiz results pa.
-                </div>
-              </td>
-            </tr>
-          @endforelse
-        </tbody>
-      </table>
-    </div>
+      $activityFilterOptions = $onsiteGrades
+          ->pluck('activity_title')
+          ->filter()
+          ->unique()
+          ->sort()
+          ->values();
+    @endphp
 
-    {{-- Bottom Actions --}}
-    <div class="as-bottom">
-      <button class="as-btn outline" onclick="exportToExcel()">
-        <i class="fa fa-file-excel"></i> Export to Excel
+    <div class="as-filters" role="search" aria-label="Filter assessment records">
+      <label class="as-filter-field search-field">
+        <span class="as-filter-label">Search trainee or assessment</span>
+        <span class="as-search-wrap">
+          <i class="fa fa-search" aria-hidden="true"></i>
+          <input class="as-filter as-search" type="search" id="filterSearch"
+            placeholder="Name, trainee ID, quiz, or activity..."
+            aria-label="Search trainee or assessment" oninput="applyFilters()">
+        </span>
+      </label>
+
+      <div class="as-filter-field">
+        <span class="as-filter-label">Assessment type</span>
+        <div class="as-filter-type" role="group" aria-label="Assessment type">
+          <button type="button" class="active" data-filter-type="all"
+            aria-pressed="true"
+            onclick="setAssessmentType('all', this)">All</button>
+          <button type="button" data-filter-type="quiz" aria-pressed="false"
+            onclick="setAssessmentType('quiz', this)">Quizzes</button>
+          <button type="button" data-filter-type="onsite" aria-pressed="false"
+            onclick="setAssessmentType('onsite', this)">Onsite</button>
+        </div>
+      </div>
+
+      <label class="as-filter-field">
+        <span class="as-filter-label">Specific assessment</span>
+        <select class="as-filter" id="filterAssessment" onchange="applyFilters()"
+          aria-label="Filter by specific assessment">
+          <option value="">All assessments</option>
+          <optgroup label="Quizzes">
+            @foreach ($quizFilterOptions as $quizOption)
+              <option value="quiz::{{ $quizOption }}">{{ $quizOption }}
+              </option>
+            @endforeach
+          </optgroup>
+          <optgroup label="Onsite activities">
+            @foreach ($activityFilterOptions as $activityOption)
+              <option value="onsite::{{ $activityOption }}">{{ $activityOption }}
+              </option>
+            @endforeach
+          </optgroup>
+        </select>
+      </label>
+
+      <label class="as-filter-field">
+        <span class="as-filter-label">Score range</span>
+        <select class="as-filter" id="filterScore" onchange="applyFilters()"
+          aria-label="Filter by score range">
+          <option value="">Any score</option>
+          <option value="below75">Below 75%</option>
+          <option value="75plus">75% and above</option>
+        </select>
+      </label>
+
+      <label class="as-filter-field" id="quizResultField">
+        <span class="as-filter-label">Quiz result</span>
+        <select class="as-filter" id="filterResult" onchange="applyFilters()"
+          aria-label="Filter quiz result">
+          <option value="">All results</option>
+          <option value="passed">Passed</option>
+          <option value="failed">Failed</option>
+        </select>
+      </label>
+
+      <button type="button" class="as-reset" onclick="resetFilters()">
+        <i class="fa fa-rotate-left" aria-hidden="true"></i> Reset
       </button>
-      <!-- <button class="as-btn primary" onclick="openModal('gradeModal')">
-              <i class="fa fa-plus"></i> Add New Grade
-          </button> -->
+
+      <p class="as-filter-hint">
+        Filters work together. Search and score range apply to both tables;
+        specific assessment and quiz result narrow the matching records.
+      </p>
     </div>
 
-  </div>
+    <div class="as-filter-summary"><span>Showing <strong
+          id="visibleQuizCount">0</strong> quiz results and <strong
+          id="visibleOnsiteCount">0</strong> onsite grades</span><span
+        id="filterSummaryHint">Search and score filters apply to both tables; quiz
+        result applies only to quizzes.</span></div>
 
-  {{-- Performance Details Modal --}}
-  <div id="detailsModal" class="as-modal">
-    <div class="as-modal-content">
-      <div class="as-modal-header">
-        <h3><i class="fa fa-chart-line"></i> Performance Details</h3>
-        <button class="as-modal-close"
-          onclick="closeModal('detailsModal')">&times;</button>
-      </div>
-      <div class="as-modal-body">
-        <div
-          style="display:flex; align-items:center; gap:14px; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid #f0f4f0;">
-          <div
-            style="width:46px; height:46px; border-radius:50%; background:#e8f5e9; display:flex; align-items:center; justify-content:center; font-size:18px; color:#025628; flex-shrink:0;">
-            <i class="fa fa-user"></i>
-          </div>
-          <div>
-            <div style="font-size:15px; font-weight:700; color:#1a1a1a;"
-              id="det-name">—</div>
-            <div style="font-size:12px; color:#888;" id="det-id">ID: —</div>
-            <<div
-              style="font-size:13px; color:#025628; font-weight:700; margin-top:4px;"
-              id="det-score">—
-          </div>
-        </div>
-      </div>
-      <div
-        style="font-size:11px; font-weight:700; color:#025628; text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;">
-        Assessment Scores
-      </div>
-      <div class="as-detail-row">
-        <span class="as-detail-label">Quiz 1</span>
-        <span class="as-badge competent">85/100</span>
-      </div>
-      <div class="as-detail-row">
-        <span class="as-detail-label">Quiz 2</span>
-        <span class="as-badge competent">92/100</span>
-      </div>
-      <div
-        style="font-size:11px; font-weight:700; color:#025628; text-transform:uppercase; letter-spacing:.04em; margin:14px 0 8px;">
-        Activity Status
-      </div>
-      <div class="as-detail-row">
-        <span class="as-detail-label"><i class="fa fa-check-circle"
-            style="color:#025628;"></i> Lesson 1 Modules</span>
-        <span class="as-badge complete">Done</span>
-      </div>
-      <div class="as-detail-row">
-        <span class="as-detail-label"><i class="fa fa-times-circle"
-            style="color:#A32D2D;"></i> Final Project Draft</span>
-        <span class="as-badge incomplete">Missing</span>
-      </div>
-    </div>
-    <div class="as-modal-footer">
-      <button class="as-btn outline"
-        onclick="closeModal('detailsModal')">Close</button>
-    </div>
-  </div>
-  </div>
+    <section class="as-table-card">
 
-  {{-- Add Grade Modal --}}
-  <div id="gradeModal" class="as-modal">
-    <div class="as-modal-content">
-      <div class="as-modal-header">
-        <h3><i class="fa fa-plus-circle"></i> Add New Grade</h3>
-        <button class="as-modal-close"
-          onclick="closeModal('gradeModal')">&times;</button>
-      </div>
-      <div class="as-modal-body">
-        <div class="as-form-group">
-          <label>Select Trainee</label>
-          <select id="gradeTrainee">
-            <option value="" disabled selected>— Choose trainee —</option>
-            <option value="2023-2-0018">Bong, Marcos</option>
-            <option value="2023-2-0019">Ramos, Roshian</option>
-          </select>
-        </div>
-        <div class="as-form-group">
-          <label>Assessment</label>
-          <select id="gradeAssessment">
-            <option value="" disabled selected>— Choose assessment —
-            </option>
-            <option>Quiz 1</option>
-            <option>Quiz 2</option>
-            <option>Final Project</option>
-          </select>
-        </div>
-        <div class="as-form-group">
-          <label>Score (0–100)</label>
-          <input type="number" id="gradeScore" placeholder="Enter score"
-            min="0" max="100" oninput="calcResult()">
-        </div>
-        <div class="as-result-box" id="resultBox">
-          Result: <span id="resultText">—</span>
-        </div>
-      </div>
-      <div class="as-modal-footer">
-        <button class="as-btn outline"
-          onclick="closeModal('gradeModal')">Cancel</button>
-        <button class="as-btn primary" onclick="saveGrade()">Save Grade</button>
-      </div>
-    </div>
-  </div>
+      <div class="as-section-head">
 
-  {{-- Top Performers Modal --}}
-  <div id="topModal" class="as-modal">
-    <div class="as-modal-content">
-      <div class="as-modal-header">
-        <h3><i class="fa fa-trophy"></i> Top Performers</h3>
-        <button class="as-modal-close"
-          onclick="closeModal('topModal')">&times;</button>
+        <div>
+
+          <h3>Quiz Results</h3>
+
+          <p>Submission scores saved in the quiz_results table.</p>
+
+        </div>
+
       </div>
-      <div class="as-modal-body" style="padding:0;">
-        <table class="as-top-table">
+
+      <div class="as-table-scroll">
+
+        <table class="as-table" id="assessmentTable">
+
           <thead>
+
             <tr>
-              <th>Rank</th>
+
+              <th>Trainee ID</th>
+
               <th>Full Name</th>
+
               <th>Course</th>
-              <th>Grade</th>
+
+              <th>Quiz</th>
+
+              <th>Score</th>
+
+              <th>Result</th>
+
+              <th>Submitted</th>
+
+              <th>Action</th>
+
             </tr>
+
           </thead>
+
           <tbody>
-            @forelse($topPerformers as $i => $tp)
-              <tr>
+
+            @forelse ($results as $result)
+
+              @php
+
+                $percentage = (float) ($result->percentage ?? 0);
+
+                $passed =
+                    strtolower((string) ($result->status ?? '')) === 'passed';
+
+                $trainee = $result->user ?? null;
+
+                $firstName = trim(
+                    (string) ($result->firstname ??
+                        ($trainee?->firstname ?? '')),
+                );
+
+                $lastName = trim(
+                    (string) ($result->lastname ?? ($trainee?->lastname ?? '')),
+                );
+
+                $name = trim($lastName . ', ' . $firstName, ', ');
+
+                $traineeId =
+                    $result->trainee_id ??
+                    ($trainee?->id ?? ($result->user_id ?? '—'));
+
+                $quizTitle =
+                    $result->quiz_title ?? ($result->quiz?->title ?? 'Quiz');
+
+                $courseTitle =
+                    $result->course_title ??
+                    ($result->quiz?->course?->title ?? ($course->title ?? '—'));
+              @endphp
+
+              <tr data-assessment-kind="quiz" data-course="{{ $courseTitle }}"
+                data-quiz="{{ $quizTitle }}"
+                data-result="{{ $passed ? 'passed' : 'failed' }}"
+                data-score="{{ $percentage }}"
+                data-competency="{{ $percentage >= 75 ? 'competent' : 'not yet competent' }}">
+
+                <td>{{ $traineeId }}</td>
+
                 <td>
-                  @if ($i === 0)
-                    🥇
-                  @elseif($i === 1)
-                    🥈
-                  @elseif($i === 2)
-                    🥉
-                  @else
-                    {{ $i + 1 }}
-                  @endif
+
+                  <strong>{{ $name !== '' ? $name : 'Name unavailable (user ID: ' . ($result->user_id ?? '—') . ')' }}</strong>
+
                 </td>
-                <td><strong>{{ $tp->user->lastname }},
-                    {{ $tp->user->firstname }}</strong></td>
-                <td>{{ $course->title }}</td>
+
+                <td>{{ $courseTitle }}</td>
+
+                <td>{{ $quizTitle }}</td>
+
+                <td>
+
+                  <span
+                    class="as-badge {{ $passed ? 'complete' : 'incomplete' }}">
+
+                    {{ $result->score ?? 0 }}/{{ $result->total_items ?? 0 }}
+
+                    ({{ number_format($percentage, 1) }}%)
+
+                  </span>
+
+                </td>
+
                 <td><span
-                    class="as-badge competent">{{ $tp->avg_score }}%</span></td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="4"
-                  style="text-align:center; color:#aaa; padding:20px;">
-                  Walang data pa.
+                    class="as-badge {{ $passed ? 'competent' : 'not-competent' }}">{{ ucfirst($result->status ?? 'unknown') }}</span>
+
                 </td>
+
+                <td>
+
+                  {{ !empty($result->created_at) ? \Carbon\Carbon::parse($result->created_at)->format('M d, Y h:i A') : '—' }}
+
+                </td>
+
+                <td>
+
+                  <div class="as-actions">
+
+                    <button type="button" class="as-icon view"
+                      title="View result" aria-label="View result"
+                      data-name="{{ $name }}"
+                      data-id="{{ $traineeId }}"
+                      data-course="{{ $courseTitle }}"
+                      data-quiz="{{ $quizTitle }}"
+                      data-score="{{ $result->score ?? 0 }}"
+                      data-total="{{ $result->total_items ?? 0 }}"
+                      data-percentage="{{ $percentage }}"
+                      data-status="{{ $result->status ?? 'unknown' }}"
+                      data-date="{{ !empty($result->created_at) ? \Carbon\Carbon::parse($result->created_at)->format('M d, Y h:i A') : '—' }}"
+                      onclick="openDetailsModal(this)">
+
+                      <i class="fa fa-eye"></i>
+
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+            @empty
+
+              <tr>
+
+                <td colspan="8">
+
+                  <div class="as-empty"><i class="fa fa-inbox"></i>No quiz
+
+                    submissions have been recorded for this course.</div>
+
+                </td>
+
               </tr>
             @endforelse
+
           </tbody>
+
         </table>
+
       </div>
-      <div class="as-modal-footer">
-        <button class="as-btn outline"
-          onclick="closeModal('topModal')">Close</button>
+
+    </section>
+
+    <section class="as-table-card">
+
+      <div class="as-section-head">
+
+        <div>
+
+          <h3>Onsite Activity Grades</h3>
+
+          <p>Scores recorded in onsite_grades, linked to onsite_activities.</p>
+
+        </div>
+
       </div>
+
+      <div class="as-table-scroll">
+
+        <table class="as-table" id="onsiteTable">
+
+          <thead>
+
+            <tr>
+
+              <th>Trainee ID</th>
+
+              <th>Full Name</th>
+
+              <th>Activity</th>
+
+              <th>Score</th>
+
+              <th>Activity Date</th>
+
+              <th>Remarks</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            @forelse ($onsiteGrades as $grade)
+
+              @php
+
+                $maxScore = (float) ($grade->max_score ?? 0);
+
+                $score = (float) ($grade->score ?? 0);
+
+                $onsitePercentage =
+                    $maxScore > 0 ? ($score / $maxScore) * 100 : 0;
+
+                $competent = $onsitePercentage >= 75;
+
+                $gradeUser = $grade->user ?? null;
+
+                $gradeFirstName = trim(
+                    (string) ($grade->firstname ??
+                        ($gradeUser?->firstname ?? '')),
+                );
+
+                $gradeLastName = trim(
+                    (string) ($grade->lastname ??
+                        ($gradeUser?->lastname ?? '')),
+                );
+
+                $gradeName = trim(
+                    $gradeLastName . ', ' . $gradeFirstName,
+
+                    ', ',
+                );
+              @endphp
+
+              <tr data-assessment-kind="onsite"
+                data-course="{{ $grade->course_title ?? ($course->title ?? '') }}"
+                data-activity="{{ $grade->activity_title ?? 'Onsite activity' }}"
+                data-result="onsite" data-score="{{ $onsitePercentage }}"
+                data-competency="{{ $competent ? 'competent' : 'not yet competent' }}">
+
+                <td>{{ $grade->user_id ?? '—' }}</td>
+
+                <td>
+
+                  <strong>{{ $gradeName !== '' ? $gradeName : 'Unknown trainee' }}</strong>
+
+                </td>
+
+                <td>{{ $grade->activity_title ?? 'Onsite activity' }}</td>
+
+                <td>
+
+                  <span
+                    class="as-badge {{ $competent ? 'complete' : 'incomplete' }}">
+
+                    {{ number_format($score, 2) }}/{{ number_format($maxScore, 2) }}
+
+                    ({{ number_format($onsitePercentage, 1) }}%)
+
+                  </span>
+
+                </td>
+
+                <td>
+
+                  {{ !empty($grade->activity_date) ? \Carbon\Carbon::parse($grade->activity_date)->format('M d, Y') : '—' }}
+
+                </td>
+
+                <td>{{ $grade->remarks ?: '—' }}</td>
+
+              </tr>
+
+            @empty
+
+              <tr>
+
+                <td colspan="6">
+
+                  <div class="as-empty"><i class="fa fa-clipboard-check"></i>No
+
+                    onsite grades have been recorded for this course.</div>
+
+                </td>
+
+              </tr>
+            @endforelse
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+    <div class="as-bottom">
+
+      <button type="button" class="as-btn outline"
+        onclick="exportAssessmentCsv()">
+
+        <i class="fa fa-file-csv"></i> Export CSV
+
+      </button>
+
     </div>
+
+  </div>
+
+  <div id="detailsModal" class="as-modal" aria-hidden="true">
+
+    <div class="as-modal-content" role="dialog" aria-modal="true"
+      aria-labelledby="detailsTitle">
+
+      <div class="as-modal-header">
+
+        <h3 id="detailsTitle"><i class="fa fa-chart-line"></i> Quiz Performance
+
+          Details</h3>
+
+        <button type="button" class="as-modal-close"
+          onclick="closeModal('detailsModal')"
+          aria-label="Close">&times;</button>
+
+      </div>
+
+      <div class="as-modal-body">
+
+        <div class="as-detail-row"><span
+            class="as-detail-label">Trainee</span><span class="as-detail-val"
+            id="det-name">—</span></div>
+
+        <div class="as-detail-row"><span class="as-detail-label">Trainee
+
+            ID</span><span class="as-detail-val" id="det-id">—</span></div>
+
+        <div class="as-detail-row"><span
+            class="as-detail-label">Course</span><span class="as-detail-val"
+            id="det-course">—</span></div>
+
+        <div class="as-detail-row"><span
+            class="as-detail-label">Quiz</span><span class="as-detail-val"
+            id="det-quiz">—</span></div>
+
+        <div class="as-detail-row"><span
+            class="as-detail-label">Score</span><span class="as-detail-val"
+            id="det-score">—</span></div>
+
+        <div class="as-detail-row"><span
+            class="as-detail-label">Result</span><span class="as-detail-val"
+            id="det-status">—</span></div>
+
+        <div class="as-detail-row"><span
+            class="as-detail-label">Submitted</span><span class="as-detail-val"
+            id="det-date">—</span></div>
+
+      </div>
+
+      <div class="as-modal-footer"><button type="button"
+          class="as-btn outline"
+          onclick="closeModal('detailsModal')">Close</button></div>
+
+    </div>
+
+  </div>
+
+  <div id="topModal" class="as-modal" aria-hidden="true">
+
+    <div class="as-modal-content" role="dialog" aria-modal="true"
+      aria-labelledby="topTitle">
+
+      <div class="as-modal-header">
+
+        <h3 id="topTitle"><i class="fa fa-trophy"></i> Top Performers</h3>
+
+        <button type="button" class="as-modal-close"
+          onclick="closeModal('topModal')" aria-label="Close">&times;</button>
+
+      </div>
+
+      <div class="as-modal-body" style="padding:0">
+
+        <div class="as-table-scroll">
+
+          <table class="as-top-table">
+
+            <thead>
+
+              <tr>
+
+                <th>Rank</th>
+
+                <th>Full Name</th>
+
+                <th>Average Quiz Score</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              @forelse ($topPerformers as $i => $performer)
+
+                @php
+
+                  $performerUser = $performer->user ?? null;
+
+                  $performerFirstName = trim(
+                      (string) ($performer->firstname ??
+                          ($performerUser?->firstname ?? '')),
+                  );
+
+                  $performerLastName = trim(
+                      (string) ($performer->lastname ??
+                          ($performerUser?->lastname ?? '')),
+                  );
+
+                  $performerName = trim(
+                      $performerLastName . ', ' . $performerFirstName,
+
+                      ', ',
+                  );
+                @endphp
+
+                <tr>
+
+                  <td>{{ $i + 1 }}</td>
+
+                  <td>
+
+                    <strong>{{ $performerName !== '' ? $performerName : 'Unknown trainee' }}</strong>
+
+                  </td>
+
+                  <td><span
+                      class="as-badge competent">{{ number_format((float) ($performer->avg_score ?? 0), 1) }}%</span>
+
+                  </td>
+
+                </tr>
+
+              @empty
+
+                <tr>
+
+                  <td colspan="3" class="as-empty">No quiz performance data
+
+                    yet.</td>
+
+                </tr>
+              @endforelse
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+      <div class="as-modal-footer"><button type="button"
+          class="as-btn outline" onclick="closeModal('topModal')">Close</button>
+
+      </div>
+
+    </div>
+
   </div>
 
 @endsection
 
 @section('scripts')
+
   <script>
-    // ── MODALS ─────────────────────────────────────────────────────────────────
     function openModal(id) {
-      document.getElementById(id).classList.add('open');
+
+
+
+      const modal = document.getElementById(id);
+
+
+
+      if (!modal) return;
+
+
+
+      modal.classList.add('open');
+
+
+
+      modal.setAttribute('aria-hidden', 'false');
+
+
+
     }
+
+
 
     function closeModal(id) {
-      document.getElementById(id).classList.remove('open');
+
+
+
+      const modal = document.getElementById(id);
+
+
+
+      if (!modal) return;
+
+
+
+      modal.classList.remove('open');
+
+
+
+      modal.setAttribute('aria-hidden', 'true');
+
+
+
     }
 
-    window.addEventListener('click', e => {
-      document.querySelectorAll('.as-modal.open').forEach(m => {
-        if (e.target === m) m.classList.remove('open');
+
+
+    document.addEventListener('click', function(event) {
+
+
+
+      document.querySelectorAll('.as-modal.open').forEach(function(modal) {
+
+
+
+        if (event.target === modal) closeModal(modal.id);
+
+
+
       });
+
+
+
     });
 
-    // ── DETAILS ────────────────────────────────────────────────────────────────
-    function openDetailsModal(name, id, quiz, score, total, percentage) {
-      document.getElementById('det-name').textContent = name;
-      document.getElementById('det-id').textContent = 'ID: ' + id;
-      document.getElementById('det-course').textContent = quiz;
-      document.getElementById('det-score').textContent = score + '/' + total +
-        ' (' + percentage + '%)';
-      openModal('detailsModal');
-    }
 
-    // ── GRADE ──────────────────────────────────────────────────────────────────
-    function calcResult() {
-      const score = parseInt(document.getElementById('gradeScore').value);
-      const text = document.getElementById('resultText');
-      if (isNaN(score)) {
-        text.textContent = '—';
-        text.style.color = '#025628';
-        return;
+
+    document.addEventListener('keydown', function(event) {
+
+
+
+      if (event.key === 'Escape') {
+
+
+
+        document.querySelectorAll('.as-modal.open').forEach(function(modal) {
+
+
+
+          closeModal(modal.id);
+
+
+
+        });
+
+
+
       }
-      text.textContent = score >= 75 ? 'Passed ✓' : 'Failed ✗';
-      text.style.color = score >= 75 ? '#025628' : '#A32D2D';
+
+
+
+    });
+
+
+
+    function openDetailsModal(button) {
+
+
+
+      const d = button.dataset;
+
+
+
+      document.getElementById('det-name').textContent = d.name ||
+
+
+
+        'Unknown trainee';
+
+
+
+      document.getElementById('det-id').textContent = d.id || '—';
+
+
+
+      document.getElementById('det-course').textContent = d.course || '—';
+
+
+
+      document.getElementById('det-quiz').textContent = d.quiz || '—';
+
+
+
+      document.getElementById('det-score').textContent =
+
+
+
+        (d.score || '0') + '/' + (d.total || '0') + ' (' + Number(d.percentage ||
+
+
+
+          0).toFixed(1) + '%)';
+
+
+
+      document.getElementById('det-status').textContent = (d.status || 'unknown')
+
+
+
+        .replace(/\b\w/g, c => c.toUpperCase());
+
+
+
+      document.getElementById('det-date').textContent = d.date || '—';
+
+
+
+      openModal('detailsModal');
+
+
+
     }
 
-    function saveGrade() {
-      alert('Grade saved successfully!');
-      closeModal('gradeModal');
-    }
 
-    // ── FILTERS ────────────────────────────────────────────────────────────────
-    function applyFilters() {
-      const course = document.getElementById('filterCourse').value.toLowerCase();
-      const result = document.getElementById('filterResult').value.toLowerCase();
-      const competency = document.getElementById('filterCompetency').value
-        .toLowerCase();
 
-      document.querySelectorAll('#assessmentTable tbody tr').forEach(row => {
-        const show = (course === '' || row.cells[2].textContent.toLowerCase()
-            .includes(course)) &&
-          (result === '' || row.cells[3].textContent.toLowerCase().includes(
-            result)) &&
-          (competency === '' || row.cells[4].textContent.toLowerCase()
-            .includes(competency));
-        row.style.display = show ? '' : 'none';
+    let activeAssessmentType = 'all';
+
+    function setAssessmentType(type, button) {
+      activeAssessmentType = type;
+
+      document.querySelectorAll('[data-filter-type]').forEach(function(item) {
+        const active = item.dataset.filterType === type;
+        item.classList.toggle('active', active);
+        item.setAttribute('aria-pressed', active ? 'true' : 'false');
       });
+
+      const assessmentSelect = document.getElementById('filterAssessment');
+      const resultField = document.getElementById('quizResultField');
+      const resultSelect = document.getElementById('filterResult');
+
+      if (assessmentSelect) {
+        Array.from(assessmentSelect.options).forEach(function(option) {
+          if (!option.value) {
+            option.hidden = false;
+            return;
+          }
+
+          const optionType = option.value.split('::', 1)[0];
+          option.hidden = type !== 'all' && optionType !== type;
+        });
+
+        const selected = assessmentSelect.selectedOptions[0];
+        if (selected && selected.hidden) assessmentSelect.value = '';
+      }
+
+      if (resultField) resultField.style.display = type === 'onsite' ? 'none' :
+      '';
+      if (type === 'onsite' && resultSelect) resultSelect.value = '';
+
+      applyFilters();
     }
 
-    // ── ACTIONS ────────────────────────────────────────────────────────────────
-    function deleteEntry(btn) {
-      if (confirm('Delete this record?')) btn.closest('tr').remove();
+    function applyFilters() {
+      const search = (document.getElementById('filterSearch')?.value || '')
+        .trim().toLocaleLowerCase();
+      const assessment = document.getElementById('filterAssessment')?.value || '';
+      const scoreRange = document.getElementById('filterScore')?.value || '';
+      const result = (document.getElementById('filterResult')?.value || '')
+        .trim().toLocaleLowerCase();
+
+      let selectedKind = '';
+      let selectedTitle = '';
+      if (assessment) {
+        const parts = assessment.split('::');
+        selectedKind = parts.shift() || '';
+        selectedTitle = parts.join('::').toLocaleLowerCase();
+      }
+
+      function filterTable(selector, kind) {
+        const table = document.querySelector(selector);
+        if (!table) return 0;
+
+        const rows = Array.from(table.querySelectorAll(
+          'tbody tr[data-assessment-kind]'));
+        let visible = 0;
+
+        rows.forEach(function(row) {
+          const rowKind = (row.dataset.assessmentKind || '')
+            .toLocaleLowerCase();
+          const rowAssessment = (
+            rowKind === 'quiz' ? row.dataset.quiz : row.dataset.activity
+          ) || (row.cells[3]?.innerText || row.cells[2]?.innerText || '');
+          const rowText = (row.innerText || '').toLocaleLowerCase();
+          const rowScore = Number(row.dataset.score || 0);
+          const rowResult = (row.dataset.result || '').toLocaleLowerCase();
+
+          const typeMatch = activeAssessmentType === 'all' ||
+            rowKind === activeAssessmentType;
+          const selectedAssessmentMatch = !selectedKind ||
+            (rowKind === selectedKind &&
+              rowAssessment.trim().toLocaleLowerCase() === selectedTitle);
+          const searchMatch = !search || rowText.includes(search);
+          const scoreMatch = !scoreRange ||
+            (scoreRange === 'below75' && rowScore < 75) ||
+            (scoreRange === '75plus' && rowScore >= 75);
+          const resultMatch = rowKind !== 'quiz' || !result || rowResult ===
+            result;
+
+          const show = typeMatch && selectedAssessmentMatch &&
+            searchMatch && scoreMatch && resultMatch;
+
+          row.style.display = show ? '' : 'none';
+          if (show) visible++;
+        });
+
+        let message = table.querySelector('tbody .as-filter-empty');
+        if (rows.length > 0 && visible === 0) {
+          if (!message) {
+            message = document.createElement('tr');
+            message.className = 'as-filter-empty';
+            const label = kind === 'quiz' ? 'quiz results' : 'onsite grades';
+            const colspan = kind === 'quiz' ? 8 : 6;
+            message.innerHTML =
+              `<td colspan="${colspan}"><div class="as-empty"><i class="fa fa-filter"></i>No matching ${label}. Try changing or resetting your filters.</div></td>`;
+            table.querySelector('tbody').appendChild(message);
+          }
+          message.style.display = '';
+        } else if (message) {
+          message.remove();
+        }
+
+        return visible;
+      }
+
+      const quizCount = filterTable('#assessmentTable', 'quiz');
+      const onsiteCount = filterTable('#onsiteTable', 'onsite');
+
+      const quizCard = document.querySelector('#assessmentTable')?.closest(
+        '.as-table-card');
+      const onsiteCard = document.querySelector('#onsiteTable')?.closest(
+        '.as-table-card');
+      if (quizCard) quizCard.style.display = activeAssessmentType === 'onsite' ?
+        'none' : '';
+      if (onsiteCard) onsiteCard.style.display = activeAssessmentType === 'quiz' ?
+        'none' : '';
+
+      const visibleQuiz = document.getElementById('visibleQuizCount');
+      const visibleOnsite = document.getElementById('visibleOnsiteCount');
+      if (visibleQuiz) visibleQuiz.textContent = quizCount;
+      if (visibleOnsite) visibleOnsite.textContent = onsiteCount;
+
+      const hint = document.getElementById('filterSummaryHint');
+      if (hint) {
+        hint.textContent = activeAssessmentType === 'quiz' ?
+          'Showing quiz submissions only. Score and result filters apply to quizzes.' :
+          activeAssessmentType === 'onsite' ?
+          'Showing onsite activity grades only. Score filtering uses each activity percentage.' :
+          'Search and score filters apply to both tables; quiz result applies only to quizzes.';
+      }
     }
 
-    function editAssessment(id) {
-      alert('Editing grades for ID: ' + id);
+    function resetFilters() {
+      ['filterSearch', 'filterAssessment', 'filterScore', 'filterResult']
+      .forEach(function(id) {
+        const field = document.getElementById(id);
+        if (field) field.value = '';
+      });
+
+      setAssessmentType('all');
     }
 
-    function exportToExcel() {
-      alert('Exporting assessment data...');
+    document.addEventListener('DOMContentLoaded', function() {
+      setAssessmentType('all');
+      applyFilters();
+    });
+
+    function exportAssessmentCsv() {
+
+
+
+      const sections = [{
+
+
+
+          title: 'Quiz Results',
+
+
+
+          table: document.getElementById('assessmentTable')
+
+
+
+        },
+
+
+
+        {
+
+
+
+          title: 'Onsite Activity Grades',
+
+
+
+          table: document.getElementById('onsiteTable')
+
+
+
+        }
+
+
+
+      ];
+
+
+
+      const escapeCsv = value => '"' + String(value ?? '').replace(/"/g, '""')
+
+
+
+        .replace(/\s+/g, ' ').trim() + '"';
+
+
+
+      const lines = [];
+
+
+
+      sections.forEach(section => {
+
+
+
+        lines.push(escapeCsv(section.title));
+
+
+
+        section.table.querySelectorAll('tr').forEach(row => {
+
+
+
+          if (row.style.display === 'none') return;
+
+
+
+          const cells = Array.from(row.querySelectorAll('th,td')).map(
+
+
+
+            cell => escapeCsv(cell.innerText));
+
+
+
+          if (cells.length) lines.push(cells.join(','));
+
+
+
+        });
+
+
+
+        lines.push('');
+
+
+
+      });
+
+
+
+      const blob = new Blob(['\ufeff' + lines.join('\r\n')], {
+
+
+
+        type: 'text/csv;charset=utf-8;'
+
+
+
+      });
+
+
+
+      const url = URL.createObjectURL(blob);
+
+
+
+      const link = document.createElement('a');
+
+
+
+      link.href = url;
+
+
+
+      link.download = 'assessment_records.csv';
+
+
+
+      document.body.appendChild(link);
+
+
+
+      link.click();
+
+
+
+      link.remove();
+
+
+
+      URL.revokeObjectURL(url);
+
+
+
     }
   </script>
+
 @endsection
+

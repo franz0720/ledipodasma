@@ -24,1004 +24,7 @@
   <script
     src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
   </script>
-  <style>
-    @keyframes mcToastIn {
-      from {
-        transform: translateX(30px);
-        opacity: 0;
-      }
 
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    /* ========================================================== */
-    /* GENERAL & COMPONENT STYLES                                 */
-    /* ========================================================== */
-    .input-wrapper.input-with-suffix {
-      display: flex;
-      align-items: center;
-    }
-
-    .input-wrapper.input-with-suffix input {
-      flex: 1;
-      border: none;
-      outline: none;
-      background: transparent;
-    }
-
-    .input-suffix {
-      padding-right: 10px;
-      font-size: 0.85rem;
-      color: #6c757d;
-      font-weight: 500;
-      user-select: none;
-    }
-
-    .assign-trainer-section {
-      background: #f0faf3;
-      border: 1px solid rgba(2, 86, 40, 0.15);
-      border-radius: 10px;
-      padding: 14px 16px;
-      margin-top: 14px;
-    }
-
-    .assign-trainer-label {
-      font-size: 12px;
-      font-weight: 700;
-      color: #025628;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .assign-trainer-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .assign-trainer-row select {
-      flex: 1;
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 13px;
-      font-family: inherit;
-      outline: none;
-      background: #fff;
-    }
-
-    .assign-trainer-row select:focus {
-      border-color: #025628;
-    }
-
-    .btn-assign {
-      background: #025628;
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      white-space: nowrap;
-    }
-
-    .btn-assign:hover {
-      background: #014d20;
-    }
-
-    .current-trainer-box {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #fff;
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      border-radius: 8px;
-      padding: 10px 12px;
-    }
-
-    .trainer-avatar-sm {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: #e8f5e9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
-      color: #025628;
-      flex-shrink: 0;
-    }
-
-    .trainer-details {
-      flex: 1;
-    }
-
-    .trainer-fullname {
-      font-size: 13px;
-      font-weight: 700;
-      color: #1a1a1a;
-    }
-
-    .trainer-sub {
-      font-size: 11px;
-      color: #888;
-    }
-
-    .btn-remove-trainer {
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 6px;
-      background: #FCEBEB;
-      color: #A32D2D;
-      border: none;
-      cursor: pointer;
-      font-family: inherit;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    .no-trainer-box {
-      font-size: 12px;
-      color: #aaa;
-      text-align: center;
-      padding: 8px 0;
-    }
-
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-    }
-
-    #courseModal .modal-content {
-      max-height: 90vh !important;
-      margin: 3vh auto !important;
-      display: flex !important;
-      flex-direction: column !important;
-      overflow: hidden !important;
-      max-width: 540px !important;
-      width: 95% !important;
-    }
-
-    #courseModal #courseForm {
-      overflow-y: auto !important;
-      max-height: calc(90vh - 120px);
-      padding-right: 6px;
-    }
-
-    .modal-actions-centered button {
-      margin: 10px;
-      padding: 8px 15px;
-    }
-
-    /* Inactive Status Badge (Red Styling) */
-    .course-badge.inactive {
-      background-color: #FCEBEB;
-      color: #A32D2D;
-      border: 1px solid rgba(163, 45, 45, 0.2);
-    }
-
-    /* Active Status Badge (Green Styling) */
-    .course-badge.active {
-      background-color: #e8f5e9;
-      color: #025628;
-      border: 1px solid rgba(2, 86, 40, 0.2);
-    }
-
-    /* ========================================================== */
-    /* ANNOUNCEMENT MODAL STYLES                                  */
-    /* ========================================================== */
-    #announcementModal .modal-content.card {
-      max-width: 520px !important;
-      width: 95% !important;
-      text-align: left !important;
-    }
-
-    #announcementModal .modal-body {
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 16px !important;
-      padding: 20px !important;
-      text-align: left !important;
-    }
-
-    #announcementModal .form-group {
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: stretch !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
-    }
-
-    #announcementModal .label-row {
-      display: flex !important;
-      justify-content: space-between !important;
-      align-items: center !important;
-      margin-bottom: 6px !important;
-      width: 100% !important;
-    }
-
-    #announcementModal .label-row label,
-    #announcementModal .form-group label {
-      font-size: 13px !important;
-      font-weight: 600 !important;
-      color: #333 !important;
-      margin: 0 !important;
-      text-align: left !important;
-    }
-
-    #announcementModal .required {
-      color: #a32d2d !important;
-    }
-
-    #announcementModal .char-counter {
-      font-size: 11px !important;
-      color: #888 !important;
-    }
-
-    #announcementModal .input-container {
-      position: relative !important;
-      display: flex !important;
-      align-items: center !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
-    }
-
-    #announcementModal .input-icon {
-      position: absolute !important;
-      left: 12px !important;
-      color: #888 !important;
-      font-size: 14px !important;
-      pointer-events: none !important;
-      z-index: 2 !important;
-    }
-
-    #announcementModal .input-container input[type="text"],
-    #announcementModal .input-container select {
-      width: 100% !important;
-      height: 42px !important;
-      padding: 0 12px 0 36px !important;
-      border: 1px solid #ccc !important;
-      border-radius: 6px !important;
-      font-size: 14px !important;
-      color: #333 !important;
-      background-color: #fff !important;
-      box-sizing: border-box !important;
-      outline: none !important;
-    }
-
-    #announcementModal .textarea-container {
-      align-items: flex-start !important;
-    }
-
-    #announcementModal .textarea-icon {
-      top: 12px !important;
-    }
-
-    #announcementModal .textarea-container textarea {
-      width: 100% !important;
-      min-height: 95px !important;
-      padding: 10px 12px 10px 36px !important;
-      border: 1px solid #ccc !important;
-      border-radius: 6px !important;
-      font-size: 14px !important;
-      font-family: inherit !important;
-      color: #333 !important;
-      background-color: #fff !important;
-      box-sizing: border-box !important;
-      resize: vertical !important;
-      outline: none !important;
-    }
-
-    #announcementModal .input-container input:focus,
-    #announcementModal .input-container select:focus,
-    #announcementModal .input-container textarea:focus,
-    #announcementModal .datetime-input:focus {
-      border-color: #025628 !important;
-      box-shadow: 0 0 0 2px rgba(2, 86, 40, 0.1) !important;
-    }
-
-    #announcementModal .datetime-container {
-      position: relative !important;
-      width: 100% !important;
-    }
-
-    #announcementModal .datetime-input {
-      width: 100% !important;
-      height: 42px !important;
-      padding: 8px 12px !important;
-      border: 1px solid #ccc !important;
-      border-radius: 6px !important;
-      font-size: 13px !important;
-      font-family: inherit !important;
-      color: #333 !important;
-      background-color: #fff !important;
-      box-sizing: border-box !important;
-      outline: none !important;
-      cursor: pointer !important;
-    }
-
-    #announcementModal input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-      cursor: pointer !important;
-      opacity: 0.6;
-      filter: invert(0.3);
-    }
-
-    #announcementModal input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
-      opacity: 1;
-    }
-
-    #announcementModal .form-row {
-      display: flex !important;
-      gap: 16px !important;
-      align-items: flex-end !important;
-      width: 100% !important;
-    }
-
-    #announcementModal .flex-1 {
-      flex: 1 !important;
-    }
-
-    #announcementModal .status-group {
-      width: auto !important;
-    }
-
-    #announcementModal .checkbox-card {
-      display: inline-flex !important;
-      align-items: center !important;
-      gap: 8px !important;
-      height: 42px !important;
-      padding: 0 14px !important;
-      border: 1px solid #ccc !important;
-      border-radius: 6px !important;
-      background: #fdfdfd !important;
-      cursor: pointer !important;
-      box-sizing: border-box !important;
-    }
-
-    #announcementModal .checkbox-card input[type="checkbox"] {
-      accent-color: #025628 !important;
-      width: 16px !important;
-      height: 16px !important;
-      cursor: pointer !important;
-    }
-
-    #announcementModal .checkbox-text {
-      font-size: 13px !important;
-      color: #333 !important;
-      font-weight: 500 !important;
-      user-select: none !important;
-    }
-
-    #announcementModal .modal-footer {
-      display: flex !important;
-      justify-content: flex-end !important;
-      gap: 10px !important;
-      margin-top: 8px !important;
-      padding-top: 14px !important;
-      border-top: 1px solid #eee !important;
-    }
-
-    /* ========================================================== */
-    /* CERTIFICATES VIEW & TABLE STYLES                           */
-    /* ========================================================== */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .stat-card {
-      background: #025628;
-      color: #ffffff;
-      padding: 20px;
-      border-radius: 12px;
-      text-align: center;
-    }
-
-    .stat-card.urgent {
-      background: #025628;
-    }
-
-    .stat-card h3,
-    .stat-card .stat-number {
-      font-size: 28px;
-      font-weight: 700;
-      margin: 0 0 6px 0;
-    }
-
-    .stat-card p,
-    .stat-card .stat-label {
-      font-size: 13px;
-      opacity: 0.9;
-      margin: 0;
-    }
-
-    .filter-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 14px;
-      margin-bottom: 16px;
-    }
-
-    .dropdown-group {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .filter-dropdown {
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      padding: 6px 12px;
-      font-size: 13px;
-      background-color: #fff;
-      color: #333;
-      outline: none;
-      cursor: pointer;
-    }
-
-    .filter-dropdown:focus {
-      border-color: #025628;
-    }
-
-    .selection-group {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .custom-checkbox {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      color: #333;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .custom-checkbox input[type="checkbox"] {
-      accent-color: #025628;
-      cursor: pointer;
-    }
-
-    .table-outline {
-      border: 1px solid #d4edda;
-      border-radius: 12px;
-      overflow: hidden;
-      background: #ffffff;
-    }
-
-    .trainee-data-table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-    }
-
-    .trainee-data-table thead {
-      background-color: #f7ea72;
-    }
-
-    .trainee-data-table th {
-      padding: 12px 16px;
-      font-size: 14px;
-      font-weight: 700;
-      color: #1a1a1a;
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    .trainee-data-table td {
-      padding: 12px 16px;
-      font-size: 13px;
-      color: #333;
-      border-bottom: 1px solid #f0f0f0;
-      vertical-align: middle;
-    }
-
-    .trainee-data-table tbody tr:hover {
-      background-color: #fcfcfc;
-    }
-
-    /* Badges */
-    .badge {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .badge-success {
-      background-color: #e8f5e9;
-      color: #025628;
-    }
-
-    .badge-warning {
-      background-color: #fff8e1;
-      color: #b78103;
-    }
-
-    /* Action Buttons Inside Table */
-    .action-icons {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .btn-icon {
-      background: transparent;
-      border: none;
-      padding: 4px 6px;
-      cursor: pointer;
-      font-size: 15px;
-      color: #025628;
-      border-radius: 4px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: background-color 0.15s ease;
-    }
-
-    .btn-icon:hover {
-      background-color: #f0faf3;
-    }
-
-    .btn-icon.btn-danger {
-      color: #dc3545;
-    }
-
-    .btn-icon.btn-danger:hover {
-      background-color: #fcebeb;
-    }
-
-    /* Bottom Action Footer */
-    .action-footer {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 14px;
-      margin-top: 20px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      font-family: inherit;
-      border: none;
-      cursor: pointer;
-      transition: opacity 0.2s ease;
-    }
-
-    .btn:hover {
-      opacity: 0.9;
-    }
-
-    .btn-primary {
-      background-color: #025628;
-      color: #ffffff;
-    }
-
-    .btn-secondary {
-      background-color: #e8f5e9;
-      color: #025628;
-    }
-
-    .text-btn-add {
-      background: none;
-      border: none;
-      color: #025628;
-      font-weight: 700;
-      font-size: 13px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .pill-btn-export {
-      background-color: #025628;
-      color: #fff;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 20px;
-      font-weight: 600;
-      font-size: 13px;
-      cursor: pointer;
-    }
-
-    /* ========================================================== */
-    /* CERTIFICATE MODAL PREVIEWS & FORMS                         */
-    /* ========================================================== */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.55);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1050;
-      padding: 16px;
-    }
-
-    .modal-box-fixed {
-      background: #ffffff;
-      border-radius: 12px;
-      max-width: 900px;
-      width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    }
-
-    .modal-split {
-      display: flex;
-      flex-wrap: wrap;
-    }
-
-    .split-left-preview {
-      flex: 1.2;
-      min-width: 320px;
-      padding: 24px;
-      background-color: #f9fbf9;
-    }
-
-    .split-right-info {
-      flex: 1;
-      min-width: 280px;
-      padding: 24px;
-      background: #ffffff;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .border-right {
-      border-right: 1px solid #ececec;
-    }
-
-    .modal-section-header,
-    .modal-title {
-      font-size: 18px;
-      color: #025628;
-      font-weight: 700;
-      margin-top: 0;
-      margin-bottom: 16px;
-    }
-
-    /* Certificate Preview Certificate Layout */
-    .ui-cert-frame {
-      box-sizing: border-box;
-      width: 100%;
-      max-width: 580px;
-      aspect-ratio: 1 / 1;
-      /* Keeps it square */
-      border: 8px solid #025628;
-      background: #ffffff;
-      padding: 18px;
-      margin: 0 auto;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .ui-cert-inner {
-      box-sizing: border-box;
-      border: 1px dashed #025628;
-      padding: 16px;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .cert-logos-header {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 10px;
-    }
-
-    .cert-logo-img {
-      height: 36px;
-      object-fit: contain;
-    }
-
-    .cert-authority-text {
-      font-size: 9px;
-      font-weight: 700;
-      line-height: 1.3;
-      color: #333;
-      margin: 6px 0;
-    }
-
-    .cert-title-primary {
-      font-size: 16px;
-      font-weight: 800;
-      color: #025628;
-      margin: 10px 0 4px 0;
-      letter-spacing: 0.05em;
-    }
-
-    .cert-certify-line {
-      font-size: 8px;
-      letter-spacing: 0.08em;
-      color: #555;
-      margin-bottom: 4px;
-    }
-
-    .cert-recipient-name {
-      font-size: 30px;
-      font-weight: 700;
-      text-decoration: underline;
-      margin: 6px 0;
-      color: #1a1a1a;
-      text-transform: none !important;
-      /* Disables any automatic text conversion */
-    }
-
-    .cert-training-msg {
-      font-size: 8px;
-      margin: 4px 0;
-      color: #555;
-    }
-
-    .cert-course-name {
-      font-size: 14px;
-      font-weight: 700;
-      color: #025628;
-      margin: 4px 0 16px 0;
-      text-transform: uppercase;
-    }
-
-    .cert-signatures {
-      display: flex;
-      justify-content: space-around;
-      margin-top: 18px;
-    }
-
-    .sig-item {
-      width: 110px;
-      border-top: 1px solid #333;
-      padding-top: 4px;
-    }
-
-    .sig-name {
-      font-size: 8px;
-      font-weight: 700;
-      margin: 0;
-    }
-
-    .sig-rank {
-      font-size: 7px;
-      color: #666;
-      margin: 0;
-    }
-
-    .cert-serial-footer {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 14px;
-      font-size: 8px;
-      font-weight: 600;
-      color: #555;
-    }
-
-    .info-block {
-      margin-bottom: 16px;
-    }
-
-    .info-label {
-      font-size: 12px;
-      color: #777;
-      display: block;
-      margin-bottom: 4px;
-    }
-
-    .info-value.grade-success {
-      font-size: 15px;
-      font-weight: 700;
-      color: #025628;
-      margin: 0;
-    }
-
-    .sig-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      font-size: 13px;
-      color: #333;
-    }
-
-    .sig-list li {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 4px;
-    }
-
-    .sig-list i {
-      color: #025628;
-    }
-
-    .modal-actions-container {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: auto;
-      padding-top: 16px;
-    }
-
-    .btn-pdf {
-      background-color: #dc3545;
-      color: #fff;
-    }
-
-    .btn-print {
-      background-color: #025628;
-      color: #fff;
-    }
-
-    /* Modal Form Inputs */
-    .ui-form-group {
-      border: none;
-      padding: 0;
-      margin: 0 0 14px 0;
-    }
-
-    .form-label {
-      font-size: 12px;
-      font-weight: 700;
-      color: #025628;
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    .form-control,
-    .ui-select {
-      width: 100%;
-      height: 38px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      padding: 6px 10px;
-      font-size: 13px;
-      box-sizing: border-box;
-      outline: none;
-    }
-
-    .form-control:focus,
-    .ui-select:focus {
-      border-color: #025628;
-    }
-
-    .resize-none {
-      resize: none;
-      height: 60px;
-    }
-
-    /* Utility Classes */
-    .hidden {
-      display: none !important;
-    }
-
-    .w-full {
-      width: 100%;
-    }
-
-    .mt-2 {
-      margin-top: 8px;
-    }
-
-    .mt-4 {
-      margin-top: 16px;
-    }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      border: 0;
-    }
-
-    /* Print View */
-    @media print {
-
-      /* 1. Hide everything on the page */
-      body * {
-        visibility: hidden !important;
-      }
-
-      /* 2. Reset modal wrappers */
-      html,
-      body,
-      .modal-overlay,
-      .modal-box-fixed,
-      .modal-split,
-      .split-left-preview {
-        visibility: hidden !important;
-        background: transparent !important;
-        box-shadow: none !important;
-        border: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        width: 100% !important;
-        height: auto !important;
-        overflow: visible !important;
-      }
-
-      /* 3. Remove non-printable elements */
-      .split-right-info,
-      .modal-section-header,
-      .modal-actions-container,
-      .action-footer {
-        display: none !important;
-      }
-
-      /* 4. Make ONLY the certificate visible */
-      #printableCert,
-      #printableCert * {
-        visibility: visible !important;
-      }
-
-      /* 5. Force Square Dimensions & Center on Page */
-      #printableCert {
-        position: fixed !important;
-        left: 50% !important;
-        top: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        width: 185mm !important;
-        height: 185mm !important;
-        aspect-ratio: 1 / 1 !important;
-        box-sizing: border-box !important;
-        margin: 0 auto !important;
-        padding: 16px !important;
-        box-shadow: none !important;
-        page-break-inside: avoid !important;
-      }
-
-      /* 6. Distribute content evenly across the full height of the square */
-      #printableCert .ui-cert-inner {
-        height: 100% !important;
-        box-sizing: border-box !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: space-between !important;
-        padding: 24px 20px !important;
-      }
-
-      @page {
-        size: auto;
-        margin: 10mm;
-      }
-    }
-  </style>
 </head>
 
 <body>
@@ -1692,25 +695,106 @@
                     </span>
                   </div>
 
-                  <!-- Course Metadata -->
+                  {{-- Course Metadata --}}
                   <div
                     style="display: flex; flex-direction: column; gap: 7px; font-size: 11.5px; color: #555;">
+
+                    {{-- Duration --}}
                     <div style="display: flex; align-items: center; gap: 8px;">
                       <i class="fa-solid fa-calendar-day"
                         style="color: #888; width: 14px;"></i>
-                      <span><strong>Duration:</strong> {{ $course->duration }}
-                        {{ \Illuminate\Support\Str::plural('Day', $course->duration) }}</span>
+                      <span>
+                        <strong>Duration:</strong>
+                        {{ $course->duration }}
+                        {{ \Illuminate\Support\Str::plural('Day', $course->duration) }}
+                      </span>
                     </div>
+
+                    {{-- Training Days --}}
+                    @php
+                      $trainingDays = $course->training_days ?? [];
+
+                      if (is_string($trainingDays)) {
+                          $trainingDays =
+                              json_decode($trainingDays, true) ?? [];
+                      }
+
+                      if (!is_array($trainingDays)) {
+                          $trainingDays = [];
+                      }
+
+                      $dayOrder = [
+                          'Monday',
+                          'Tuesday',
+                          'Wednesday',
+                          'Thursday',
+                          'Friday',
+                          'Saturday',
+                          'Sunday',
+                      ];
+
+                      $trainingDays = array_values(
+                          array_intersect($dayOrder, $trainingDays),
+                      );
+                    @endphp
+
+                    <div
+                      style="display: flex; align-items: flex-start; gap: 8px;">
+                      <i class="fa-solid fa-calendar-week"
+                        style="color: #888; width: 14px; margin-top: 2px;"></i>
+
+                      <div style="flex: 1;">
+                        <strong>Training Days:</strong>
+
+                        @if (count($trainingDays))
+                          <div
+                            style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px;">
+                            @foreach ($trainingDays as $day)
+                              <span
+                                style="
+                            background: #e8f5e9;
+                            color: #025628;
+                            border: 1px solid #c8e6c9;
+                            padding: 3px 7px;
+                            border-radius: 4px;
+                            font-size: 10px;
+                            font-weight: 600;
+                        ">
+                                {{ substr($day, 0, 3) }}
+                              </span>
+                            @endforeach
+                          </div>
+                        @else
+                          <span style="color: #999; margin-left: 3px;">
+                            Not scheduled
+                          </span>
+                        @endif
+                      </div>
+                    </div>
+
+                    {{-- Trainer --}}
                     <div style="display: flex; align-items: center; gap: 8px;">
                       <i class="fa-solid fa-user-tie"
                         style="color: #888; width: 14px;"></i>
-                      <span><strong>Trainer:</strong>
+
+                      <span>
+                        <strong>Trainer:</strong>
                         <span
-                          style="background: {{ $hasTrainer ? '#e8f5e9' : '#f0f0f0' }}; color: {{ $hasTrainer ? '#025628' : '#666' }}; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 10.5px; display: inline-block; margin-left: 2px;">
+                          style="
+                background: {{ $hasTrainer ? '#e8f5e9' : '#f0f0f0' }};
+                color: {{ $hasTrainer ? '#025628' : '#666' }};
+                padding: 2px 8px;
+                border-radius: 4px;
+                font-weight: 600;
+                font-size: 10.5px;
+                display: inline-block;
+                margin-left: 2px;
+            ">
                           {{ $trainerName }}
                         </span>
                       </span>
                     </div>
+
                   </div>
 
                   <!-- Capacity Progress Bar -->
@@ -2134,39 +1218,49 @@
       </div>
 
       <!-- 7. COURSES VIEW -->
+
       <div id="view-courses" style="display: none;">
-        <!-- Top Control Bar (Search Bar & Add Button Aligned Right) -->
+
+        <!-- Top Control Bar -->
         <div
-          style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap;">
+          style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+
           <div class="input-wrapper"
-            style="width: 320px; background: #fff; border: 1px solid #d1d5db; border-radius: 8px; padding: 7px 12px; display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            style="width:320px;background:#fff;border:1px solid #d1d5db;border-radius:8px;padding:7px 12px;display:flex;align-items:center;box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+
             <i class="fa-solid fa-magnifying-glass"
-              style="color: #9ca3af; margin-right: 8px; font-size: 13px;"></i>
+              style="color:#9ca3af;margin-right:8px;font-size:13px;"></i>
+
             <input type="text" id="searchCourseInput"
               placeholder="Search course title or code..."
               onkeyup="filterCourses()"
-              style="border: none; outline: none; width: 100%; font-size: 13px; color: #1f2937;">
+              style="border:none;outline:none;width:100%;font-size:13px;color:#1f2937;">
           </div>
 
           <button class="btn-save-main" onclick="openAddCourseModal()"
-            style="width: auto; padding: 9px 18px; font-size: 13px; white-space: nowrap; border-radius: 8px; cursor: pointer; font-weight: 600;">
+            style="width:auto;padding:9px 18px;font-size:13px;white-space:nowrap;border-radius:8px;cursor:pointer;font-weight:600;">
+
             <i class="fa-solid fa-plus"></i> Add New Course
           </button>
         </div>
 
         <!-- Courses Grid -->
         <div class="courses-grid" id="coursesGrid">
-          <!-- Live Search No Results Message -->
+
+          <!-- Live Search No Results -->
           <div id="noFilterResults"
-            style="grid-column: 1 / -1; text-align: center; color: #9ca3af; padding: 50px 0; font-size: 13px; display: none;">
+            style="grid-column:1/-1;text-align:center;color:#9ca3af;padding:50px 0;font-size:13px;display:none;">
+
             <i class="fa-solid fa-magnifying-glass"
-              style="font-size: 32px; display: block; margin-bottom: 10px; color: #d1d5db;"></i>
+              style="font-size:32px;display:block;margin-bottom:10px;color:#d1d5db;"></i>
+
             No courses found.
           </div>
 
           @forelse($courses as $course)
+
             @php
-              // 1. Trainer Information
+              // Trainer Information
               $trainerName = $course->trainer
                   ? trim(
                       $course->trainer->firstname .
@@ -2175,186 +1269,332 @@
                   )
                   : null;
 
-              // 2. Facility Information
+              // Facility Information
               $facilityName = $course->facility
                   ? $course->facility->name
                   : null;
 
-              // 3. Enrollment Count & Calculations
+              // Enrollment Calculations
               $enrolledCount =
                   $course->enrolled_count ?? ($course->enrollments_count ?? 0);
-              $remainingSlots = max(0, $course->slots - $enrolledCount);
 
-              // 4. Module & Quiz Counts
+              $totalSlots = max(0, (int) ($course->slots ?? 0));
+
+              $remainingSlots = max(0, $totalSlots - $enrolledCount);
+
+              // Module Count
               $moduleCount =
                   $course->modules_count ??
-                  Illuminate\Support\Facades\DB::table('modules')
-                      ->where('course_id', $course->id)
-                      ->count();
-              $quizCount =
-                  $course->quizzes_count ??
-                  Illuminate\Support\Facades\DB::table('quizzes')
+                  \Illuminate\Support\Facades\DB::table('modules')
                       ->where('course_id', $course->id)
                       ->count();
 
-              // 5. Dynamic Progress Bar Percentage & Color
+              // Quiz Count
+              $quizCount =
+                  $course->quizzes_count ??
+                  \Illuminate\Support\Facades\DB::table('quizzes')
+                      ->where('course_id', $course->id)
+                      ->count();
+
+              // Enrollment Progress
               $percent =
-                  $course->slots > 0
-                      ? min(100, round(($enrolledCount / $course->slots) * 100))
+                  $totalSlots > 0
+                      ? min(100, round(($enrolledCount / $totalSlots) * 100))
                       : 0;
+
               $barColor =
                   $percent >= 100
                       ? '#dc2626'
                       : ($percent >= 80
                           ? '#d97706'
                           : '#025628');
+
+              // Normalize Training Days
+              $trainingDays = $course->training_days ?? [];
+
+              if (is_string($trainingDays)) {
+                  $decodedTrainingDays = json_decode($trainingDays, true);
+
+                  $trainingDays = is_array($decodedTrainingDays)
+                      ? $decodedTrainingDays
+                      : [];
+              }
+
+              if (!is_array($trainingDays)) {
+                  $trainingDays = [];
+              }
+
+              // Weekday Labels and Order
+              $dayLabels = [
+                  'monday' => 'MON',
+                  'tuesday' => 'TUE',
+                  'wednesday' => 'WED',
+                  'thursday' => 'THU',
+                  'friday' => 'FRI',
+                  'saturday' => 'SAT',
+                  'sunday' => 'SUN',
+              ];
+
+              $normalizedTrainingDays = collect($trainingDays)
+                  ->map(fn($day) => strtolower(trim((string) $day)))
+                  ->filter(fn($day) => array_key_exists($day, $dayLabels))
+                  ->unique()
+                  ->values()
+                  ->all();
+
+              $orderedTrainingDays = array_values(
+                  array_filter(
+                      array_keys($dayLabels),
+                      fn($day) => in_array($day, $normalizedTrainingDays, true),
+                  ),
+              );
             @endphp
 
+            <!-- Course Card -->
             <div class="card course-card"
-              style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.03); text-align: left;"
-              data-title="{{ strtolower($course->title) }}"
-              data-code="{{ strtolower($course->course_code) }}">
+              style="background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,0.03);text-align:left;"
+              data-title="{{ strtolower($course->title ?? '') }}"
+              data-code="{{ strtolower($course->course_code ?? '') }}">
 
               <div>
-                <!-- Top Bar: Course Code & Status Badge -->
+
+                <!-- Course Code and Status -->
                 <div
-                  style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                  style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;">
+
                   <span
-                    style="font-size: 11px; font-weight: 700; color: #4b5563; background: #f3f4f6; padding: 4px 9px; border-radius: 6px;">
+                    style="font-size:11px;font-weight:700;color:#4b5563;background:#f3f4f6;padding:4px 9px;border-radius:6px;">
+
                     <i class="fa-solid fa-barcode"
-                      style="color: #6b7280; margin-right: 4px;"></i>
+                      style="color:#6b7280;margin-right:4px;"></i>
+
                     {{ $course->course_code ?? 'CRS-000' }}
                   </span>
+
                   <div
-                    class="course-badge {{ strtolower($course->status) === 'active' ? 'active' : 'inactive' }}"
-                    style="font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 12px;">
-                    {{ ucfirst($course->status) }}
+                    class="course-badge {{ strtolower($course->status ?? '') === 'active' ? 'active' : 'inactive' }}"
+                    style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px;">
+
+                    {{ ucfirst($course->status ?? 'Inactive') }}
                   </div>
                 </div>
 
-                <!-- Title & Icon Side-by-Side Header -->
+                <!-- Course Title and Icon -->
                 <div
-                  style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; text-align: left;">
+                  style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;text-align:left;">
+
                   <div
-                    style="background: #e8f5e9; color: #025628; border-radius: 10px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i class="fa-solid fa-book" style="font-size: 18px;"></i>
+                    style="background:#e8f5e9;color:#025628;border-radius:10px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+
+                    <i class="fa-solid fa-book" style="font-size:18px;"></i>
                   </div>
-                  <div style="flex-grow: 1; text-align: left;">
+
+                  <div style="flex-grow:1;text-align:left;min-width:0;">
+
                     <h4
-                      style="margin: 0 0 4px 0; font-size: 15px; font-weight: 700; color: #111827; line-height: 1.35; text-align: left;">
+                      style="margin:0 0 4px;font-size:15px;font-weight:700;color:#111827;line-height:1.35;text-align:left;">
+
                       {{ $course->title }}
                     </h4>
+
                     <span
-                      style="font-size: 12px; color: #6b7280; font-weight: 500; display: inline-flex; align-items: center; gap: 5px; text-align: left;">
+                      style="font-size:12px;color:#6b7280;font-weight:500;display:inline-flex;align-items:center;gap:5px;">
+
                       <i class="fa-regular fa-clock"
-                        style="color: #9ca3af;"></i>
-                      {{ $course->duration }}
-                      Days Duration
+                        style="color:#9ca3af;"></i>
+
+                      {{ $course->duration }} Days Duration
                     </span>
                   </div>
                 </div>
 
-                <!-- Grouped Metadata Card (Trainer & Facility) -->
+                <!-- Training Days -->
                 <div
-                  style="background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; text-align: left;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
+                  style="display:flex;align-items:flex-start;gap:8px;margin:-4px 0 14px 56px;font-size:12px;color:#4b5563;">
+
+                  <i class="fa-solid fa-calendar-week"
+                    style="color:#025628;width:14px;margin-top:2px;flex-shrink:0;"></i>
+
+                  <div style="flex:1;min-width:0;">
+
+                    <div style="font-weight:600;color:#374151;">
+                      Training Days
+                    </div>
+
+                    @if (count($orderedTrainingDays) > 0)
+                      <div
+                        style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">
+
+                        @foreach ($orderedTrainingDays as $day)
+                          <span
+                            style="background:#e8f5e9;color:#025628;border:1px solid #c8e6c9;border-radius:5px;padding:3px 7px;font-size:10px;font-weight:700;letter-spacing:.2px;">
+
+                            {{ $dayLabels[$day] }}
+
+                          </span>
+                        @endforeach
+
+                      </div>
+                    @else
+                      <div
+                        style="color:#9ca3af;font-size:11px;margin-top:4px;">
+                        No training days set
+                      </div>
+                    @endif
+                  </div>
+                </div>
+
+                <!-- Trainer and Facility -->
+                <div
+                  style="background:#f9fafb;border:1px solid #f3f4f6;border-radius:10px;padding:10px 12px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px;font-size:12px;text-align:left;">
+
+                  <!-- Trainer -->
+                  <div style="display:flex;align-items:flex-start;gap:8px;">
+
                     <i class="fa-solid fa-chalkboard-user"
-                      style="color: #025628; width: 14px; text-align: center;"></i>
-                    <span
-                      style="color: #6b7280; font-weight: 500;">Trainer:</span>
+                      style="color:#025628;width:14px;text-align:center;margin-top:2px;"></i>
+
+                    <span style="color:#6b7280;font-weight:500;flex-shrink:0;">
+                      Trainer:
+                    </span>
+
                     <strong
-                      style="color: {{ $trainerName ? '#111827' : '#9ca3af' }}; font-weight: 600;">
+                      style="color:{{ $trainerName ? '#111827' : '#9ca3af' }};font-weight:600;overflow-wrap:anywhere;">
+
                       {{ $trainerName ?? 'No trainer assigned' }}
                     </strong>
                   </div>
 
-                  <div style="display: flex; align-items: center; gap: 8px;">
+                  <!-- Facility -->
+                  <div style="display:flex;align-items:flex-start;gap:8px;">
+
                     <i class="fa-solid fa-building"
-                      style="color: #025628; width: 14px; text-align: center;"></i>
-                    <span
-                      style="color: #6b7280; font-weight: 500;">Facility:</span>
+                      style="color:#025628;width:14px;text-align:center;margin-top:2px;"></i>
+
+                    <span style="color:#6b7280;font-weight:500;flex-shrink:0;">
+                      Facility:
+                    </span>
+
                     <strong
-                      style="color: {{ $facilityName ? '#111827' : '#9ca3af' }}; font-weight: 600;">
+                      style="color:{{ $facilityName ? '#111827' : '#9ca3af' }};font-weight:600;overflow-wrap:anywhere;">
+
                       {{ $facilityName ?? 'No facility assigned' }}
                     </strong>
                   </div>
                 </div>
 
-                <!-- Modules & Quizzes Counter Badges -->
+                <!-- Modules and Quizzes -->
                 <div
-                  style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                  style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+
                   <span
-                    style="background: #f3f4f6; color: #374151; font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
-                    <i class="fa-solid fa-cubes" style="color: #025628;"></i>
-                    <span
-                      id="course-module-count-{{ $course->id }}">{{ $moduleCount }}</span>
-                    <span
-                      id="course-module-label-{{ $course->id }}">{{ Illuminate\Support\Str::plural('Module', $moduleCount) }}</span>
+                    style="background:#f3f4f6;color:#374151;font-size:11px;font-weight:600;padding:4px 9px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;">
+
+                    <i class="fa-solid fa-cubes" style="color:#025628;"></i>
+
+                    <span id="course-module-count-{{ $course->id }}">
+                      {{ $moduleCount }}
+                    </span>
+
+                    <span id="course-module-label-{{ $course->id }}">
+                      {{ \Illuminate\Support\Str::plural('Module', $moduleCount) }}
+                    </span>
                   </span>
 
                   <span
-                    style="background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
+                    style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:600;padding:4px 9px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;">
+
                     <i class="fa-solid fa-clipboard-question"
-                      style="color: #b45309;"></i>
-                    <span
-                      id="course-quiz-count-{{ $course->id }}">{{ $quizCount }}</span>
-                    <span
-                      id="course-quiz-label-{{ $course->id }}">{{ Illuminate\Support\Str::plural('Quiz', $quizCount) }}</span>
+                      style="color:#b45309;"></i>
+
+                    <span id="course-quiz-count-{{ $course->id }}">
+                      {{ $quizCount }}
+                    </span>
+
+                    <span id="course-quiz-label-{{ $course->id }}">
+                      {{ \Illuminate\Support\Str::plural('Quiz', $quizCount) }}
+                    </span>
                   </span>
                 </div>
               </div>
 
               <div>
-                <!-- Capacity Progress Bar -->
-                <div style="margin-bottom: 14px; text-align: left;">
+
+                <!-- Enrollment Capacity -->
+                <div style="margin-bottom:14px;text-align:left;">
+
                   <div
-                    style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 600; color: #4b5563; margin-bottom: 6px;">
+                    style="display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:600;color:#4b5563;margin-bottom:6px;gap:8px;">
+
                     <span>Enrolled Capacity</span>
+
                     <span
-                      style="color: {{ $barColor }}; font-weight: 700;">{{ $enrolledCount }}
-                      / {{ $course->slots }} Enrolled</span>
+                      style="color:{{ $barColor }};font-weight:700;white-space:nowrap;">
+
+                      {{ $enrolledCount }} / {{ $totalSlots }} Enrolled
+                    </span>
                   </div>
+
                   <div class="progress-container"
-                    style="background: #e5e7eb; height: 6px; border-radius: 10px; overflow: hidden;">
+                    style="background:#e5e7eb;height:6px;border-radius:10px;overflow:hidden;">
+
                     <div class="progress-bar"
-                      style="width: {{ $percent }}%; background: {{ $barColor }}; height: 100%; border-radius: 10px; transition: width 0.3s ease;">
+                      style="width:{{ $percent }}%;background:{{ $barColor }};height:100%;border-radius:10px;transition:width .3s ease;">
                     </div>
+                  </div>
+
+                  <div style="font-size:11px;color:#6b7280;margin-top:5px;">
+                    {{ $remainingSlots }}
+                    {{ \Illuminate\Support\Str::plural('slot', $remainingSlots) }}
+                    remaining
                   </div>
                 </div>
 
                 <!-- Action Buttons -->
-                <div style="display: flex; gap: 8px;">
-                  <button class="btn-all"
-                    style="flex: 1; border: 1px solid #d1d5db; background: #ffffff; color: #374151; font-weight: 600; padding: 8px; border-radius: 8px; font-size: 12px; cursor: pointer;"
+                <div style="display:flex;gap:8px;">
+
+                  <button type="button" class="btn-all"
+                    style="flex:1;border:1px solid #d1d5db;background:#ffffff;color:#374151;font-weight:600;padding:8px;border-radius:8px;font-size:12px;cursor:pointer;"
                     onclick="openCourseModal(
-                {{ $course->id }},
-                '{{ addslashes($course->course_code) }}',
-                '{{ addslashes($course->title) }}',
-                '{{ addslashes($course->duration) }}',
-                {{ $course->slots }},
-                {{ $course->trainer_id ?? 'null' }},
-                '{{ addslashes($trainerName ?? '') }}',
-                '{{ $course->status }}'
-              )">
+        {{ $course->id }},
+        {{ \Illuminate\Support\Js::from($course->course_code ?? '') }},
+        {{ \Illuminate\Support\Js::from($course->title ?? '') }},
+        {{ \Illuminate\Support\Js::from($course->duration ?? '') }},
+        {{ $course->slots ?? 0 }},
+        {{ $course->trainer_id ?? 'null' }},
+        {{ \Illuminate\Support\Js::from($trainerName ?? '') }},
+        {{ \Illuminate\Support\Js::from($course->status ?? 'Inactive') }},
+        {{ \Illuminate\Support\Js::from($course->start_date?->format('Y-m-d') ?? '') }},
+        {{ \Illuminate\Support\Js::from($course->end_date?->format('Y-m-d') ?? '') }},
+        {{ \Illuminate\Support\Js::from($trainingDays) }},
+        {{ \Illuminate\Support\Js::from($course->start_time ? substr((string) $course->start_time, 0, 5) : '') }},
+        {{ \Illuminate\Support\Js::from($course->end_time ? substr((string) $course->end_time, 0, 5) : '') }}
+    )">
+
                     Course Details
                   </button>
 
-                  <button class="btn-all"
-                    style="flex: 1; border: none; background: #025628; color: #ffffff; font-weight: 600; padding: 8px; border-radius: 8px; font-size: 12px; cursor: pointer;"
-                    onclick="openContentModal({{ $course->id }}, '{{ addslashes($course->title) }}')">
+                  <button type="button" class="btn-all"
+                    style="flex:1;border:none;background:#025628;color:#ffffff;font-weight:600;padding:8px;border-radius:8px;font-size:12px;cursor:pointer;"
+                    onclick="openContentModal({{ $course->id }}, {{ \Illuminate\Support\Js::from($course->title ?? '') }})">
+
                     <i class="fa-solid fa-layer-group"></i> Modules
                   </button>
                 </div>
               </div>
-
             </div>
+
           @empty
+
             <div
-              style="grid-column: 1 / -1; text-align: center; color: #9ca3af; padding: 50px 0; font-size: 13px;">
+              style="grid-column:1/-1;text-align:center;color:#9ca3af;padding:50px 0;font-size:13px;">
+
               <i class="fa-solid fa-book-open"
-                style="font-size: 32px; display: block; margin-bottom: 10px; color: #d1d5db;"></i>
+                style="font-size:32px;display:block;margin-bottom:10px;color:#d1d5db;"></i>
+
               No courses found.
             </div>
+
           @endforelse
         </div>
 
@@ -2362,46 +1602,61 @@
         @if (
             $courses instanceof \Illuminate\Pagination\LengthAwarePaginator &&
                 $courses->hasPages())
+
           <div class="pagination-container"
-            style="margin-top: 24px; display: flex; justify-content: center; align-items: center; gap: 6px;">
+            style="margin-top:24px;display:flex;justify-content:center;align-items:center;gap:6px;">
+
+            <!-- Previous Page -->
             @if ($courses->onFirstPage())
               <button class="page-btn" disabled
-                style="opacity: 0.5; cursor: not-allowed;"><i
-                  class="fa-solid fa-chevron-left"></i></button>
+                style="opacity:.5;cursor:not-allowed;">
+                <i class="fa-solid fa-chevron-left"></i>
+              </button>
             @else
               <a href="{{ $courses->previousPageUrl() }}&view=courses"
                 onclick="setActive(document.getElementById('nav-courses'))"
                 class="page-btn">
+
                 <i class="fa-solid fa-chevron-left"></i>
               </a>
             @endif
 
-            <div class="page-numbers" style="display: flex; gap: 4px;">
+            <!-- Page Numbers -->
+            <div class="page-numbers" style="display:flex;gap:4px;">
+
               @for ($i = 1; $i <= $courses->lastPage(); $i++)
                 @if ($i == $courses->currentPage())
-                  <button
-                    class="page-btn active">{{ $i }}</button>
+                  <button class="page-btn active">
+                    {{ $i }}
+                  </button>
                 @else
                   <a href="{{ $courses->url($i) }}&view=courses"
                     onclick="setActive(document.getElementById('nav-courses'))"
-                    class="page-btn">{{ $i }}</a>
+                    class="page-btn">
+
+                    {{ $i }}
+                  </a>
                 @endif
               @endfor
             </div>
 
+            <!-- Next Page -->
             @if ($courses->hasMorePages())
               <a href="{{ $courses->nextPageUrl() }}&view=courses"
                 onclick="setActive(document.getElementById('nav-courses'))"
                 class="page-btn">
+
                 <i class="fa-solid fa-chevron-right"></i>
               </a>
             @else
               <button class="page-btn" disabled
-                style="opacity: 0.5; cursor: not-allowed;"><i
-                  class="fa-solid fa-chevron-right"></i></button>
+                style="opacity:.5;cursor:not-allowed;">
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
             @endif
           </div>
         @endif
+
       </div>
 
       <!-- 8. ANNOUNCEMENTS VIEW -->
@@ -2664,21 +1919,21 @@
           </div>
           <div class="stat-card">
             <h3 class="stat-number">
-              {{ isset($certificates) ? str_pad($certificates->where('status', 'Pending')->count(), 2, '0', STR_PAD_LEFT) : '00' }}
+              {{ isset($certificates) ? str_pad($certificates->filter(fn($cert) => strtolower(trim((string) ($cert->status ?? ''))) === 'pending')->count(), 2, '0', STR_PAD_LEFT) : '00' }}
             </h3>
-            <p class="stat-label">Pending Claim</p>
+            <p class="stat-label">Pending Release</p>
           </div>
           <div class="stat-card">
             <h3 class="stat-number">
-              {{ isset($certificates) ? str_pad($certificates->where('status', 'Claimed')->count(), 2, '0', STR_PAD_LEFT) : '00' }}
+              {{ isset($certificates) ? str_pad($certificates->filter(fn($cert) => strtolower(trim((string) ($cert->status ?? ''))) === 'released')->count(), 2, '0', STR_PAD_LEFT) : '00' }}
             </h3>
-            <p class="stat-label">Monthly Graduates</p>
+            <p class="stat-label">Released</p>
           </div>
           <div class="stat-card urgent">
             <h3 class="stat-number">
-              {{ isset($certificates) ? str_pad($certificates->count(), 2, '0', STR_PAD_LEFT) : '00' }}
+              {{ isset($certificates) ? str_pad($certificates->filter(fn($cert) => strtolower(trim((string) ($cert->status ?? ''))) === 'claimed')->count(), 2, '0', STR_PAD_LEFT) : '00' }}
             </h3>
-            <p class="stat-label">Archive Size</p>
+            <p class="stat-label">Claimed</p>
           </div>
         </section>
 
@@ -2732,8 +1987,9 @@
             <select id="filterStatus" class="filter-dropdown"
               onchange="filterCertTable()" aria-label="Filter by Status">
               <option value="">All Statuses</option>
-              <option value="claimed">Claimed</option>
               <option value="pending">Pending</option>
+              <option value="released">Released</option>
+              <option value="claimed">Claimed</option>
             </select>
           </div>
 
@@ -2743,12 +1999,18 @@
                 onchange="toggleMultiSelectMode(this)">
               <span>Select Multiple</span>
             </label>
+
             <label class="custom-checkbox" for="selectAll">
               <input type="checkbox" id="selectAll"
                 onchange="toggleSelectAllRows(this)">
               <span>Select All</span>
             </label>
+
+            <span id="selectedCertCount" aria-live="polite">
+              0 selected
+            </span>
           </div>
+
         </div>
 
         <!-- 3. Trainee Certificate Records Table -->
@@ -2768,7 +2030,7 @@
               </tr>
             </thead>
             <tbody id="certTableBody">
-              @forelse($certificates ?? [] as $cert)
+              @forelse(($certificates ?? collect()) as $cert)
                 @php
                   $fullName = ucwords(
                       strtolower(
@@ -2779,51 +2041,137 @@
                           ),
                       ),
                   );
-                  if (empty($fullName)) {
+
+                  if (trim($fullName) === '') {
                       $fullName = 'Registered Trainee';
                   }
+
                   $courseTitle = $cert->course->title ?? 'General Program';
-                  $issueDate = \Carbon\Carbon::parse($cert->issue_date)->format(
-                      'F j, Y',
+
+                  $issueDate = $cert->issue_date
+                      ? \Carbon\Carbon::parse($cert->issue_date)->format(
+                          'F j, Y',
+                      )
+                      : 'Not specified';
+
+                  $certificateStatus = strtolower(
+                      trim((string) ($cert->status ?? 'pending')),
                   );
-                  $isClaimed = strtolower($cert->status) === 'claimed';
+
+                  $certificateRemarks = strtolower(
+                      trim((string) ($cert->remarks ?? '')),
+                  );
+
+                  // Find the matching enrollment for this trainee and course.
+                  // $eligibleTrainees is populated from enrollment_tbls and includes progress.
+                  $matchingEnrollment = collect($eligibleTrainees ?? [])->first(
+                      fn($trainee) => (int) ($trainee->user_id ?? 0) ===
+                          (int) ($cert->user_id ?? ($cert->user->id ?? 0)) &&
+                          (int) ($trainee->course_id ?? 0) ===
+                              (int) ($cert->course_id ??
+                                  ($cert->course->id ?? 0)),
+                  );
+
+                  $rawGrade =
+                      $matchingEnrollment->progress ??
+                      ($matchingEnrollment->calculated_progress ??
+                          ($matchingEnrollment->stored_progress ??
+                              ($cert->progress ?? null)));
+
+                  $grade = is_numeric($rawGrade) ? (float) $rawGrade : null;
+
+                  $gradeDisplay =
+                      $grade !== null
+                          ? rtrim(
+                                  rtrim(number_format($grade, 2, '.', ''), '0'),
+                                  '.',
+                              ) . '%'
+                          : 'N/A';
+
+                  $competencyStatus =
+                      $grade !== null
+                          ? ($grade >= 75
+                              ? 'Competent'
+                              : 'Not Yet Competent')
+                          : 'Grade unavailable';
+
+                  $isClaimed = $certificateStatus === 'claimed';
+
+                  // Only competent trainees can receive a certificate.
+                  $canReleaseCertificate =
+                      $competencyStatus === 'Competent' &&
+                      !in_array(
+                          $certificateStatus,
+                          ['released', 'claimed'],
+                          true,
+                      );
                 @endphp
+
                 <tr data-cert-id="{{ $cert->id }}"
-                  data-cert-no="{{ $cert->certificate_no }}">
+                  data-cert-no="{{ $cert->certificate_no ?? '' }}"
+                  data-cert-course="{{ strtolower($courseTitle) }}"
+                  data-cert-date="{{ $cert->issue_date ? \Carbon\Carbon::parse($cert->issue_date)->format('Y-m-d') : '' }}"
+                  data-cert-status="{{ $certificateStatus }}">
+
                   <td class="select-col hidden">
                     <input type="checkbox" class="row-checkbox"
                       value="{{ $cert->id }}"
                       aria-label="Select {{ $fullName }}">
                   </td>
+
                   <td class="font-medium">{{ $fullName }}</td>
                   <td>{{ $courseTitle }}</td>
                   <td>{{ $issueDate }}</td>
+
                   <td>
                     <span
                       class="badge badge-toggle {{ $isClaimed ? 'badge-success' : 'badge-warning' }}"
                       onclick="toggleCertStatus(this, {{ $cert->id }})"
                       style="cursor: pointer;" title="Click to toggle status">
-                      <i
-                        class="fas {{ $isClaimed ? 'fa-check-circle' : 'fa-clock' }}"></i>
+                      <i class="fas {{ $isClaimed ? 'fa-check-circle' : 'fa-clock' }}"
+                        aria-hidden="true"></i>
                       <span
-                        class="status-label">{{ ucfirst($cert->status) }}</span>
+                        class="status-label">{{ ucfirst($certificateStatus) }}</span>
                     </span>
                   </td>
+
                   <td class="action-icons">
+                    <!-- View Certificate -->
                     <button type="button" class="btn-icon"
                       title="View Certificate"
-                      onclick="openCertModal('{{ addslashes($fullName) }}', '{{ addslashes($courseTitle) }}', '{{ $cert->certificate_no }}', '{{ $issueDate }}', '{{ $cert->status }}', '{{ $cert->grade ?? '94%' }}', '{{ $cert->document_type ?? 'completion' }}')">
+                      aria-label="View certificate for {{ $fullName }}"
+                      onclick="openCertModal(
+        {{ Js::from($fullName) }},
+        {{ Js::from($courseTitle) }},
+        {{ Js::from($cert->certificate_no ?? '') }},
+        {{ Js::from($issueDate) }},
+        {{ Js::from($competencyStatus) }},
+        {{ Js::from($gradeDisplay) }},
+        {{ Js::from($cert->document_type ?? 'completion') }},
+        {{ Js::from($cert->training_id ?? '') }}
+    )">
                       <i class="fas fa-eye" aria-hidden="true"></i>
                       <span class="sr-only">View Certificate</span>
                     </button>
-                    <button type="button" class="btn-icon"
-                      title="Edit Record"
-                      onclick="openEditCertModal('{{ $cert->certificate_no }}')">
-                      <i class="fas fa-edit" aria-hidden="true"></i>
-                      <span class="sr-only">Edit Record</span>
+
+                    <!-- Release Certificate -->
+                    <button type="button"
+                      class="btn-icon certificate-release-btn"
+                      title="{{ $canReleaseCertificate ? 'Release Certificate' : ($certificateRemarks !== 'competent' ? 'Only competent trainees can receive a certificate' : 'Certificate already released or claimed') }}"
+                      aria-label="Release certificate for {{ $fullName }}"
+                      data-remarks="{{ $certificateRemarks }}"
+                      data-status="{{ $certificateStatus }}"
+                      onclick="releaseCertificate(this, {{ $cert->id }})"
+                      {{ $canReleaseCertificate ? '' : 'disabled' }}
+                      style="color: #198754; {{ $canReleaseCertificate ? '' : 'opacity: .45; cursor: not-allowed;' }}">
+                      <i class="fas fa-paper-plane" aria-hidden="true"></i>
+                      <span class="sr-only">Release Certificate</span>
                     </button>
+
+                    <!-- Delete Record -->
                     <button type="button" class="btn-icon btn-danger"
                       title="Delete Record"
+                      aria-label="Delete certificate record for {{ $fullName }}"
                       onclick="deleteCert(this, {{ $cert->id }})">
                       <i class="fas fa-trash-alt" aria-hidden="true"></i>
                       <span class="sr-only">Delete Record</span>
@@ -2861,11 +2209,6 @@
             onclick="openAddModal()">
             <i class="fas fa-plus-square" aria-hidden="true"></i>
             <span>Issue New Certificate</span>
-          </button>
-          <button type="button" class="btn btn-secondary"
-            onclick="exportCertificates()">
-            <i class="fas fa-file-export" aria-hidden="true"></i>
-            <span>Export Certificates</span>
           </button>
         </footer>
 
@@ -2929,7 +2272,7 @@
 
               <footer class="cert-serial-footer">
                 <span id="vID">CERT. NO.: [ID]</span>
-                <span id="vTrainingID">TRAINING ID: NCIIDRM-26-032</span>
+                <span id="vTrainingID">TRAINING ID: —</span>
               </footer>
             </div>
           </div>
@@ -2957,7 +2300,8 @@
 
           <div class="info-block">
             <span class="info-label">Trainee Performance</span>
-            <p id="vGrade" class="info-value grade-success">94% — Passed
+            <p id="vGrade" class="info-value">
+              Select a trainee record
             </p>
           </div>
 
@@ -3021,12 +2365,14 @@
                 </option>
                 @if (isset($allCourses) && count($allCourses) > 0)
                   @foreach ($allCourses as $crs)
-                    <option value="{{ $crs->title }}">{{ $crs->title }}
+                    <option value="{{ $crs->title }}">
+                      {{ $crs->title }}
                     </option>
                   @endforeach
                 @elseif (isset($courses) && count($courses) > 0)
                   @foreach ($courses as $crs)
-                    <option value="{{ $crs->title }}">{{ $crs->title }}
+                    <option value="{{ $crs->title }}">
+                      {{ $crs->title }}
                     </option>
                   @endforeach
                 @endif
@@ -3034,7 +2380,9 @@
 
               <!-- Dynamic Trainees Dropdown -->
               <select class="form-control" id="traineeSelect"
-                name="trainee_id" onchange="updateLivePreview()" required>
+                name="trainee_id"
+                onchange="updateLivePreview(); updateCompetencySummary()"
+                required>
                 <option value="" disabled selected>Search / Select
                   Trainee...</option>
                 @if (isset($eligibleTrainees) && count($eligibleTrainees) > 0)
@@ -3048,11 +2396,22 @@
                       $traineeCourse =
                           $trainee->course_title ?? 'General Training';
                     @endphp
-                    <option value="{{ $trainee->id }}"
-                      data-name="{{ $traineeName }}"
-                      data-course="{{ $traineeCourse }}">
+
+                    <option value="{{ $trainee->user_id }}"
+                      data-enrollment-id="{{ $trainee->enrollment_id }}"
+                      data-user-id="{{ $trainee->user_id }}"
+                      data-name="{{ trim(($trainee->firstname ?? '') . ' ' . ($trainee->lastname ?? '')) }}"
+                      data-course="{{ $trainee->course_title ?? 'General Training' }}"
+                      data-course-id="{{ $trainee->course_id }}"
+                      data-training-id="{{ $trainee->training_id ?? '' }}"
+                      data-progress="{{ $trainee->progress ?? ($trainee->stored_progress ?? 0) }}"
+                      data-remarks="{{ $trainee->competency_remarks ?? 'Not Yet Competent' }}">
                       {{ $trainee->lastname ?? '' }},
-                      {{ $trainee->firstname ?? '' }} — {{ $traineeCourse }}
+                      {{ $trainee->firstname ?? '' }}
+                      — {{ $trainee->course_title ?? 'General Training' }}
+                      ({{ number_format((float) ($trainee->progress ?? ($trainee->stored_progress ?? 0)), 1) }}%
+                      —
+                      {{ $trainee->competency_remarks ?? 'Not Yet Competent' }})
                     </option>
                   @endforeach
                 @else
@@ -3069,8 +2428,8 @@
                 Details</label>
               <input type="text" id="certIDInput" name="certificate_no"
                 class="form-control" autocomplete="off"
-                placeholder="Control Number (e.g. D-LED-TES-2026-082)"
-                oninput="updateLivePreview()" required>
+                placeholder="Generated automatically by course" readonly
+                required>
               <input type="date" id="issueDateInput" name="issue_date"
                 class="form-control mt-2" value="{{ date('Y-m-d') }}">
             </fieldset>
@@ -3081,13 +2440,25 @@
                 Options</label>
               <select class="form-control" id="docTypeSelect"
                 name="document_type" onchange="updateLivePreview()">
-                <option value="completion">Certificate of Completion</option>
-                <option value="participation">Certificate of Participation
+                <option value="completion" selected>
+                  Certificate of Completion
                 </option>
               </select>
-              <textarea id="certRemarks" name="remarks"
-                class="form-control resize-none mt-2" rows="3"
-                placeholder="Optional Remarks..."></textarea>
+              <!-- Competency is calculated from enrollment progress, not typed manually. -->
+              <div id="competencySummary"
+                class="competency-summary is-empty" role="status"
+                aria-live="polite">
+                <div class="competency-summary-icon"><i
+                    class="fa-solid fa-circle-info"></i></div>
+                <div class="competency-summary-content">
+                  <strong id="competencyStatusText">Select a trainee to check
+                    eligibility</strong>
+                  <span id="competencyProgressText">Required progress:
+                    75%</span>
+                  <small id="competencyHelpText">Competency remarks are
+                    assigned automatically.</small>
+                </div>
+              </div>
             </fieldset>
           </form>
         </div>
@@ -3135,7 +2506,7 @@
 
               <footer class="cert-serial-footer">
                 <span id="pID">CERT. NO.: [ID]</span>
-                <span>TRAINING ID: NCIIDRM-26-032</span>
+                <span id="pTrainingID">TRAINING ID: —</span>
               </footer>
             </div>
           </div>
@@ -3179,23 +2550,32 @@
   <!-- Course Modal -->
   <div id="courseModal" class="modal">
     <div class="modal-content card">
+
+      <!-- Modal Header -->
       <div class="modal-header">
-        <h3><i class="fa-solid fa-pen-to-square"></i> Manage Course</h3>
+        <h3>
+          <i class="fa-solid fa-pen-to-square"></i>
+          Manage Course
+        </h3>
+
         <span class="close-modal" onclick="closeModal()">&times;</span>
       </div>
 
       <form id="courseForm" class="modal-body" method="POST"
         action="">
         @csrf
+
         <input type="hidden" id="editCourseId" name="id">
         <input type="hidden" id="editTrainerId" name="trainer_id">
 
-        <!-- Row 1: Course Code & Course Status -->
+        <!-- Row 1: Course Code and Status -->
         <div class="modal-row">
           <div class="input-field">
             <label for="editCourseCode">Course Code</label>
+
             <div class="input-wrapper">
               <i class="fa-solid fa-barcode"></i>
+
               <input type="text" id="editCourseCode" name="course_code"
                 placeholder="e.g. CRS-001" required>
             </div>
@@ -3203,8 +2583,10 @@
 
           <div class="input-field">
             <label for="editStatus">Course Status</label>
+
             <div class="input-wrapper">
               <i class="fa-solid fa-circle-check"></i>
+
               <select id="editStatus" name="status"
                 class="modal-input-select">
                 <option value="active">Active</option>
@@ -3217,85 +2599,241 @@
         <!-- Row 2: Course Name -->
         <div class="input-field">
           <label for="editCourseName">Course Name</label>
+
           <div class="input-wrapper">
             <i class="fa-solid fa-bookmark"></i>
-            <input type="text" id="editCourseName" name="course_name"
+
+            <input type="text" id="editCourseName" name="title"
               placeholder="e.g. Computer Literacy" required>
           </div>
         </div>
 
-        <!-- Row 3: Duration & Slots -->
+        <!-- Row 3: Duration and Slots -->
         <div class="modal-row">
           <div class="input-field">
-            <label for="editDuration">Duration</label>
+            <label for="editDuration">Course Duration</label>
+
             <div class="input-wrapper input-with-suffix">
               <i class="fa-solid fa-calendar-day"></i>
+
               <input type="number" id="editDuration" name="duration"
-                min="1" max="365" placeholder="e.g. 5"
+                min="1" max="365" placeholder="e.g. 15"
                 required>
+
               <span class="input-suffix">Days</span>
             </div>
           </div>
+
           <div class="input-field">
-            <label for="editSlots">Slots</label>
+            <label for="editSlots">Available Slots</label>
+
             <div class="input-wrapper">
               <i class="fa-solid fa-user-graduate"></i>
+
               <input type="number" id="editSlots" name="slots"
-                placeholder="e.g. 30" required>
+                min="0" placeholder="e.g. 30" required>
             </div>
           </div>
         </div>
 
-        <!-- Row 4: Assign Trainer Section -->
+        <!-- Row 4: Training Date Range -->
+        <div class="modal-row">
+          <div class="input-field">
+            <label for="editStartDate">Training Start Date</label>
+
+            <div class="input-wrapper">
+              <i class="fa-solid fa-calendar-plus"></i>
+
+              <input type="date" id="editStartDate" name="start_date">
+            </div>
+          </div>
+
+          <div class="input-field">
+            <label for="editEndDate">Training End Date</label>
+
+            <div class="input-wrapper">
+              <i class="fa-solid fa-calendar-check"></i>
+
+              <input type="date" id="editEndDate" name="end_date">
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 5: Training Days -->
+        <div class="input-field training-days-field">
+          <label>Training Days</label>
+
+          <small class="training-days-hint">
+            Select the weekdays when the onsite training takes place.
+          </small>
+
+          <div class="training-days-grid">
+            <label class="training-day-option">
+              <input type="checkbox" name="training_days[]"
+                value="Monday">
+              <span>Mon</span>
+            </label>
+
+            <label class="training-day-option">
+              <input type="checkbox" name="training_days[]"
+                value="Tuesday">
+              <span>Tue</span>
+            </label>
+
+            <label class="training-day-option">
+              <input type="checkbox" name="training_days[]"
+                value="Wednesday">
+              <span>Wed</span>
+            </label>
+
+            <label class="training-day-option">
+              <input type="checkbox" name="training_days[]"
+                value="Thursday">
+              <span>Thu</span>
+            </label>
+
+            <label class="training-day-option">
+              <input type="checkbox" name="training_days[]"
+                value="Friday">
+              <span>Fri</span>
+            </label>
+
+            <label class="training-day-option">
+              <input type="checkbox" name="training_days[]"
+                value="Saturday">
+              <span>Sat</span>
+            </label>
+
+            <label class="training-day-option">
+              <input type="checkbox" name="training_days[]"
+                value="Sunday">
+              <span>Sun</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Row 6: Training Time -->
+        <div class="training-time-section">
+
+          <div class="training-time-heading">
+            <div class="training-time-icon">
+              <i class="fa-regular fa-clock"></i>
+            </div>
+
+            <div>
+              <h4>Training Hours</h4>
+
+              <p>
+                Set the daily start and end times for this course.
+              </p>
+            </div>
+          </div>
+
+          <div class="modal-row">
+            <div class="input-field">
+              <label for="editStartTime">Start Time</label>
+
+              <div class="input-wrapper">
+                <i class="fa-solid fa-clock"></i>
+
+                <input type="time" id="editStartTime" name="start_time"
+                  required>
+              </div>
+            </div>
+
+            <div class="input-field">
+              <label for="editEndTime">End Time</label>
+
+              <div class="input-wrapper">
+                <i class="fa-solid fa-clock"></i>
+
+                <input type="time" id="editEndTime" name="end_time"
+                  required>
+              </div>
+            </div>
+          </div>
+
+          <div class="training-time-note">
+            <i class="fa-solid fa-circle-info"></i>
+
+            <span>
+              Example: 8:00 AM to 12:00 PM. These hours apply to
+              the selected training days.
+            </span>
+          </div>
+        </div>
+
+        <!-- Row 7: Assign Trainer -->
         <div class="assign-trainer-section">
           <div class="assign-trainer-label">
-            <i class="fa-solid fa-chalkboard-user"></i> Assign Trainer
+            <i class="fa-solid fa-chalkboard-user"></i>
+            Assign Trainer
           </div>
+
           <div class="assign-trainer-row">
             <select id="trainerDropdown">
               <option value="">— Select a trainer —</option>
+
               @foreach ($trainers as $trainer)
                 <option value="{{ $trainer->id }}">
                   {{ $trainer->firstname }} {{ $trainer->lastname }}
                 </option>
               @endforeach
             </select>
+
             <button type="button" class="btn-assign"
               onclick="assignTrainer()">
-              <i class="fa-solid fa-check"></i> Assign
+              <i class="fa-solid fa-check"></i>
+              Assign
             </button>
           </div>
 
           <div id="currentTrainerBox" style="display:none;"
             class="current-trainer-box">
             <div class="trainer-avatar-sm" id="trainerInitials">JD</div>
+
             <div class="trainer-details">
               <div class="trainer-fullname" id="trainerFullName"></div>
-              <div class="trainer-sub">Currently assigned trainer</div>
+
+              <div class="trainer-sub">
+                Currently assigned trainer
+              </div>
             </div>
+
             <button type="button" class="btn-remove-trainer"
               onclick="removeTrainer()">
-              <i class="fa-solid fa-xmark"></i> Remove
+              <i class="fa-solid fa-xmark"></i>
+              Remove
             </button>
           </div>
 
           <div id="noTrainerBox" class="no-trainer-box">
-            <i class="fa-solid fa-circle-info"></i> No trainer assigned yet.
+            <i class="fa-solid fa-circle-info"></i>
+            No trainer assigned yet.
           </div>
         </div>
 
+        <!-- Modal Footer -->
         <div class="modal-footer">
           <button type="button" class="btn-delete-text"
             onclick="confirmDelete()">
-            <i class="fa-solid fa-trash"></i> Delete Course
+            <i class="fa-solid fa-trash"></i>
+            Delete Course
           </button>
+
           <div class="action-buttons">
             <button type="button" class="btn-cancel"
-              onclick="closeModal()">Cancel</button>
-            <button type="submit" class="btn-save-main">Save
-              Changes</button>
+              onclick="closeModal()">
+              Cancel
+            </button>
+
+            <button type="submit" class="btn-save-main">
+              <i class="fa-solid fa-floppy-disk"></i>
+              Save Changes
+            </button>
           </div>
         </div>
+
       </form>
     </div>
   </div>
@@ -3403,35 +2941,6 @@
 
   <!-- Add Trainer Modal -->
   <div id="addTrainerModal" class="modal">
-    <style>
-      #addTrainerModal .modal-content.card {
-        max-height: 90vh !important;
-        display: flex !important;
-        flex-direction: column !important;
-        margin: 3vh auto !important;
-        overflow: hidden !important;
-        max-width: 600px !important;
-        width: 95% !important;
-      }
-
-      #addTrainerModal .modal-body {
-        overflow-y: auto !important;
-        max-height: calc(90vh - 120px);
-        padding-right: 4px;
-      }
-
-      #addTrainerModal .input-wrapper input,
-      #addTrainerModal .input-wrapper select,
-      #addTrainerModal textarea {
-        border: 1px solid #d1d5db !important;
-        border-radius: 8px !important;
-        background-color: #ffffff !important;
-      }
-
-      #addTrainerModal .input-field {
-        margin-bottom: 12px !important;
-      }
-    </style>
 
     <div class="modal-content card">
       <div class="modal-header">
@@ -3529,52 +3038,6 @@
 
   <!-- User Profile Modal -->
   <div id="userModal" class="modal">
-    <style>
-      #userModal .modal-content.card {
-        max-height: 90vh !important;
-        display: flex !important;
-        flex-direction: column !important;
-        margin: 3vh auto !important;
-        overflow: hidden !important;
-      }
-
-      #userModal .modal-body {
-        overflow-y: auto !important;
-        max-height: calc(90vh - 120px);
-        padding-right: 6px;
-      }
-
-      #userModal .input-wrapper input,
-      #userModal .input-wrapper select,
-      #userModal textarea {
-        border: 1px solid #d1d5db !important;
-        border-radius: 8px !important;
-        background-color: #ffffff !important;
-      }
-
-      #userModal .input-wrapper input[readonly] {
-        background-color: #f9fafb !important;
-        color: #4b5563;
-      }
-
-      #userModal .input-field {
-        margin-bottom: 12px !important;
-      }
-
-      #userModal .modal-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 16px;
-        padding-top: 12px;
-        border-top: 1px solid #e5e7eb;
-      }
-
-      #userModal .action-buttons {
-        display: flex;
-        gap: 8px;
-      }
-    </style>
 
     <div class="modal-content card" style="max-width: 600px; width: 95%;">
       <div class="modal-header">
@@ -4564,42 +4027,161 @@
       document.getElementById('logout-form').submit();
     }
 
-    function openCourseModal(id, code, name, duration, slots, trainerId,
-      trainerName, status = 'active') {
+
+    function openCourseModal(
+      id,
+      code,
+      name,
+      duration,
+      slots,
+      trainerId,
+      trainerName,
+      status = 'active',
+      startDate = '',
+      endDate = '',
+      trainingDays = [],
+      startTime = '',
+      endTime = ''
+    ) {
       currentCourseId = id;
-      document.getElementById('courseModal').style.display = 'block';
-      document.querySelector('#courseModal h3').innerHTML =
-        '<i class="fa-solid fa-pen-to-square"></i> Manage Course';
-      document.querySelector('#courseModal .btn-delete-text').style.display =
-        'inline-block';
-      document.querySelector('.assign-trainer-section').style.display = 'block';
 
-      document.getElementById('editCourseId').value = id;
+      const modal = document.getElementById('courseModal');
+      if (modal) {
+        modal.style.display = 'block';
+      }
+
+      const modalTitle = document.querySelector('#courseModal h3');
+      if (modalTitle) {
+        modalTitle.innerHTML =
+          '<i class="fa-solid fa-pen-to-square"></i> Manage Course';
+      }
+
+      const deleteButton = document.querySelector(
+        '#courseModal .btn-delete-text'
+      );
+
+      if (deleteButton) {
+        deleteButton.style.display = 'inline-block';
+      }
+
+      const trainerSection = document.querySelector(
+        '.assign-trainer-section'
+      );
+
+      if (trainerSection) {
+        trainerSection.style.display = 'block';
+      }
+
+      // Populate the existing course details.
+      document.getElementById('editCourseId').value = id ?? '';
       document.getElementById('editCourseCode').value = code || '';
-      document.getElementById('editCourseName').value = name;
-      document.getElementById('editDuration').value = duration;
-      document.getElementById('editSlots').value = slots;
+      document.getElementById('editCourseName').value = name || '';
+      document.getElementById('editDuration').value = duration || '';
+      document.getElementById('editSlots').value = slots ?? '';
 
+      // Populate course status.
       const statusSelect = document.getElementById('editStatus');
+
       if (statusSelect) {
         statusSelect.value = (status || 'active').toLowerCase();
       }
 
-      document.getElementById('trainerDropdown').value = trainerId || '';
-      trainerId && trainerName ? showCurrentTrainer(trainerName) :
+      // Populate training dates.
+      const startDateInput = document.getElementById('editStartDate');
+      const endDateInput = document.getElementById('editEndDate');
+
+      if (startDateInput) {
+        startDateInput.value = startDate || '';
+      }
+
+      if (endDateInput) {
+        endDateInput.value = endDate || '';
+      }
+
+      // Populate saved training hours.
+      const startTimeInput = document.getElementById('editStartTime');
+      const endTimeInput = document.getElementById('editEndTime');
+
+      if (startTimeInput) {
+        startTimeInput.value = startTime || '';
+      }
+
+      if (endTimeInput) {
+        endTimeInput.value = endTime || '';
+      }
+
+      // Restore the selected training days.
+      if (!Array.isArray(trainingDays)) {
+        trainingDays = [];
+      }
+
+      document.querySelectorAll(
+        '#courseForm input[name="training_days[]"]'
+      ).forEach(checkbox => {
+        checkbox.checked = trainingDays.includes(checkbox.value);
+      });
+
+      // Restore the assigned trainer.
+      const trainerDropdown = document.getElementById('trainerDropdown');
+
+      if (trainerDropdown) {
+        trainerDropdown.value = trainerId || '';
+      }
+
+      if (trainerId && trainerName) {
+        showCurrentTrainer(trainerName);
+      } else {
         showNoTrainer();
+      }
     }
+
 
     function openAddCourseModal() {
       currentCourseId = null;
-      document.getElementById('courseModal').style.display = 'block';
-      document.querySelector('#courseModal h3').innerHTML =
-        '<i class="fa-solid fa-folder-plus"></i> Create New Course';
-      document.getElementById('courseForm').reset();
-      document.querySelector('#courseModal .btn-delete-text').style.display =
-        'none';
 
-      document.querySelector('.assign-trainer-section').style.display = 'none';
+      const modal = document.getElementById('courseModal');
+
+      if (modal) {
+        modal.style.display = 'block';
+      }
+
+      const modalTitle = document.querySelector('#courseModal h3');
+
+      if (modalTitle) {
+        modalTitle.innerHTML =
+          '<i class="fa-solid fa-folder-plus"></i> Create New Course';
+      }
+
+      // Clear previous course details, dates, times, and selected days.
+      const courseForm = document.getElementById('courseForm');
+
+      if (courseForm) {
+        courseForm.reset();
+      }
+
+      // Keep the hidden course ID empty for a new course.
+      const courseIdInput = document.getElementById('editCourseId');
+
+      if (courseIdInput) {
+        courseIdInput.value = '';
+      }
+
+      const deleteButton = document.querySelector(
+        '#courseModal .btn-delete-text'
+      );
+
+      if (deleteButton) {
+        deleteButton.style.display = 'none';
+      }
+
+      // Trainer assignment is available after the course is created.
+      const trainerSection = document.querySelector(
+        '.assign-trainer-section'
+      );
+
+      if (trainerSection) {
+        trainerSection.style.display = 'none';
+      }
 
       showNoTrainer();
     }
@@ -5058,6 +4640,7 @@
         });
     };
 
+
     document.getElementById('courseForm').onsubmit = function(e) {
       e.preventDefault();
 
@@ -5068,10 +4651,61 @@
       const slots = document.getElementById('editSlots').value;
       const status = document.getElementById('editStatus').value;
 
-      const isEdit = courseId !== '' && courseId !== null && courseId !==
-        undefined;
-      const url = isEdit ? `/admin/course/${courseId}` : '/admin/course/store';
+      const startDate = document.getElementById('editStartDate')?.value || '';
+      const endDate = document.getElementById('editEndDate')?.value || '';
+
+      // Get training start and end times.
+      const startTime = document.getElementById('editStartTime')?.value || '';
+      const endTime = document.getElementById('editEndTime')?.value || '';
+
+      // Get selected training days.
+      const trainingDays = Array.from(
+        document.querySelectorAll(
+          '#courseForm input[name="training_days[]"]:checked'
+        )
+      ).map(checkbox => checkbox.value);
+
+      // Validate the date range.
+      if (startDate && endDate && endDate < startDate) {
+        alert('The training end date cannot be before the start date.');
+        return;
+      }
+
+      // Validate the training times.
+      if (!startTime || !endTime) {
+        alert('Please enter both the training start time and end time.');
+        return;
+      }
+
+      if (endTime <= startTime) {
+        alert('The training end time must be later than the start time.');
+        return;
+      }
+
+      // Determine whether this is an edit or a new course.
+      const isEdit = courseId !== '' &&
+        courseId !== null &&
+        courseId !== undefined;
+
+      const url = isEdit ?
+        `/admin/course/${courseId}` :
+        '/admin/course/store';
+
       const method = isEdit ? 'PUT' : 'POST';
+
+      // Prepare the course data.
+      const payload = {
+        course_code: courseCode,
+        title: title,
+        duration: duration,
+        slots: slots,
+        status: status,
+        start_date: startDate || null,
+        end_date: endDate || null,
+        start_time: startTime,
+        end_time: endTime,
+        training_days: trainingDays
+      };
 
       fetch(url, {
           method: method,
@@ -5080,38 +4714,50 @@
             'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
           },
-          body: JSON.stringify({
-            course_code: courseCode,
-            title: title,
-            duration: duration,
-            slots: slots,
-            status: status
-          })
+          body: JSON.stringify(payload)
         })
-        .then(async r => {
-          const text = await r.text();
-          try {
-            return JSON.parse(text);
-          } catch (err) {
-            console.error("Server response was not JSON:", text);
-            throw new Error("Server returned an invalid response.");
+        .then(async response => {
+          const data = await response.json().catch(() => null);
+
+          if (!response.ok) {
+            if (response.status === 422 && data?.errors) {
+              const messages = Object.values(data.errors).flat();
+              throw new Error(messages.join('\n'));
+            }
+
+            throw new Error(
+              data?.message || 'Unable to save the course.'
+            );
           }
+
+          if (!data) {
+            throw new Error('The server returned an invalid response.');
+          }
+
+          return data;
         })
         .then(data => {
           if (data.success) {
-            alert(isEdit ? 'Course updated successfully!' :
-              'Course created successfully!');
+            alert(
+              isEdit ?
+              'Course updated successfully!' :
+              'Course created successfully!'
+            );
+
             closeModal();
-            window.location.href = window.location.pathname + '?view=courses';
+
+            window.location.href =
+              window.location.pathname + '?view=courses';
           } else {
-            alert(data.message || 'An error occurred while updating.');
+            alert(data.message || 'Unable to save the course.');
           }
         })
-        .catch(err => {
-          console.error(err);
-          alert('An error occurred. Please try again.');
+        .catch(error => {
+          console.error('Course save error:', error);
+          alert(error.message || 'An error occurred. Please try again.');
         });
     };
+
 
     document.getElementById('facilityForm').onsubmit = function(e) {
       e.preventDefault();
@@ -5640,55 +5286,154 @@
 
     function openContentModal(courseId, courseTitle) {
       _contentCourseId = courseId;
-      document.getElementById('contentModalCourseTitle').textContent =
-        courseTitle;
-      document.getElementById('contentModal').style.display = 'block';
+
+      const modal = document.getElementById('contentModal');
+      const title = document.getElementById('contentModalCourseTitle');
+
+      if (!modal || !title) {
+        console.error('Course content modal elements are missing.');
+        return;
+      }
+
+      title.textContent = courseTitle || 'Course';
+
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+
       switchContentTab('modules');
       fetchCourseContent(courseId);
     }
 
+
     function closeContentModal() {
-      document.getElementById('contentModal').style.display = 'none';
+      const modal = document.getElementById('contentModal');
+
+      if (modal) {
+        modal.style.display = 'none';
+      }
+
+      // Invalidate pending course-content requests
+      if (typeof contentRequestId !== 'undefined') {
+        contentRequestId++;
+      }
+
+      // Reset selected course and content
       _contentCourseId = null;
       _contentModules = [];
       _contentQuizzes = [];
+
+      // Reset module form
+      const moduleTitle = document.getElementById('newModuleTitle');
+      const moduleDesc = document.getElementById('newModuleDesc');
+      const moduleFile = document.getElementById('newModuleFile');
+
+      if (moduleTitle) moduleTitle.value = '';
+      if (moduleDesc) moduleDesc.value = '';
+      if (moduleFile) moduleFile.value = '';
+
+      // Reset quiz form
+      const quizTitle = document.getElementById('newQuizTitle');
+      const quizModule = document.getElementById('newQuizModule');
+      const quizPass = document.getElementById('newQuizPass');
+      const quizTime = document.getElementById('newQuizTime');
+
+      if (quizTitle) quizTitle.value = '';
+      if (quizModule) quizModule.value = '';
+      if (quizPass) quizPass.value = '75';
+      if (quizTime) quizTime.value = '30';
+
+      // Return to the Modules tab
+      if (
+        document.getElementById('content-tab-modules') &&
+        document.getElementById('content-tab-quizzes')
+      ) {
+        switchContentTab('modules');
+      }
+
+      document.body.style.overflow = '';
     }
 
     function switchContentTab(tab) {
-      const isMod = tab === 'modules';
-      document.getElementById('content-tab-modules').style.display = isMod ?
-        'block' : 'none';
-      document.getElementById('content-tab-quizzes').style.display = isMod ?
-        'none' : 'block';
+      const isModules = tab === 'modules';
 
-      const styleActive =
-        'border-bottom:2px solid #025628; margin-bottom:-2px; color:#025628;';
-      const styleInactive = 'border-bottom:none; color:#aaa;';
-      document.getElementById('tab-btn-modules').style.cssText += isMod ?
-        styleActive : styleInactive;
-      document.getElementById('tab-btn-quizzes').style.cssText += isMod ?
-        styleInactive : styleActive;
+      const modulesTab = document.getElementById('content-tab-modules');
+      const quizzesTab = document.getElementById('content-tab-quizzes');
+      const modulesBtn = document.getElementById('tab-btn-modules');
+      const quizzesBtn = document.getElementById('tab-btn-quizzes');
 
-      if (tab === 'quizzes') populateQuizModuleDropdown();
+      if (!modulesTab || !quizzesTab || !modulesBtn || !quizzesBtn) {
+        console.error('Modules/Quizzes modal elements are missing.');
+        return;
+      }
+
+      modulesTab.style.display = isModules ? 'block' : 'none';
+      quizzesTab.style.display = isModules ? 'none' : 'block';
+
+      [modulesBtn, quizzesBtn].forEach((button, index) => {
+        const active = index === (isModules ? 0 : 1);
+
+        button.style.borderBottom = active ?
+          '2px solid #025628' :
+          '2px solid transparent';
+
+        button.style.marginBottom = '-2px';
+        button.style.color = active ? '#025628' : '#888';
+        button.style.fontWeight = active ? '700' : '600';
+      });
+
+      if (!isModules) {
+        populateQuizModuleDropdown();
+      }
     }
 
-    function fetchCourseContent(courseId) {
-      fetch(`/admin/course/${courseId}/content`, {
-          headers: {
-            'X-CSRF-TOKEN': csrfToken,
-            'Accept': 'application/json'
+    let contentRequestId = 0;
+
+    async function fetchCourseContent(courseId) {
+      const requestId = ++contentRequestId;
+
+      try {
+        const response = await fetch(
+          `/admin/course/${encodeURIComponent(courseId)}/content`, {
+            headers: {
+              'X-CSRF-TOKEN': getCsrfToken(),
+              'Accept': 'application/json'
+            }
           }
-        })
-        .then(r => r.json())
-        .then(data => {
-          _contentModules = data.modules || [];
-          _contentQuizzes = data.quizzes || [];
-          renderModules();
-          renderQuizzes();
-          updateCourseCardCounts();
-        })
-        .catch(() => alert('Failed to load course content.'));
+        );
+
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok || !data ||
+          !Array.isArray(data.modules) ||
+          !Array.isArray(data.quizzes)) {
+          throw new Error(
+            data?.message || `Failed to load content (${response.status}).`
+          );
+        }
+
+        if (
+          requestId !== contentRequestId ||
+          String(courseId) !== String(_contentCourseId)
+        ) {
+          return;
+        }
+
+        _contentModules = data.modules;
+        _contentQuizzes = data.quizzes;
+
+        renderModules();
+        renderQuizzes();
+        populateQuizModuleDropdown();
+        updateCourseCardCounts();
+
+      } catch (error) {
+        if (requestId !== contentRequestId) return;
+
+        console.error('Course content loading error:', error);
+        alert(error.message || 'Failed to load course content.');
+      }
     }
+
 
     function renderModules() {
       const container = document.getElementById('moduleListContainer');
@@ -5729,13 +5474,13 @@
 
       <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
         ${m.file_path ? `
-                                                                                                                                                                                                                                                                                                                                                                                                      <a href="/admin/module/file/${m.id}/${encodeURIComponent(m.title)}.pdf" target="_blank" 
-                                                                                                                                                                                                                                                                                                                                                                                                         style="font-size:11px; padding:6px 12px; border-radius:6px; background:#e8f5e9; color:#025628; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; transition: background 0.2s;">
-                                                                                                                                                                                                                                                                                                                                                                                                        <i class="fa-solid fa-file-pdf"></i> View File
-                                                                                                                                                                                                                                                                                                                                                                                                      </a>
-                                                                                                                                                                                                                                                                                                                                                                                                    ` : `
-                                                                                                                                                                                                                                                                                                                                                                                                      <span style="font-size:11px; color:#9ca3af; padding:4px 8px; font-style:italic;">No PDF</span>
-                                                                                                                                                                                                                                                                                                                                                                                                    `}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <a href="/admin/module/file/${m.id}/${encodeURIComponent(m.title)}.pdf" target="_blank" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 style="font-size:11px; padding:6px 12px; border-radius:6px; background:#e8f5e9; color:#025628; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; transition: background 0.2s;">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <i class="fa-solid fa-file-pdf"></i> View File
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              </a>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ` : `
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <span style="font-size:11px; color:#9ca3af; padding:4px 8px; font-style:italic;">No PDF</span>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `}
 
         <button type="button" onclick="deleteModule(${m.id})"
           style="font-size:11px; padding:6px 12px; border-radius:6px; background:#FCEBEB; color:#A32D2D; border:none; cursor:pointer; font-family:inherit; font-weight:700; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
@@ -5767,9 +5512,7 @@
         container.innerHTML = validQuizzes.map(q => `
       <div style="display:flex; flex-direction:column; gap:0; background:#fff; border:1px solid #eee; border-radius:10px; overflow:hidden;">
         <div style="display:flex; align-items:center; gap:10px; padding:10px 14px;">
-          <div style="width:32px; height:32px; border-radius:8px; background:#fff8e1; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">
-            📝
-          </div>
+          
           <div style="flex:1; min-width:0;">
             <div style="font-size:13px; font-weight:700; color:#1a1a1a;">${escHtml(q.title)}</div>
             <div style="font-size:11px; color:#888;">
@@ -7528,13 +7271,19 @@
     // 1. MODAL CONTROLLERS (OPEN / CLOSE)
     // ==========================================
     function openCertModal(name, course, certId, issueDate = 'April 3, 2026',
-      status = 'Pending', grade = '94%', docType = 'completion') {
+      status = 'Pending', grade = 'N/A', docType = 'completion', trainingId = ''
+    ) {
       const modal = document.getElementById('certificateModal');
       if (!modal) return;
 
       document.getElementById('vName').textContent = name;
       document.getElementById('vCourse').textContent = course.toUpperCase();
       document.getElementById('vID').textContent = `CERT. NO.: ${certId}`;
+
+      const trainingIdEl = document.getElementById('vTrainingID');
+      if (trainingIdEl) {
+        trainingIdEl.textContent = `TRAINING ID: ${trainingId || '—'}`;
+      }
 
       const docTitle = document.getElementById('vDocTitle');
       if (docTitle) {
@@ -7558,7 +7307,13 @@
       if (controlNoEl) controlNoEl.textContent = certId;
 
       const gradeEl = document.getElementById('vGrade');
-      if (gradeEl) gradeEl.textContent = `${grade} — Passed`;
+      if (gradeEl) {
+        const numericGrade = Number.parseFloat(String(grade).replace('%', ''));
+        const performanceStatus = Number.isFinite(numericGrade) ?
+          (numericGrade >= 75 ? 'Competent' : 'Not Yet Competent') :
+          'Grade unavailable';
+        gradeEl.textContent = `${grade} — ${performanceStatus}`;
+      }
 
       modal.style.display = 'flex';
     }
@@ -7603,6 +7358,7 @@
       const pName = document.getElementById('pName');
       const pCourse = document.getElementById('pCourse');
       const pID = document.getElementById('pID');
+      const pTrainingID = document.getElementById('pTrainingID');
 
       // Helper for Standard Title Case (Capitalizes the first letter of each word)
       function toTitleCase(str) {
@@ -7624,9 +7380,15 @@
         // Applies proper Title Case instead of lowercase
         pName.textContent = toTitleCase(rawText);
         pCourse.textContent = course.toUpperCase();
+
+        const trainingId = selectedOption.getAttribute('data-training-id') || '';
+        if (pTrainingID) {
+          pTrainingID.textContent = `TRAINING ID: ${trainingId || '—'}`;
+        }
       } else {
         pName.textContent = '[Recipient Name]';
         pCourse.textContent = '[COURSE NAME]';
+        if (pTrainingID) pTrainingID.textContent = 'TRAINING ID: —';
       }
 
       if (certInput && certInput.value.trim() !== '') {
@@ -7634,6 +7396,45 @@
       } else {
         pID.textContent = 'CERT. NO.: [ID]';
       }
+
+      updateCompetencySummary();
+    }
+
+    // Display competency based on the selected enrollment's progress.
+    // The server independently recalculates this value when saving/releasing.
+    function updateCompetencySummary() {
+      const traineeSelect = document.getElementById('traineeSelect');
+      const card = document.getElementById('competencySummary');
+      const statusText = document.getElementById('competencyStatusText');
+      const progressText = document.getElementById('competencyProgressText');
+      const helpText = document.getElementById('competencyHelpText');
+      if (!traineeSelect || !card || !statusText || !progressText || !helpText)
+        return;
+
+      const option = traineeSelect.options[traineeSelect.selectedIndex];
+      if (!option || !option.value) {
+        card.className = 'competency-summary is-empty';
+        card.querySelector('.competency-summary-icon i').className =
+          'fa-solid fa-circle-info';
+        statusText.textContent = 'Select a trainee to check eligibility';
+        progressText.textContent = 'Required progress: 75%';
+        helpText.textContent = 'Competency remarks are assigned automatically.';
+        return;
+      }
+
+      const progress = Number.parseFloat(option.dataset.progress || '0') || 0;
+      const competent = progress >= 75;
+      card.className =
+        `competency-summary ${competent ? 'is-eligible' : 'is-ineligible'}`;
+      card.querySelector('.competency-summary-icon i').className = competent ?
+        'fa-solid fa-circle-check' :
+        'fa-solid fa-circle-exclamation';
+      statusText.textContent = competent ? 'Eligible — Competent' :
+        'Not yet eligible — Not Yet Competent';
+      progressText.textContent = `Training progress: ${progress}% (75% required)`;
+      helpText.textContent = competent ?
+        'The certificate will be saved as Pending until an admin releases it.' :
+        'This trainee cannot receive a released certificate until progress reaches 75%.';
     }
 
     // ==========================================
@@ -7644,7 +7445,6 @@
       const certInput = document.getElementById('certIDInput');
       const dateInput = document.getElementById('issueDateInput');
       const docTypeSelect = document.getElementById('docTypeSelect');
-      const remarksInput = document.getElementById('certRemarks');
 
       if (!traineeSelect || traineeSelect.selectedIndex <= 0 || !traineeSelect
         .value) {
@@ -7653,23 +7453,30 @@
         return;
       }
 
-      const certNo = certInput?.value.trim();
-      if (!certNo) {
-        alert('Please enter a Control / Certificate Number.');
-        certInput?.focus();
+      const selectedOption = traineeSelect.options[traineeSelect.selectedIndex];
+      const courseId = selectedOption.getAttribute('data-course-id') || null;
+      const selectedProgress = Number.parseFloat(selectedOption.dataset
+        .progress || '0') || 0;
+
+      if (!courseId) {
+        alert(
+          'The selected trainee does not have a course linked. Please select a trainee with a valid course.'
+        );
         return;
       }
 
-      const selectedOption = traineeSelect.options[traineeSelect.selectedIndex];
-      const courseId = selectedOption.getAttribute('data-course-id') || null;
+      if (selectedProgress < 75) {
+        const proceed = confirm(
+          `This trainee has ${selectedProgress}% progress and will be marked Not Yet Competent. The certificate will remain Pending and cannot be released until progress reaches 75%. Continue saving this record?`
+        );
+        if (!proceed) return;
+      }
 
       const payload = {
         trainee_id: traineeSelect.value,
         course_id: courseId,
-        certificate_no: certNo,
         issue_date: dateInput?.value || new Date().toISOString().slice(0, 10),
-        document_type: docTypeSelect ? docTypeSelect.value : 'completion',
-        remarks: remarksInput ? remarksInput.value.trim() : null
+        document_type: 'completion'
       };
 
       const token = document.querySelector('meta[name="csrf-token"]')
@@ -7706,10 +7513,118 @@
       }
     }
 
+    async function releaseCertificate(button, certId) {
+      const remarks = String(button.dataset.remarks || '').trim().toLowerCase();
+      const status = String(button.dataset.status || '').trim().toLowerCase();
+
+      if (remarks !== 'competent') {
+        alert('Only competent trainees can receive a certificate.');
+        return;
+      }
+      if (['released', 'claimed'].includes(status)) {
+        alert('This certificate has already been released or claimed.');
+        return;
+      }
+      if (!certId) {
+        alert('Certificate ID is missing. Refresh the page and try again.');
+        return;
+      }
+      if (!confirm('Release this certificate to the trainee?')) return;
+
+      const token = document.querySelector('meta[name="csrf-token"]')
+        ?.content || '';
+      const originalHTML = button.innerHTML;
+      button.disabled = true;
+      button.setAttribute('aria-busy', 'true');
+      button.style.opacity = '0.6';
+      button.style.cursor = 'wait';
+      button.innerHTML =
+        '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i>';
+
+      try {
+        const response = await fetch(
+          `/admin/certificate/${encodeURIComponent(certId)}/release`, {
+            method: 'PATCH',
+            credentials: 'same-origin',
+            headers: {
+              'X-CSRF-TOKEN': token,
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          const message = response.status === 404 ?
+            'Certificate release route was not found (404). Check routes/web.php.' :
+            response.status === 419 ?
+            'Your session or CSRF token expired. Refresh the page and try again.' :
+            `Unexpected server response (HTTP ${response.status}). Check the Laravel route/controller and logs.`;
+          throw new Error(message);
+        }
+
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.message ||
+            `Unable to release certificate (HTTP ${response.status}).`);
+        }
+
+        button.dataset.status = 'released';
+        button.disabled = true;
+        button.title = 'Certificate already released or claimed';
+        button.style.opacity = '0.45';
+        button.style.cursor = 'not-allowed';
+
+        const row = button.closest('tr');
+        if (row) {
+          row.dataset.certStatus = 'released';
+          const badge = row.querySelector('.badge-toggle');
+          if (badge) {
+            badge.className = 'badge badge-toggle badge-warning';
+            badge.innerHTML =
+              '<i class="fas fa-paper-plane" aria-hidden="true"></i><span class="status-label">Released</span>';
+          }
+        }
+
+        localStorage.setItem('activeAdminTab', 'view-certificate');
+        alert(data.message || 'Certificate released successfully.');
+        window.location.href = window.location.pathname + '?view=certificate';
+      } catch (error) {
+        console.error('Certificate release error:', error);
+        alert(error.message ||
+          'An error occurred while releasing the certificate.');
+        button.disabled = false;
+        button.removeAttribute('aria-busy');
+        button.style.opacity = '';
+        button.style.cursor = '';
+        button.innerHTML = originalHTML;
+      }
+    }
+
     async function toggleCertStatus(badgeEl, certId) {
       const token = document.querySelector('meta[name="csrf-token"]')
         ?.getAttribute('content') || '';
+
+      const currentStatus = badgeEl.querySelector('.status-label')
+        ?.textContent.trim().toLowerCase() || '';
+
+      // Prevent claiming a certificate that has not been released.
+      if (currentStatus === 'pending') {
+        alert(
+          'This certificate must be released by the administrator before it can be marked as claimed.'
+        );
+        return;
+      }
+
+      if (!['released', 'claimed'].includes(currentStatus)) {
+        alert('This certificate cannot be marked as claimed.');
+        return;
+      }
+
       try {
+        badgeEl.style.pointerEvents = 'none';
+        badgeEl.style.opacity = '0.6';
+
         const response = await fetch(
           `/admin/certificate/${certId}/toggle-status`, {
             method: 'PATCH',
@@ -7717,21 +7632,42 @@
               'X-CSRF-TOKEN': token,
               'Accept': 'application/json'
             }
-          });
+          }
+        );
 
         const data = await response.json();
-        if (response.ok && data.success) {
-          const isClaimed = data.new_status.toLowerCase() === 'claimed';
-          badgeEl.className =
-            `badge badge-toggle ${isClaimed ? 'badge-success' : 'badge-warning'}`;
-          badgeEl.innerHTML =
-            `<i class="fas ${isClaimed ? 'fa-check-circle' : 'fa-clock'}"></i> <span class="status-label">${data.new_status}</span>`;
 
-          localStorage.setItem('activeAdminTab', 'view-certificate');
-          window.location.href = window.location.pathname + '?view=certificate';
+        if (!response.ok || !data.success) {
+          alert(data.message || 'Unable to update certificate status.');
+          return;
         }
-      } catch (err) {
-        console.error('Toggle status error:', err);
+
+        const newStatus = data.new_status;
+        const normalizedStatus = newStatus.toLowerCase();
+        const isClaimed = normalizedStatus === 'claimed';
+        const isReleased = normalizedStatus === 'released';
+
+        badgeEl.className = `badge badge-toggle ${
+            isClaimed ? 'badge-success' : 'badge-warning'
+        }`;
+
+        badgeEl.innerHTML = `
+            <i class="fas ${
+                isClaimed ? 'fa-check-circle' :
+                isReleased ? 'fa-paper-plane' : 'fa-clock'
+            }"></i>
+            <span class="status-label">${newStatus}</span>
+        `;
+
+        localStorage.setItem('activeAdminTab', 'view-certificate');
+        window.location.href = window.location.pathname + '?view=certificate';
+
+      } catch (error) {
+        console.error('Toggle certificate status error:', error);
+        alert('An error occurred while updating the certificate status.');
+      } finally {
+        badgeEl.style.pointerEvents = '';
+        badgeEl.style.opacity = '';
       }
     }
 
@@ -7789,10 +7725,10 @@
           .trim() || '';
         const dateText = row.children[3]?.textContent.toLowerCase().trim() ||
           '';
-        const statusText = row.children[4]?.textContent.toLowerCase()
-          .trim() || '';
-        const certIdText = row.getAttribute('data-cert-no')?.toLowerCase()
-          .trim() || '';
+        const statusText = (row.dataset.certStatus || row.children[4]
+          ?.textContent || '').toLowerCase().trim();
+        const certIdText = (row.getAttribute('data-cert-no') || '')
+          .toLowerCase().trim();
 
         const matchSearch = !search || nameText.includes(search) || certIdText
           .includes(search);
@@ -7812,6 +7748,9 @@
       if (noResults) {
         noResults.style.display = matchCount === 0 ? 'block' : 'none';
       }
+
+      // Keep Select All synchronized when search or filters change.
+      updateCertificateSelection();
     }
 
 
@@ -7819,23 +7758,93 @@
     // 4. BATCH CHECKBOX CONTROLS
     // ==========================================
     function toggleMultiSelectMode(checkbox) {
-      const selectCols = document.querySelectorAll('#certTable .select-col');
-      selectCols.forEach(col => col.classList.toggle('hidden', !checkbox
-        .checked));
+      const table = document.getElementById('certTable');
+      const selectAll = document.getElementById('selectAll');
+
+      if (!table) return;
+
+      table.querySelectorAll('.select-col').forEach(col => {
+        col.classList.toggle('hidden', !checkbox.checked);
+      });
 
       if (!checkbox.checked) {
-        const selectAll = document.getElementById('selectAll');
-        if (selectAll) selectAll.checked = false;
-        document.querySelectorAll('#certTable .row-checkbox').forEach(cb => (cb
-          .checked = false));
+        table.querySelectorAll('.row-checkbox').forEach(cb => {
+          cb.checked = false;
+        });
+
+        if (selectAll) {
+          selectAll.checked = false;
+          selectAll.indeterminate = false;
+        }
       }
+
+      updateCertificateSelection();
     }
 
     function toggleSelectAllRows(masterCheckbox) {
-      document.querySelectorAll('#certTable .row-checkbox').forEach(cb => {
-        cb.checked = masterCheckbox.checked;
+      const table = document.getElementById('certTable');
+      const multiSelect = document.getElementById('toggleMultiple');
+
+      if (!table) return;
+
+      // Selecting all automatically enables the checkbox column.
+      if (masterCheckbox.checked && multiSelect && !multiSelect.checked) {
+        multiSelect.checked = true;
+        toggleMultiSelectMode(multiSelect);
+      }
+
+      // Select/deselect only rows currently visible after search and filters.
+      table.querySelectorAll('#certTableBody tr').forEach(row => {
+        if (row.id === 'emptyCertRow' || row.style.display === 'none') return;
+
+        const cb = row.querySelector('.row-checkbox');
+        if (cb) cb.checked = masterCheckbox.checked;
       });
+
+      updateCertificateSelection();
     }
+
+    function updateCertificateSelection() {
+      const table = document.getElementById('certTable');
+      const selectAll = document.getElementById('selectAll');
+      const counter = document.getElementById('selectedCertCount');
+
+      if (!table) return;
+
+      const allCheckboxes = [
+        ...table.querySelectorAll('#certTableBody .row-checkbox')
+      ];
+
+      const selected = allCheckboxes.filter(cb => cb.checked);
+      const visibleCheckboxes = allCheckboxes.filter(cb => {
+        const row = cb.closest('tr');
+        return row && row.style.display !== 'none' && row.id !==
+          'emptyCertRow';
+      });
+      const visibleSelected = visibleCheckboxes.filter(cb => cb.checked);
+
+      if (counter) {
+        counter.textContent = `${selected.length} selected`;
+      }
+
+      // Select All reflects only the currently visible rows.
+      if (selectAll) {
+        selectAll.checked =
+          visibleCheckboxes.length > 0 &&
+          visibleSelected.length === visibleCheckboxes.length;
+
+        selectAll.indeterminate =
+          visibleSelected.length > 0 &&
+          visibleSelected.length < visibleCheckboxes.length;
+      }
+    }
+
+    // Keep the count and Select All state synchronized with individual choices.
+    document.addEventListener('change', function(event) {
+      if (event.target.matches('#certTable .row-checkbox')) {
+        updateCertificateSelection();
+      }
+    });
 
     function exportCertificates() {
       const selectedRows = document.querySelectorAll(

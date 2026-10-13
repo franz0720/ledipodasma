@@ -12,11 +12,24 @@ class QuizResult extends Model
     protected $fillable = [
         'quiz_id',
         'user_id',
+        'attempt_number',
+        'attempts_used',
         'score',
         'total_items',
         'percentage',
         'status',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'attempt_number' => 'integer',
+            'attempts_used' => 'integer',
+            'score' => 'integer',
+            'total_items' => 'integer',
+            'percentage' => 'integer',
+        ];
+    }
 
     public function quiz()
     {

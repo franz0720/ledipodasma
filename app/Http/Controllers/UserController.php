@@ -134,121 +134,497 @@ class UserController extends Controller
         ]);
     }
 
-        public function homepage()
-        {
-            $userId = Auth::id();
-        
-            // ── Enrollments ───────────────────────────────────────────────────────────
-            $enrollments = \App\Models\Enrollment_tbl::with('course')
-                            ->where('user_id', $userId)
-                            ->get();
-        
-            $selectedId = request('course_id');
-            $enrollment = $selectedId
-                ? $enrollments->firstWhere('course_id', $selectedId)
-                : $enrollments->where('status', 'active')->first() ?? $enrollments->first();
-        
-            // ── Deadlines ─────────────────────────────────────────────────────────────
-            $courseIds = $enrollments->pluck('course_id');
-            $upcomingDeadlines = \App\Models\Deadline_tbl::whereIn('course_id', $courseIds)
-                ->where('due_date', '>=', now())
-                ->where('due_date', '<=', now()->addDays(30))
-                ->count();
-        
-            // ── Announcements ─────────────────────────────────────────────────────────
-            $announcements = \App\Models\Announcement::active()->latest()->take(5)->get();
-        
-            // ── Modules / Quizzes / Results ───────────────────────────────────────────
-            if ($enrollment) {
-                $modules = \App\Models\Module::where('course_id', $enrollment->course_id)
-                            ->active()
-                            ->ordered()
-                            ->get();
+       
 
-                $unitNumbers = $modules->pluck('unit_number')->unique()->sort()->values();
+public function homepage()
+{
+    $userId = Auth::id();
 
-                $completedModuleIds = \App\Models\ModuleCompletion::where('user_id', $userId)
-                                        ->whereIn('module_id', $modules->pluck('id'))
-                                        ->pluck('module_id')
-                                        ->toArray();
+    // ── Enrollments ──────────────────────────────────────────────
+    $enrollments = \App\Models\Enrollment_tbl::with('course')
+        ->where('user_id', $userId)
+        ->get();
 
-                $quizzes = \App\Models\Quiz::where('course_id', $enrollment->course_id)->get();
+    $selectedId = request('course_id');
 
-                $postTest = $quizzes->firstWhere('quiz_type', 'post_test');
+    $enrollment = $selectedId
+        ? $enrollments->firstWhere('course_id', $selectedId)
+        : (
+            $enrollments->where('status', 'active')->first()
+            ?? $enrollments->first()
+        );
 
-                $quizResults = \App\Models\QuizResult::where('user_id', $userId)
-                                ->whereIn('quiz_id', $quizzes->pluck('id'))
-                                ->get();
-            } else {
-                $modules             = collect();
-                $unitNumbers         = collect();
-                $completedModuleIds  = [];
-                $quizzes             = collect();
-                $quizResults         = collect();
-            }
-        
-            // ── Personal Analytics ────────────────────────────────────────────────────
-        
-            // 1. Stat cards
-            $totalEnrolled  = $enrollments->count();
-            $totalCompleted = $enrollments->where('status', 'completed')->count();
-            $avgProgress    = $totalEnrolled > 0 ? round($enrollments->avg('progress')) : 0;
-        
-            // Total quizzes taken across all enrolled courses
-            $allCourseIds   = $enrollments->pluck('course_id');
-            $allQuizIds     = \App\Models\Quiz::whereIn('course_id', $allCourseIds)->pluck('id');
-            $quizzesTaken   = \App\Models\QuizResult::where('user_id', $userId)
-                                ->whereIn('quiz_id', $allQuizIds)
-                                ->count();
-            $quizzesPassed  = \App\Models\QuizResult::where('user_id', $userId)
-                                ->whereIn('quiz_id', $allQuizIds)
-                                ->where('status', 'passed')
-                                ->count();
-        
-            // 2. Weekly progress — real daily progress percentages this week (Mon–Sun)
-            $dailyProgressThisWeek = \App\Models\DailyProgress::where('user_id', $userId)
-                ->whereBetween('date', [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()])
-                ->pluck('progress_percent', 'date');
+    // ── Deadlines ────────────────────────────────────────────────
+    $courseIds = $enrollments->pluck('course_id');
 
-            $weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            $weeklyData = [];
-            foreach (range(0, 6) as $i) {
-                $date = now()->startOfWeek()->addDays($i)->toDateString();
-                $weeklyData[] = $dailyProgressThisWeek[$date] ?? 0;
-            }
-        
-            // 3. Donut chart — completion breakdown across all enrollments
-            $notStarted  = $enrollments->where('progress', 0)->count();
-            $inProgress  = $enrollments->where('progress', '>', 0)->where('status', '!=', 'completed')->count();
-            $donutData   = [$totalCompleted, $inProgress, $notStarted];
-        
-            // 4. Recent activity — last 5 quiz results with quiz title
-            $recentActivity = \App\Models\QuizResult::with('quiz')
-                                ->where('user_id', $userId)
-                                ->latest()
-                                ->take(5)
-                                ->get();
-        
-            return view('student.homepage', compact(
-                'enrollments',
-                'enrollment',
-                'upcomingDeadlines',
-                'announcements',
-                'modules',
-                'quizzes',
-                'quizResults',
-                // analytics
-                'totalEnrolled',
-                'totalCompleted',
-                'avgProgress',
-                'quizzesTaken',
-                'quizzesPassed',
-                'weekDays',
-                'weeklyData',
-                'donutData',
-                'recentActivity'
-            ));
+    $upcomingDeadlines = \App\Models\Deadline_tbl::whereIn(
+        'course_id',
+        $courseIds
+    )
+        ->where('due_date', '>=', now())
+        ->where('due_date', '<=', now()->addDays(30))
+        ->count();
+
+    // ── Announcements ────────────────────────────────────────────
+    $announcements = \App\Models\Announcement::active()
+        ->latest()
+        ->take(5)
+        ->get();
+
+    // ── Modules / Quizzes / Results ──────────────────────────────
+    if ($enrollment) {
+        $modules = \App\Models\Module::where(
+            'course_id',
+            $enrollment->course_id
+        )
+            ->active()
+            ->ordered()
+            ->get();
+
+        $unitNumbers = $modules->pluck('unit_number')
+            ->unique()
+            ->sort()
+            ->values();
+
+        $completedModuleIds = \App\Models\ModuleCompletion::where(
+            'user_id',
+            $userId
+        )
+            ->whereIn('module_id', $modules->pluck('id'))
+            ->pluck('module_id')
+            ->toArray();
+
+        $quizzes = \App\Models\Quiz::where(
+            'course_id',
+            $enrollment->course_id
+        )->get();
+
+        $postTest = $quizzes->firstWhere('quiz_type', 'post_test');
+
+        $quizResults = \App\Models\QuizResult::where('user_id', $userId)
+            ->whereIn('quiz_id', $quizzes->pluck('id'))
+            ->get();
+    } else {
+        $modules = collect();
+        $unitNumbers = collect();
+        $completedModuleIds = [];
+        $quizzes = collect();
+        $postTest = null;
+        $quizResults = collect();
+    }
+
+    // ── Personal Analytics ───────────────────────────────────────
+    $totalEnrolled = $enrollments->count();
+
+    $totalCompleted = $enrollments
+        ->where('status', 'completed')
+        ->count();
+
+    // ── Calculate Progress for Each Course ────────────────────────
+    foreach ($enrollments as $courseEnrollment) {
+        $courseQuizIds = \App\Models\Quiz::where(
+            'course_id',
+            $courseEnrollment->course_id
+        )->pluck('id');
+
+        $courseQuizResults = \App\Models\QuizResult::where(
+            'user_id',
+            $userId
+        )
+            ->whereIn('quiz_id', $courseQuizIds)
+            ->get();
+
+        $quizPercentages = $courseQuizResults
+            ->map(function ($result) {
+                if (is_numeric($result->percentage ?? null)) {
+                    return max(
+                        0,
+                        min(100, (float) $result->percentage)
+                    );
+                }
+
+                $score = $result->score ?? null;
+                $totalItems = $result->total_items ?? null;
+
+                if (
+                    is_numeric($score) &&
+                    is_numeric($totalItems) &&
+                    (float) $totalItems > 0
+                ) {
+                    return max(
+                        0,
+                        min(
+                            100,
+                            ((float) $score / (float) $totalItems) * 100
+                        )
+                    );
+                }
+
+                return null;
+            })
+            ->filter(fn ($percentage) => $percentage !== null)
+            ->values();
+
+        $quizAverage = $quizPercentages->isNotEmpty()
+            ? $quizPercentages->avg()
+            : null;
+
+        $onsiteGradesForCourse = DB::table('onsite_grades')
+            ->join(
+                'onsite_activities',
+                'onsite_grades.onsite_activity_id',
+                '=',
+                'onsite_activities.id'
+            )
+            ->where('onsite_grades.user_id', $userId)
+            ->where(
+                'onsite_grades.enrollment_id',
+                $courseEnrollment->id
+            )
+            ->where(
+                'onsite_activities.course_id',
+                $courseEnrollment->course_id
+            )
+            ->select(
+                'onsite_grades.score',
+                'onsite_activities.max_score'
+            )
+            ->get();
+
+        $onsitePercentages = $onsiteGradesForCourse
+            ->map(function ($grade) {
+                if (
+                    !is_numeric($grade->score) ||
+                    !is_numeric($grade->max_score) ||
+                    (float) $grade->max_score <= 0
+                ) {
+                    return null;
+                }
+
+                return max(
+                    0,
+                    min(
+                        100,
+                        ((float) $grade->score / (float) $grade->max_score) * 100
+                    )
+                );
+            })
+            ->filter(fn ($percentage) => $percentage !== null)
+            ->values();
+
+        $onsiteAverage = $onsitePercentages->isNotEmpty()
+            ? $onsitePercentages->avg()
+            : null;
+
+        $availableAverages = collect([
+            $quizAverage,
+            $onsiteAverage,
+        ])->filter(fn ($average) => $average !== null);
+
+        $courseProgress = $availableAverages->isNotEmpty()
+            ? (int) round($availableAverages->avg())
+            : 0;
+
+        $courseEnrollment->calculated_progress = max(
+            0,
+            min(100, $courseProgress)
+        );
+
+        $courseEnrollment->quiz_average = $quizAverage;
+        $courseEnrollment->onsite_average = $onsiteAverage;
+    }
+
+    $avgProgress = $enrollments->isNotEmpty()
+        ? (int) round($enrollments->avg('calculated_progress'))
+        : 0;
+
+    // ── Quiz Totals ───────────────────────────────────────────────
+    $allCourseIds = $enrollments->pluck('course_id');
+
+    $allQuizIds = \App\Models\Quiz::whereIn(
+        'course_id',
+        $allCourseIds
+    )->pluck('id');
+
+    $quizzesTaken = \App\Models\QuizResult::where('user_id', $userId)
+        ->whereIn('quiz_id', $allQuizIds)
+        ->count();
+
+    $quizzesPassed = \App\Models\QuizResult::where('user_id', $userId)
+        ->whereIn('quiz_id', $allQuizIds)
+        ->where('status', 'passed')
+        ->count();
+
+    // ── Weekly Progress ───────────────────────────────────────────
+    $dailyProgressThisWeek = \App\Models\DailyProgress::where(
+        'user_id',
+        $userId
+    )
+        ->whereBetween('date', [
+            now()->startOfWeek()->toDateString(),
+            now()->endOfWeek()->toDateString(),
+        ])
+        ->pluck('progress_percent', 'date');
+
+    $weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    $weeklyData = [];
+
+    for ($i = 0; $i < 7; $i++) {
+        $date = now()->startOfWeek()->addDays($i)->toDateString();
+        $weeklyData[] = $dailyProgressThisWeek[$date] ?? 0;
+    }
+
+    // ── Course Progress Distribution ──────────────────────────────
+    $notStarted = $enrollments
+        ->filter(fn ($item) => (int) $item->calculated_progress === 0)
+        ->count();
+
+    $inProgress = $enrollments
+        ->filter(fn ($item) =>
+            $item->calculated_progress > 0 &&
+            $item->status !== 'completed'
+        )
+        ->count();
+
+    $donutData = [
+        $totalCompleted,
+        $inProgress,
+        $notStarted,
+    ];
+
+    // ── Recent Activity ───────────────────────────────────────────
+    $recentActivity = \App\Models\QuizResult::with('quiz')
+        ->where('user_id', $userId)
+        ->latest()
+        ->take(5)
+        ->get();
+
+    // ── Onsite Activity Grades ────────────────────────────────────
+    $studentEnrollmentIds = $enrollments->pluck('id')->all();
+
+    $onsiteGrades = DB::table('onsite_grades')
+        ->join(
+            'onsite_activities',
+            'onsite_grades.onsite_activity_id',
+            '=',
+            'onsite_activities.id'
+        )
+        ->where('onsite_grades.user_id', $userId)
+        ->whereIn(
+            'onsite_grades.enrollment_id',
+            $studentEnrollmentIds
+        )
+        ->select(
+            'onsite_grades.id',
+            'onsite_grades.user_id',
+            'onsite_grades.enrollment_id',
+            'onsite_grades.score',
+            'onsite_grades.remarks',
+            'onsite_grades.created_at',
+            'onsite_grades.updated_at',
+            'onsite_activities.title as activity_title',
+            'onsite_activities.description as activity_description',
+            'onsite_activities.activity_date',
+            'onsite_activities.max_score',
+            'onsite_activities.course_id'
+        )
+        ->orderByDesc('onsite_activities.activity_date')
+        ->orderByDesc('onsite_grades.updated_at')
+        ->get();
+
+    // ── 1. Quiz Performance Trend ─────────────────────────────────
+    $trendResults = $quizResults
+        ->sortBy('created_at')
+        ->values();
+
+    $quizTrendLabels = $trendResults->map(function ($result) {
+        return $result->created_at
+            ? $result->created_at->format('M d')
+            : 'Quiz';
+    })->all();
+
+    $quizTrendScores = $trendResults->map(function ($result) {
+        if (is_numeric($result->percentage ?? null)) {
+            return round(
+                max(0, min(100, (float) $result->percentage)),
+                2
+            );
         }
+
+        $score = $result->score ?? null;
+        $totalItems = $result->total_items ?? null;
+
+        if (
+            is_numeric($score) &&
+            is_numeric($totalItems) &&
+            (float) $totalItems > 0
+        ) {
+            return round(
+                max(
+                    0,
+                    min(
+                        100,
+                        ((float) $score / (float) $totalItems) * 100
+                    )
+                ),
+                2
+            );
+        }
+
+        return null;
+    })->all();
+
+    // ── 2. Learning Progress by Unit ──────────────────────────────
+    $unitProgressLabels = [];
+    $unitProgressValues = [];
+
+    foreach (
+        $modules->groupBy('unit_number')->sortKeys()
+        as $unit => $unitModules
+    ) {
+        $unitProgressLabels[] = 'Unit ' . $unit;
+
+        $completedCount = $unitModules
+            ->filter(fn ($module) => in_array(
+                $module->id,
+                $completedModuleIds
+            ))
+            ->count();
+
+        $unitProgressValues[] = $unitModules->isNotEmpty()
+            ? round(
+                ($completedCount / $unitModules->count()) * 100,
+                2
+            )
+            : 0;
+    }
+
+    // ── 3. Quiz vs. Onsite Performance ────────────────────────────
+    $validQuizScores = collect($quizTrendScores)
+        ->filter(fn ($score) => $score !== null)
+        ->values();
+
+    // Compare onsite scores from the same selected course.
+    $selectedOnsiteGrades = $onsiteGrades->filter(function ($grade) use ($enrollment) {
+        return $enrollment &&
+            (int) $grade->course_id === (int) $enrollment->course_id &&
+            is_numeric($grade->score) &&
+            is_numeric($grade->max_score) &&
+            (float) $grade->max_score > 0;
+    });
+
+    $validOnsiteScores = $selectedOnsiteGrades
+        ->map(fn ($grade) => max(
+            0,
+            min(
+                100,
+                ((float) $grade->score / (float) $grade->max_score) * 100
+            )
+        ))
+        ->values();
+
+    $comparisonLabels = ['Overall'];
+
+    $quizAverages = [
+        $validQuizScores->isNotEmpty()
+            ? round($validQuizScores->avg(), 2)
+            : null,
+    ];
+
+    $onsiteAverages = [
+        $validOnsiteScores->isNotEmpty()
+            ? round($validOnsiteScores->avg(), 2)
+            : null,
+    ];
+
+    // ── 4. Assessment Results Summary ─────────────────────────────
+    $assessmentResults = \App\Models\QuizResult::where('user_id', $userId)
+        ->whereIn('quiz_id', $allQuizIds)
+        ->get();
+
+    $assessmentPassed = $assessmentResults
+        ->filter(fn ($result) =>
+            strtolower((string) $result->status) === 'passed'
+        )
+        ->count();
+
+    $assessmentFailed = $assessmentResults
+        ->filter(fn ($result) =>
+            strtolower((string) $result->status) === 'failed'
+        )
+        ->count();
+
+    $assessmentLabels = ['Passed', 'Failed'];
+
+    // ── Student Certificates ──────────────────────────────────────
+    $studentCertificates = \App\Models\Certificate::with('course')
+        ->where('user_id', $userId)
+        ->latest()
+        ->get()
+        ->map(function ($certificate) {
+            $certificateEnrollment = DB::table('enrollment_tbls')
+                ->where('user_id', $certificate->user_id)
+                ->where('course_id', $certificate->course_id)
+                ->first();
+
+            $progress = (float) ($certificateEnrollment->progress ?? 0);
+
+            $isCompetent = $progress >= 75;
+
+            $isReleased = in_array(
+                $certificate->status,
+                ['Released', 'Claimed'],
+                true
+            );
+
+            $certificate->progress_display = round($progress);
+
+            $certificate->competency_display = $isCompetent
+                ? 'Competent'
+                : 'Not Yet Competent';
+
+            $certificate->is_downloadable = $isCompetent && $isReleased;
+
+            return $certificate;
+        });
+
+    // ── Return Student Homepage ───────────────────────────────────
+    return view('student.homepage', compact(
+        'enrollments',
+        'enrollment',
+        'upcomingDeadlines',
+        'announcements',
+        'modules',
+        'unitNumbers',
+        'completedModuleIds',
+        'quizzes',
+        'postTest',
+        'quizResults',
+        'totalEnrolled',
+        'totalCompleted',
+        'avgProgress',
+        'quizzesTaken',
+        'quizzesPassed',
+        'weekDays',
+        'weeklyData',
+        'donutData',
+        'recentActivity',
+        'onsiteGrades',
+        'studentCertificates',
+
+        // Learning Analytics chart variables
+        'quizTrendLabels',
+        'quizTrendScores',
+        'unitProgressLabels',
+        'unitProgressValues',
+        'comparisonLabels',
+        'quizAverages',
+        'onsiteAverages',
+        'assessmentLabels',
+        'assessmentPassed',
+        'assessmentFailed'
+    ));
+}
 
 public function landingPage()
 {
@@ -369,47 +745,239 @@ public function destroyCarouselSlide($id)
     ]);
 }
 
+
 public function admin1(Request $request)
 {
     $currentView = $request->input('view', 'overview');
 
-    // Eager-load relationships & counts, then paginate 9 items per page
+    // Courses with relationships and counts
     $courses = \App\Models\Course_tbl::with(['facility', 'trainer'])
         ->withCount(['enrollments', 'modules', 'quizzes'])
         ->paginate(9);
 
-    // All courses list (used for multi-select dropdowns in modals)
-    $allCourses = \App\Models\Course_tbl::all(); 
+    // All courses for dropdowns
+    $allCourses = \App\Models\Course_tbl::all();
 
-    $trainers      = \App\Models\User_tbl::where('role', 'trainer')->get();
-    $trainees      = \App\Models\User_tbl::where('role', 'student')->paginate(10, ['*'], 'trainee_page');
-    $trainersList  = \App\Models\User_tbl::where('role', 'trainer')->paginate(10, ['*'], 'trainer_page');
-    $announcements = \App\Models\Announcement::latest()->paginate(10, ['*'], 'announcement_page');
-    $registrations = \App\Models\Registration::latest()->paginate(10, ['*'], 'reg_page');
-    $facilities    = \App\Models\Facility::with('courses')->get();
+    $trainers = \App\Models\User_tbl::where('role', 'trainer')->get();
 
-    // ── 1. FETCH CERTIFICATES FOR TABLE & STATS ──────────────────────────────
-    $certificates  = \App\Models\Certificate::with(['user', 'course'])->latest()->get();
+    $trainees = \App\Models\User_tbl::where('role', 'student')
+        ->paginate(10, ['*'], 'trainee_page');
 
-    // ── 2. FETCH ENROLLED TRAINEES FOR THE ISSUE MODAL DROPDOWN ─────────────
-       $eligibleTrainees = \DB::table('enrollment_tbls')
-        ->join('user_tbls', 'user_tbls.id', '=', 'enrollment_tbls.user_id')
-        ->join('course_tbls', 'course_tbls.id', '=', 'enrollment_tbls.course_id')
-        ->where('enrollment_tbls.status', 'completed')
-        ->select(
+    $trainersList = \App\Models\User_tbl::where('role', 'trainer')
+        ->paginate(10, ['*'], 'trainer_page');
+
+    $announcements = \App\Models\Announcement::latest()
+        ->paginate(10, ['*'], 'announcement_page');
+
+    $registrations = \App\Models\Registration::latest()
+        ->paginate(10, ['*'], 'reg_page');
+
+    $facilities = \App\Models\Facility::with('courses')->get();
+
+    // Fetch all certificate records
+    $certificates = \App\Models\Certificate::with(['user', 'course'])
+        ->latest()
+        ->get();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Enrolled Trainees: Match Student Progress Calculation
+    |--------------------------------------------------------------------------
+    | Quiz average = average of quiz percentages.
+    | Onsite average = average of onsite score percentages.
+    | Overall progress = average of the available category averages.
+    | If neither category has a score, progress is 0%.
+    */
+
+    $eligibleTrainees = \DB::table('enrollment_tbls')
+        ->join(
+            'user_tbls',
             'user_tbls.id',
+            '=',
+            'enrollment_tbls.user_id'
+        )
+        ->join(
+            'course_tbls',
+            'course_tbls.id',
+            '=',
+            'enrollment_tbls.course_id'
+        )
+        ->select(
+            'enrollment_tbls.id as enrollment_id',
+            'enrollment_tbls.user_id',
             'user_tbls.firstname',
             'user_tbls.lastname',
             'course_tbls.id as course_id',
-            'course_tbls.title as course_title'
+            'course_tbls.title as course_title',
+            'enrollment_tbls.progress as stored_progress',
+            'enrollment_tbls.status as enrollment_status'
         )
         ->orderBy('user_tbls.lastname', 'asc')
-        ->get();
+        ->get()
+        ->map(function ($trainee) {
 
-    // --- CHART DATA AGGREGATIONS ---
+            /*
+            |--------------------------------------------------------------------------
+            | 1. Quiz Average
+            |--------------------------------------------------------------------------
+            */
 
-    // 1. Courses grouped by Sector
-    $sectorData = \App\Models\Course_tbl::select('sector', \DB::raw('COUNT(*) as total'))
+            $quizIds = \App\Models\Quiz::where(
+                'course_id',
+                $trainee->course_id
+            )->pluck('id');
+
+            $quizResults = \App\Models\QuizResult::where(
+                'user_id',
+                $trainee->user_id
+            )
+                ->whereIn('quiz_id', $quizIds)
+                ->get();
+
+            $quizPercentages = $quizResults
+                ->map(function ($result) {
+
+                    // Use the saved quiz percentage when available.
+                    $percentage = data_get($result, 'percentage');
+
+                    if (is_numeric($percentage)) {
+                        return max(
+                            0,
+                            min(100, (float) $percentage)
+                        );
+                    }
+
+                    // Otherwise calculate from the saved score.
+                    $score = data_get($result, 'score');
+                    $totalItems = data_get($result, 'total_items');
+
+                    if (
+                        is_numeric($score) &&
+                        is_numeric($totalItems) &&
+                        (float) $totalItems > 0
+                    ) {
+                        return max(
+                            0,
+                            min(
+                                100,
+                                ((float) $score / (float) $totalItems) * 100
+                            )
+                        );
+                    }
+
+                    return null;
+                })
+                ->filter(function ($percentage) {
+                    return $percentage !== null;
+                })
+                ->values();
+
+            $quizAverage = $quizPercentages->isNotEmpty()
+                ? $quizPercentages->avg()
+                : null;
+
+            /*
+            |--------------------------------------------------------------------------
+            | 2. Onsite Activity Average
+            |--------------------------------------------------------------------------
+            | Only grades for this student, enrollment, and course are included.
+            */
+
+            $onsiteGrades = \DB::table('onsite_grades')
+                ->join(
+                    'onsite_activities',
+                    'onsite_grades.onsite_activity_id',
+                    '=',
+                    'onsite_activities.id'
+                )
+                ->where(
+                    'onsite_grades.user_id',
+                    $trainee->user_id
+                )
+                ->where(
+                    'onsite_grades.enrollment_id',
+                    $trainee->enrollment_id
+                )
+                ->where(
+                    'onsite_activities.course_id',
+                    $trainee->course_id
+                )
+                ->select(
+                    'onsite_grades.score',
+                    'onsite_activities.max_score'
+                )
+                ->get();
+
+            $onsitePercentages = $onsiteGrades
+                ->map(function ($grade) {
+
+                    $score = $grade->score;
+                    $maxScore = $grade->max_score;
+
+                    if (
+                        !is_numeric($score) ||
+                        !is_numeric($maxScore) ||
+                        (float) $maxScore <= 0
+                    ) {
+                        return null;
+                    }
+
+                    return max(
+                        0,
+                        min(
+                            100,
+                            ((float) $score / (float) $maxScore) * 100
+                        )
+                    );
+                })
+                ->filter(function ($percentage) {
+                    return $percentage !== null;
+                })
+                ->values();
+
+            $onsiteAverage = $onsitePercentages->isNotEmpty()
+                ? $onsitePercentages->avg()
+                : null;
+
+            /*
+            |--------------------------------------------------------------------------
+            | 3. Overall Progress
+            |--------------------------------------------------------------------------
+            */
+
+            $availableAverages = collect([
+                $quizAverage,
+                $onsiteAverage,
+            ])->filter(function ($average) {
+                return $average !== null;
+            });
+
+            $overallProgress = $availableAverages->isNotEmpty()
+                ? (int) round($availableAverages->avg())
+                : 0;
+
+            $overallProgress = max(
+                0,
+                min(100, $overallProgress)
+            );
+
+            // Provide calculated progress to the admin Blade view.
+            $trainee->progress = $overallProgress;
+            $trainee->quiz_average = $quizAverage;
+            $trainee->onsite_average = $onsiteAverage;
+
+            $trainee->competency_remarks = $overallProgress >= 75
+                ? 'Competent'
+                : 'Not Yet Competent';
+
+            return $trainee;
+        });
+
+    // Chart 1: Courses grouped by sector
+    $sectorData = \App\Models\Course_tbl::select(
+        'sector',
+        \DB::raw('COUNT(*) as total')
+    )
         ->whereNotNull('sector')
         ->groupBy('sector')
         ->pluck('total', 'sector')
@@ -418,47 +986,52 @@ public function admin1(Request $request)
     $sectorLabels = array_keys($sectorData);
     $sectorCounts = array_values($sectorData);
 
-    // 2. Capacity: Slots per Course Title
+    // Chart 2: Course capacity
     $slotData = \App\Models\Course_tbl::pluck('slots', 'title')->toArray();
 
     $courseTitles = array_keys($slotData);
-    $courseSlots  = array_values($slotData);
+    $courseSlots = array_values($slotData);
 
-    // 3. Trainees Enrolled Per Course (For Overview Bar Graph)
-    $coursesWithTrainees = \App\Models\Course_tbl::withCount('enrollments')->get();
+    // Chart 3: Trainees enrolled per course
+    $coursesWithTrainees = \App\Models\Course_tbl::withCount('enrollments')
+        ->get();
+
     $traineeCourseLabels = $coursesWithTrainees->pluck('title')->toArray();
     $traineeCourseCounts = $coursesWithTrainees->pluck('enrollments_count')->toArray();
 
-    // 4. Monthly Enrollment Trends (For Overview Line Chart - Last 4 Months)
-    $months = collect(range(3, 0))->map(function ($i) {
-        return now()->subMonths($i)->format('M');
-    })->toArray();
+    // Chart 4: Monthly enrollment trends for the last four months
+    $months = collect(range(3, 0))
+        ->map(fn ($i) => now()->subMonths($i)->format('M'))
+        ->toArray();
 
-    $monthNumbers = collect(range(3, 0))->map(function ($i) {
-        return (int) now()->subMonths($i)->format('m');
-    })->toArray();
+    $monthNumbers = collect(range(3, 0))
+        ->map(fn ($i) => (int) now()->subMonths($i)->format('m'))
+        ->toArray();
 
     $colors = ['#c19a6b', '#6b9e7c', '#f4d03f', '#004d26', '#854f0b'];
+
     $topCourses = \App\Models\Course_tbl::take(5)->get();
     $overviewCourseDatasets = [];
 
     foreach ($topCourses as $index => $course) {
         $monthlyCounts = [];
-        foreach ($monthNumbers as $m) {
+
+        foreach ($monthNumbers as $monthNumber) {
             $count = \DB::table('enrollment_tbls')
                 ->where('course_id', $course->id)
-                ->whereMonth('created_at', $m)
-                ->whereYear('created_at', date('Y'))
+                ->whereMonth('created_at', $monthNumber)
+                ->whereYear('created_at', now()->year)
                 ->count();
+
             $monthlyCounts[] = $count;
         }
 
         $overviewCourseDatasets[] = [
-            'label'       => $course->title,
-            'data'        => $monthlyCounts,
+            'label' => $course->title,
+            'data' => $monthlyCounts,
             'borderColor' => $colors[$index % count($colors)],
-            'tension'     => 0.3,
-            'fill'        => false,
+            'tension' => 0.3,
+            'fill' => false,
         ];
     }
 
@@ -471,8 +1044,8 @@ public function admin1(Request $request)
         'announcements',
         'registrations',
         'facilities',
-        'certificates',     // <-- Added
-        'eligibleTrainees', // <-- Added
+        'certificates',
+        'eligibleTrainees',
         'sectorLabels',
         'sectorCounts',
         'courseTitles',
@@ -484,6 +1057,7 @@ public function admin1(Request $request)
         'overviewCourseDatasets'
     ));
 }
+
 
 
 
@@ -597,56 +1171,92 @@ public function deleteUser(Request $request)
     ]);
 }
 
-        public function saveFacility(Request $request)
+ public function saveFacility(Request $request)
 {
-    $request->validate([
-        'id'           => 'nullable|integer',
-        'name'         => 'required|string|max:255',
-        'address'      => 'required|string|max:255',
-        'course_ids'   => 'nullable|array',
-        'course_ids.*' => 'nullable|integer',
+    $validated = $request->validate([
+        'id' => 'nullable|integer|exists:facilities,id',
+        'name' => 'required|string|max:255',
+        'address' => 'required|string|max:255',
+        'course_ids' => 'nullable|array',
+        'course_ids.*' => 'required|integer|distinct|exists:course_tbls,id',
     ]);
 
     try {
-        $facility = \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
-            $facility = null;
-            if (!empty($request->id) && $request->id != 0) {
-                $facility = \App\Models\Facility::find($request->id);
-            }
+        $result = \Illuminate\Support\Facades\DB::transaction(
+            function () use ($validated) {
 
-            if ($facility) {
-                $facility->update([
-                    'name'    => $request->name,
-                    'address' => $request->address,
+                // Create or update the facility.
+                if (!empty($validated['id'])) {
+                    $facility = \App\Models\Facility::findOrFail(
+                        $validated['id']
+                    );
+
+                    $facility->name = $validated['name'];
+                    $facility->address = $validated['address'];
+                    $facility->save();
+                } else {
+                    $facility = \App\Models\Facility::create([
+                        'name' => $validated['name'],
+                        'address' => $validated['address'],
+                    ]);
+                }
+
+                // Normalize the selected course IDs.
+                $courseIds = collect($validated['course_ids'] ?? [])
+                    ->map(fn ($id) => (int) $id)
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                // Clear this facility's previous assignments.
+                \App\Models\Course_tbl::where(
+                    'facility_id',
+                    $facility->id
+                )->update([
+                    'facility_id' => null,
                 ]);
-            } else {
-                $facility = \App\Models\Facility::create([
-                    'name'    => $request->name,
-                    'address' => $request->address,
-                ]);
+
+                // Assign the newly selected courses.
+                if (!empty($courseIds)) {
+                    \App\Models\Course_tbl::whereIn('id', $courseIds)
+                        ->update([
+                            'facility_id' => $facility->id,
+                        ]);
+                }
+
+                // Return the assignments currently stored in the database.
+                $assignedCourses = \App\Models\Course_tbl::where(
+                    'facility_id',
+                    $facility->id
+                )->get(['id', 'title']);
+
+                return [
+                    'facility' => $facility,
+                    'assigned_courses' => $assignedCourses,
+                ];
             }
-
-            \App\Models\Course_tbl::where('facility_id', $facility->id)
-                ->update(['facility_id' => null]);
-
-            if (!empty($request->course_ids)) {
-                \App\Models\Course_tbl::whereIn('id', $request->course_ids)
-                    ->update(['facility_id' => $facility->id]);
-            }
-
-            return $facility;
-        });
+        );
 
         return response()->json([
-            'success'  => true,
-            'message'  => 'Facility details saved successfully!',
-            'facility' => $facility
-        ], 200);
+            'success' => true,
+            'message' => 'Facility and course assignments saved successfully.',
+            'facility' => $result['facility'],
+            'assigned_courses' => $result['assigned_courses'],
+            'assigned_count' => $result['assigned_courses']->count(),
+        ]);
 
-    } catch (\Exception $e) {
+    } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::error(
+            'Facility save failed: ' . $e->getMessage(),
+            [
+                'facility_id' => $request->input('id'),
+                'course_ids' => $request->input('course_ids', []),
+            ]
+        );
+
         return response()->json([
             'success' => false,
-            'message' => 'Error saving facility: ' . $e->getMessage()
+            'message' => 'Failed to save facility. Please check the Laravel log.',
         ], 500);
     }
 }
@@ -725,73 +1335,277 @@ public function deleteFacility(Request $request)
         }
     }
 
-    public function storeCourse(Request $request)
+public function updateCourse(Request $request, $id)
 {
-    try {
-        $request->validate([
-            'course_code' => 'required|string',
-            'training_id' => 'required|string|max:100',
-            'title'       => 'required|string',
-            'duration'    => 'required|integer',
-            'slots'       => 'required|integer',
-            'sector'      => 'nullable|string',
-        ]);
+    $validated = $request->validate([
+        'course_code'   => 'nullable|string|max:50',
+        'training_id'   => 'nullable|string|max:100',
+        'title'         => 'required|string|max:255',
+        'duration'      => 'required|string|max:255',
+        'slots'         => 'required|integer|min:0',
+        'status'        => 'required|string|in:active,inactive',
 
-        Course_tbl::create([
-            'course_code' => $request->course_code,
-            'training_id' => $request->training_id,
-            'title'       => $request->title,
-            'duration'    => $request->duration,
-            'slots'       => $request->slots,
-            'sector'      => $request->sector ?? 'General', // Prevents SQL 1364 error
-            'description' => $request->description ?? null,
-            'objectives'  => $request->objectives ?? null,
-            'schedule'    => $request->schedule ?? null,
-            'location'    => $request->location ?? null,
-            'thumbnail'   => $request->thumbnail ?? null,
-            'status'      => $request->status ?? 'active',
-            'trainer_id'  => $request->trainer_id ?? null,
+        // Training date schedule
+        'start_date'    => 'nullable|date',
+        'end_date'      => 'nullable|date|after_or_equal:start_date',
+
+        // Training time schedule
+        'start_time'    => 'required|date_format:H:i',
+        'end_time'      => 'required|date_format:H:i|after:start_time',
+
+        // Training days
+        'training_days'   => 'nullable|array',
+        'training_days.*' => [
+            'required',
+            'string',
+            'distinct',
+            'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+        ],
+    ]);
+
+    $course = Course_tbl::findOrFail($id);
+
+    // Preserve the existing Training ID if none is submitted.
+    $trainingId = trim($validated['training_id'] ?? '');
+
+    if ($trainingId === '') {
+        $trainingId = trim($course->training_id ?? '');
+
+        // Generate an ID for older courses that have none.
+        if ($trainingId === '') {
+            $trainingId = $this->generateTrainingId(
+                $validated['title']
+            );
+        }
+    }
+
+    // Prevent duplicate Training IDs on other courses.
+    $duplicate = Course_tbl::where('training_id', $trainingId)
+        ->where('id', '!=', $course->id)
+        ->exists();
+
+    if ($duplicate) {
+        return response()->json([
+            'success' => false,
+            'message' => 'This Training ID is already assigned to another course.',
+        ], 422);
+    }
+
+    // Normalize the selected weekdays.
+    $trainingDays = array_values(array_unique(
+        $validated['training_days'] ?? []
+    ));
+
+    // Save the updated course and training schedule.
+    $course->update([
+        'course_code'   => $validated['course_code'] ?? null,
+        'training_id'   => $trainingId,
+        'title'         => $validated['title'],
+        'duration'      => $validated['duration'],
+        'slots'         => $validated['slots'],
+        'status'        => $validated['status'],
+
+        'start_date'    => $validated['start_date'] ?? null,
+        'end_date'      => $validated['end_date'] ?? null,
+        'start_time'    => $validated['start_time'],
+        'end_time'      => $validated['end_time'],
+        'training_days' => $trainingDays ?: null,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Course updated successfully!',
+        'course'  => $course->fresh(),
+    ]);
+}
+
+
+public function storeCourse(Request $request)
+{
+    $validated = $request->validate([
+        'course_code'   => 'nullable|string|max:50',
+        'training_id'   => 'nullable|string|max:100',
+        'title'         => 'required|string|max:255',
+        'duration'      => 'required|string|max:255',
+        'slots'         => 'required|integer|min:0',
+
+        'sector'        => 'nullable|string|max:255',
+        'description'   => 'nullable|string',
+        'objectives'    => 'nullable|string',
+        'schedule'      => 'nullable|string',
+
+        // Training schedule
+        'start_date'    => 'nullable|date',
+        'end_date'      => 'nullable|date|after_or_equal:start_date',
+        'training_days' => 'nullable|array',
+        'training_days.*' => [
+            'required',
+            'string',
+            'distinct',
+            'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+        ],
+
+        'location'      => 'nullable|string|max:255',
+        'thumbnail'     => 'nullable|string|max:255',
+        'status'        => 'nullable|in:active,inactive',
+        'trainer_id'    => 'nullable|integer',
+    ]);
+
+    try {
+        // Generate a Training ID if none was provided.
+        $trainingId = trim($validated['training_id'] ?? '');
+
+        if ($trainingId === '') {
+            $trainingId = $this->generateTrainingId(
+                $validated['title']
+            );
+        }
+
+        // Prevent duplicate Training IDs.
+        if (
+            Course_tbl::where('training_id', $trainingId)->exists()
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This Training ID already exists. Please use a unique ID.',
+            ], 422);
+        }
+
+        // Normalize selected weekdays.
+        $trainingDays = array_values(array_unique(
+            $validated['training_days'] ?? []
+        ));
+
+        // Create the course.
+        $course = Course_tbl::create([
+            'course_code'   => $validated['course_code'] ?? null,
+            'training_id'   => $trainingId,
+            'title'         => $validated['title'],
+            'duration'      => $validated['duration'],
+            'slots'         => $validated['slots'],
+
+            'sector'        => $validated['sector'] ?? 'General',
+            'description'   => $validated['description'] ?? null,
+            'objectives'    => $validated['objectives'] ?? null,
+            'schedule'      => $validated['schedule'] ?? null,
+
+            // Training schedule fields
+            'start_date'    => $validated['start_date'] ?? null,
+            'end_date'      => $validated['end_date'] ?? null,
+            'training_days' => $trainingDays ?: null,
+
+            'location'      => $validated['location'] ?? null,
+            'thumbnail'     => $validated['thumbnail'] ?? null,
+            'status'        => $validated['status'] ?? 'active',
+            'trainer_id'    => $validated['trainer_id'] ?? null,
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Course created successfully!'
+            'message' => 'Course created successfully!',
+            'course'  => $course->fresh(),
         ]);
-    } catch (\Exception $e) {
+
+    } catch (\Illuminate\Database\QueryException $e) {
+        \Illuminate\Support\Facades\Log::error(
+            'Failed to create course: ' . $e->getMessage()
+        );
+
         return response()->json([
             'success' => false,
-            'message' => 'Failed to create course: ' . $e->getMessage()
+            'message' => 'Unable to create the course. Please check the submitted information and try again.',
         ], 500);
     }
 }
 
-
-    public function updateCourse(Request $request, $id)
+/**
+ * Generate the next available Training ID for a course.
+ *
+ * Format: LED-{COURSE PREFIX}-{SEQUENCE}
+ * Example: LED-BKB-001
+ */
+private function generateTrainingId(string $title): string
 {
-    $request->validate([
-        'course_code' => 'required|string|max:50',
-        'training_id'  => 'required|string|max:100',
-        'title'       => 'required|string|max:255',
-        'duration'    => 'required|string',
-        'slots'       => 'required|integer',
-        'status'      => 'required|string|in:active,inactive', // <-- Added status validation
-    ]);
+    $normalizedTitle = mb_strtolower(trim($title));
 
-    $course = Course_tbl::findOrFail($id);
-    $course->update([
-        'course_code' => $request->course_code,
-        'training_id' => $request->training_id,
-        'title'       => $request->title,
-        'duration'    => $request->duration,
-        'slots'       => $request->slots,
-        'status'      => $request->status, // <-- Added status database update
-    ]);
+    $knownPrefixes = [
+        'baking (cake, bread, pastries)' => 'BKB',
+        'basic sewing'                   => 'BS',
+        'computer literacy'              => 'CL',
+    ];
 
-    return response()->json([
-        'success' => true, 
-        'message' => 'Course updated successfully!'
-    ]);
+    if (isset($knownPrefixes[$normalizedTitle])) {
+        $prefix = $knownPrefixes[$normalizedTitle];
+    } else {
+        $words = preg_split(
+            '/\s+/',
+            preg_replace('/[^a-zA-Z0-9 ]/', '', trim($title))
+        );
+
+        $ignoredWords = [
+            'a', 'an', 'and', 'of', 'the',
+            'for', 'in', 'with', 'to',
+        ];
+
+        $prefix = '';
+
+        foreach ($words as $word) {
+            if (
+                $word !== '' &&
+                !in_array(mb_strtolower($word), $ignoredWords, true)
+            ) {
+                $prefix .= mb_strtoupper(mb_substr($word, 0, 1));
+            }
+        }
+
+        $prefix = substr($prefix, 0, 10);
+
+        if ($prefix === '') {
+            $prefix = 'TRN';
+        }
+    }
+
+    // Find the highest existing sequence for this prefix.
+    $existingIds = Course_tbl::where(
+        'training_id',
+        'like',
+        'LED-' . $prefix . '-%'
+    )->pluck('training_id');
+
+    $highestNumber = 0;
+
+    foreach ($existingIds as $existingId) {
+        if (
+            preg_match(
+                '/^LED-' . preg_quote($prefix, '/') . '-(\d+)$/',
+                $existingId,
+                $matches
+            )
+        ) {
+            $highestNumber = max(
+                $highestNumber,
+                (int) $matches[1]
+            );
+        }
+    }
+
+    // Skip any number that is already in use.
+    do {
+        $highestNumber++;
+
+        $trainingId = sprintf(
+            'LED-%s-%03d',
+            $prefix,
+            $highestNumber
+        );
+
+    } while (
+        Course_tbl::where('training_id', $trainingId)->exists()
+    );
+
+    return $trainingId;
 }
+
 
 public function assignTrainer(Request $request, $courseId)
 {
@@ -823,116 +1637,452 @@ public function removeTrainer($courseId)
         'message' => 'Trainer removed successfully!',
     ]);
 }
-    public function teacher()
-    {
-        // ── Existing stat cards ───────────────────────────────────────────────
-        $trainer = Auth::user();
-        $course = Course_tbl::where('trainer_id', $trainer->id)->first();
+ public function teacher()
+{
+    $trainer = Auth::user();
 
-        // ── Attendance status for today ────────────────────────────────────────
-        $today = now()->toDateString();
-        $attendanceTakenToday = false;
+    /*
+    |--------------------------------------------------------------------------
+    | Trainer's assigned courses
+    |--------------------------------------------------------------------------
+    | The dashboard's charts use all courses assigned to this trainer.
+    | The existing single-course dashboard cards and follow-up table continue
+    | to use the first assigned course, preserving the original page behavior.
+    */
+    $trainerCourses = Course_tbl::where('trainer_id', $trainer->id)->get();
+    $course = $trainerCourses->first();
+    $courseIds = $trainerCourses->pluck('id')->values();
 
-        if ($course) {
-            $activeEnrollmentIds = \App\Models\Enrollment_tbl::where('course_id', $course->id)
-                ->where('status', 'active')
-                ->pluck('id');
+    /*
+    |--------------------------------------------------------------------------
+    | Attendance status for today
+    |--------------------------------------------------------------------------
+    */
+    $today = now()->toDateString();
+    $attendanceTakenToday = false;
 
-            $attendanceTakenToday = \App\Models\Attendance::whereIn('enrollment_id', $activeEnrollmentIds)
-                ->where('date', $today)
-                ->exists();
-        }
+    if ($course) {
+        $activeEnrollmentIds = \App\Models\Enrollment_tbl::where('course_id', $course->id)
+            ->where('status', 'active')
+            ->pluck('id');
 
-        // ── Weekly average progress (real data) ──────────────────────────────
-        $startOfWeek = now()->startOfWeek(\Carbon\Carbon::MONDAY);
-        $endOfWeek = now()->endOfWeek(\Carbon\Carbon::SUNDAY);
+        $attendanceTakenToday = \App\Models\Attendance::whereIn('enrollment_id', $activeEnrollmentIds)
+            ->whereDate('date', $today)
+            ->exists();
+    }
 
-        $weeklyProgressData = [];
+    /*
+    |--------------------------------------------------------------------------
+    | Weekly average progress (existing dashboard chart)
+    |--------------------------------------------------------------------------
+    */
+    $startOfWeek = now()->copy()->startOfWeek(\Carbon\Carbon::MONDAY);
+    $endOfWeek = now()->copy()->endOfWeek(\Carbon\Carbon::SUNDAY);
+    $weeklyProgressData = [];
 
-        if ($course) {
-            $enrollmentIds = \App\Models\Enrollment_tbl::where('course_id', $course->id)
-                ->where('status', 'active')
-                ->pluck('id');
+    if ($course) {
+        $enrollmentIds = \App\Models\Enrollment_tbl::where('course_id', $course->id)
+            ->where('status', 'active')
+            ->pluck('id');
 
-            for ($day = $startOfWeek->copy(); $day->lte($endOfWeek); $day->addDay()) {
-                $dateStr = $day->toDateString();
-
-                if ($day->gt(now())) {
-                    $weeklyProgressData[] = null;
-                    continue;
-                }
-
-                $avg = \App\Models\DailyProgress::whereIn('enrollment_id', $enrollmentIds)
-                    ->where('date', $dateStr)
-                    ->avg('progress_percent');
-
-                $weeklyProgressData[] = $avg !== null ? round($avg) : 0;
+        for ($day = $startOfWeek->copy(); $day->lte($endOfWeek); $day->addDay()) {
+            if ($day->gt(now())) {
+                $weeklyProgressData[] = null;
+                continue;
             }
-        } else {
-            $weeklyProgressData = array_fill(0, 7, null);
-        }
 
-        $totalTrainees = $course
+            $average = \App\Models\DailyProgress::whereIn('enrollment_id', $enrollmentIds)
+                ->whereDate('date', $day->toDateString())
+                ->avg('progress_percent');
+
+            $weeklyProgressData[] = $average !== null
+                ? round((float) $average, 2)
+                : 0;
+        }
+    } else {
+        $weeklyProgressData = array_fill(0, 7, null);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Existing dashboard statistics
+    |--------------------------------------------------------------------------
+    */
+    $totalTrainees = $course
         ? \App\Models\Enrollment_tbl::where('course_id', $course->id)
             ->where('status', 'active')
             ->count()
         : 0;
 
-        $monthlyEnrollment = $course
-            ? \App\Models\Enrollment_tbl::where('course_id', $course->id)
-                ->whereMonth('enrolled_at', now()->month)
-                ->whereYear('enrolled_at', now()->year)
-                ->count()
-            : 0;
+    $monthlyEnrollment = $course
+        ? \App\Models\Enrollment_tbl::where('course_id', $course->id)
+            ->whereMonth('enrolled_at', now()->month)
+            ->whereYear('enrolled_at', now()->year)
+            ->count()
+        : 0;
 
-        $totalInCourse = $course ? \App\Models\Enrollment_tbl::where('course_id', $course->id)->count() : 0;
-        $completedInCourse = $course ? \App\Models\Enrollment_tbl::where('course_id', $course->id)->where('status', 'completed')->count() : 0;
+    $totalInCourse = $course
+        ? \App\Models\Enrollment_tbl::where('course_id', $course->id)->count()
+        : 0;
 
-        $completionRate = $totalInCourse > 0
-            ? round($completedInCourse / $totalInCourse * 100) . '%'
-            : '0%';
+    $completedInCourse = $course
+        ? \App\Models\Enrollment_tbl::where('course_id', $course->id)
+            ->where('status', 'completed')
+            ->count()
+        : 0;
 
-        $urgentAssessments = $course
-            ? \App\Models\Deadline_tbl::where('course_id', $course->id)
-                ->where('due_date', '<=', now()->addDays(3))
-                ->where('due_date', '>=', now())
-                ->count()
-            : 0;
+    $completionRate = $totalInCourse > 0
+        ? round(($completedInCourse / $totalInCourse) * 100) . '%'
+        : '0%';
 
-        // ── Low performing trainees ───────────────────────────────────────────
-        $lowPerforming = $course
-            ? \App\Models\Enrollment_tbl::with(['user', 'course'])
-                ->where('course_id', $course->id)
-                ->where('status', 'active')
-                ->where('progress', '<', 50)
-                ->orderBy('progress', 'asc')
-                ->take(5)
-                ->get()
-            : collect();
+    $urgentAssessments = $course
+        ? \App\Models\Deadline_tbl::where('course_id', $course->id)
+            ->where('due_date', '<=', now()->copy()->addDays(3))
+            ->where('due_date', '>=', now())
+            ->count()
+        : 0;
 
-        // ── Progress distribution for donut chart ────────────────────────
-        $allEnrollments = $course
+    /*
+    |--------------------------------------------------------------------------
+    | Assessment performance for the existing follow-up table
+    |--------------------------------------------------------------------------
+    | Overall Assessment = (Quiz Average + Onsite Average) / 2.
+    | Both categories must have recorded scores before assigning a status.
+    */
+    $lowPerforming = collect();
+
+    if ($course) {
+        $quizIds = \App\Models\Quiz::where('course_id', $course->id)->pluck('id');
+
+        $assessmentRows = \App\Models\Enrollment_tbl::with(['user', 'course'])
+            ->where('course_id', $course->id)
+            ->where('status', 'active')
+            ->get()
+            ->map(function ($enrollment) use ($quizIds, $course) {
+                $quizResults = $quizIds->isNotEmpty()
+                    ? \App\Models\QuizResult::where('user_id', $enrollment->user_id)
+                        ->whereIn('quiz_id', $quizIds)
+                        ->get()
+                    : collect();
+
+                $quizPercentages = $quizResults->map(function ($result) {
+                    $percentage = data_get($result, 'percentage');
+
+                    if (is_numeric($percentage)) {
+                        return max(0, min(100, (float) $percentage));
+                    }
+
+                    $score = data_get($result, 'score');
+                    $totalItems = data_get($result, 'total_items');
+
+                    if (is_numeric($score) && is_numeric($totalItems) && (float) $totalItems > 0) {
+                        return max(0, min(100, ((float) $score / (float) $totalItems) * 100));
+                    }
+
+                    return null;
+                })->filter(fn ($percentage) => $percentage !== null)->values();
+
+                $quizAverage = $quizPercentages->isNotEmpty()
+                    ? round((float) $quizPercentages->avg(), 2)
+                    : null;
+
+                $onsiteGrades = \Illuminate\Support\Facades\DB::table('onsite_grades')
+                    ->join('onsite_activities', 'onsite_grades.onsite_activity_id', '=', 'onsite_activities.id')
+                    ->where('onsite_grades.user_id', $enrollment->user_id)
+                    ->where('onsite_grades.enrollment_id', $enrollment->id)
+                    ->where('onsite_activities.course_id', $course->id)
+                    ->select('onsite_grades.score', 'onsite_activities.max_score')
+                    ->get();
+
+                $onsitePercentages = $onsiteGrades->map(function ($grade) {
+                    if (!is_numeric($grade->score) || !is_numeric($grade->max_score) || (float) $grade->max_score <= 0) {
+                        return null;
+                    }
+
+                    return max(0, min(100, ((float) $grade->score / (float) $grade->max_score) * 100));
+                })->filter(fn ($percentage) => $percentage !== null)->values();
+
+                $onsiteAverage = $onsitePercentages->isNotEmpty()
+                    ? round((float) $onsitePercentages->avg(), 2)
+                    : null;
+
+                $assessmentScore = ($quizAverage !== null && $onsiteAverage !== null)
+                    ? round(($quizAverage + $onsiteAverage) / 2, 2)
+                    : null;
+
+                $assessmentStatus = $assessmentScore === null
+                    ? 'Pending Assessment'
+                    : ($assessmentScore >= 75 ? 'Competent' : 'Not Yet Competent');
+
+                $enrollment->setAttribute('quiz_average', $quizAverage);
+                $enrollment->setAttribute('onsite_average', $onsiteAverage);
+                $enrollment->setAttribute('assessment_score', $assessmentScore);
+                $enrollment->setAttribute('assessment_status', $assessmentStatus);
+
+                return $enrollment;
+            });
+
+        $lowPerforming = $assessmentRows
+            ->filter(fn ($trainee) => $trainee->assessment_status !== 'Competent')
+            ->sortBy(fn ($trainee) => $trainee->assessment_score === null ? -1 : (float) $trainee->assessment_score)
+            ->take(5)
+            ->values();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Existing progress-distribution chart
+    |--------------------------------------------------------------------------
+    */
+    $allEnrollments = $course
         ? \App\Models\Enrollment_tbl::where('course_id', $course->id)->get()
         : collect();
 
-        $progressDistribution = [
-            $allEnrollments->where('status', 'completed')->count(),
-            $allEnrollments->where('status', '!=', 'completed')->where('progress', '>=', 50)->count(),
-            $allEnrollments->where('status', '!=', 'completed')->where('progress', '>', 0)->where('progress', '<', 50)->count(),
-            $allEnrollments->where('progress', 0)->where('status', '!=', 'completed')->count(),
-        ];
+    $progressDistribution = [
+        $allEnrollments->where('status', 'completed')->count(),
+        $allEnrollments->where('status', '!=', 'completed')->where('progress', '>=', 50)->count(),
+        $allEnrollments->where('status', '!=', 'completed')->where('progress', '>', 0)->where('progress', '<', 50)->count(),
+        $allEnrollments->where('progress', 0)->where('status', '!=', 'completed')->count(),
+    ];
 
-        return view("trainer.teacher", compact(
-            'totalTrainees',
-            'monthlyEnrollment',
-            'completionRate',
-            'urgentAssessments',
-            'lowPerforming',
-            'progressDistribution',
-            'attendanceTakenToday',
-            'weeklyProgressData'
-        ));
+
+    /*
+    |--------------------------------------------------------------------------
+    | Competency chart counts (Pending is excluded from this chart)
+    |--------------------------------------------------------------------------
+    */
+    $chartCompetentCount = 0;
+    $chartNotYetCompetentCount = 0;
+
+    if ($course) {
+        $competencyEnrollments = \App\Models\Enrollment_tbl::where('course_id', $course->id)
+            ->whereIn('status', ['active', 'completed'])
+            ->get();
+        $competencyQuizIds = \App\Models\Quiz::where('course_id', $course->id)->pluck('id');
+
+        foreach ($competencyEnrollments as $competencyEnrollment) {
+            $quizRows = $competencyQuizIds->isNotEmpty()
+                ? \App\Models\QuizResult::where('user_id', $competencyEnrollment->user_id)
+                    ->whereIn('quiz_id', $competencyQuizIds)->get()
+                : collect();
+
+            $quizValues = $quizRows->map(function ($result) {
+                $percentage = data_get($result, 'percentage');
+                if (is_numeric($percentage)) return max(0, min(100, (float) $percentage));
+
+                $score = data_get($result, 'score');
+                $total = data_get($result, 'total_items');
+                return is_numeric($score) && is_numeric($total) && (float) $total > 0
+                    ? max(0, min(100, ((float) $score / (float) $total) * 100))
+                    : null;
+            })->filter(fn ($value) => $value !== null)->values();
+
+            $quizAverageForChart = $quizValues->isNotEmpty() ? (float) $quizValues->avg() : null;
+
+            $onsiteRows = \Illuminate\Support\Facades\DB::table('onsite_grades')
+                ->join('onsite_activities', 'onsite_grades.onsite_activity_id', '=', 'onsite_activities.id')
+                ->where('onsite_grades.user_id', $competencyEnrollment->user_id)
+                ->where('onsite_grades.enrollment_id', $competencyEnrollment->id)
+                ->where('onsite_activities.course_id', $course->id)
+                ->select('onsite_grades.score', 'onsite_activities.max_score')
+                ->get();
+
+            $onsiteValues = $onsiteRows->map(function ($grade) {
+                if (!is_numeric($grade->score) || !is_numeric($grade->max_score) || (float) $grade->max_score <= 0) return null;
+                return max(0, min(100, ((float) $grade->score / (float) $grade->max_score) * 100));
+            })->filter(fn ($value) => $value !== null)->values();
+
+            $onsiteAverageForChart = $onsiteValues->isNotEmpty() ? (float) $onsiteValues->avg() : null;
+
+            // Require both quiz and onsite scores, consistent with the assessment rule.
+            if ($quizAverageForChart === null || $onsiteAverageForChart === null) continue;
+
+            $overallForChart = ($quizAverageForChart + $onsiteAverageForChart) / 2;
+            if ($overallForChart >= 75) {
+                $chartCompetentCount++;
+            } else {
+                $chartNotYetCompetentCount++;
+            }
+        }
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chart 1: Monthly enrollment trend (last 6 months)
+    |--------------------------------------------------------------------------
+    */
+    $chartEnrollmentLabels = [];
+    $chartEnrollmentValues = [];
+    $chartEnrollmentStart = now()->copy()->startOfMonth()->subMonths(5);
+    $chartEnrollmentEnd = now()->copy()->endOfMonth();
+
+    $monthlyEnrollmentRows = $courseIds->isNotEmpty()
+        ? \App\Models\Enrollment_tbl::whereIn('course_id', $courseIds)
+            ->whereNotNull('enrolled_at')
+            ->whereBetween('enrolled_at', [$chartEnrollmentStart, $chartEnrollmentEnd])
+            ->selectRaw('YEAR(enrolled_at) as enrollment_year, MONTH(enrolled_at) as enrollment_month, COUNT(*) as total')
+            ->groupBy('enrollment_year', 'enrollment_month')
+            ->get()
+            ->keyBy(fn ($row) => sprintf('%04d-%02d', $row->enrollment_year, $row->enrollment_month))
+        : collect();
+
+    for ($i = 0; $i < 6; $i++) {
+        $month = $chartEnrollmentStart->copy()->addMonths($i);
+        $key = $month->format('Y-m');
+        $chartEnrollmentLabels[] = $month->format('M Y');
+        $chartEnrollmentValues[] = (int) data_get($monthlyEnrollmentRows->get($key), 'total', 0);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chart 2: Quiz vs. onsite average by assigned course
+    |--------------------------------------------------------------------------
+    */
+    $chartAssessmentLabels = [];
+    $chartQuizAverages = [];
+    $chartOnsiteAverages = [];
+
+    foreach ($trainerCourses as $trainerCourse) {
+        $chartAssessmentLabels[] = $trainerCourse->title
+            ?? $trainerCourse->name
+            ?? $trainerCourse->course_name
+            ?? ('Untitled course #' . $trainerCourse->id);
+
+        $courseQuizIds = \App\Models\Quiz::where('course_id', $trainerCourse->id)->pluck('id');
+        $quizRows = $courseQuizIds->isNotEmpty()
+            ? \App\Models\QuizResult::whereIn('quiz_id', $courseQuizIds)->get()
+            : collect();
+
+        $quizPercentages = $quizRows->map(function ($result) {
+            $percentage = data_get($result, 'percentage');
+
+            if (is_numeric($percentage)) {
+                return max(0, min(100, (float) $percentage));
+            }
+
+            $score = data_get($result, 'score');
+            $totalItems = data_get($result, 'total_items');
+
+            return is_numeric($score) && is_numeric($totalItems) && (float) $totalItems > 0
+                ? max(0, min(100, ((float) $score / (float) $totalItems) * 100))
+                : null;
+        })->filter(fn ($percentage) => $percentage !== null)->values();
+
+        $chartQuizAverages[] = $quizPercentages->isNotEmpty()
+            ? round((float) $quizPercentages->avg(), 2)
+            : 0;
+
+        $onsiteRows = \Illuminate\Support\Facades\DB::table('onsite_grades')
+            ->join('onsite_activities', 'onsite_grades.onsite_activity_id', '=', 'onsite_activities.id')
+            ->where('onsite_activities.course_id', $trainerCourse->id)
+            ->select('onsite_grades.score', 'onsite_activities.max_score')
+            ->get();
+
+        $onsitePercentages = $onsiteRows->map(function ($grade) {
+            if (!is_numeric($grade->score) || !is_numeric($grade->max_score) || (float) $grade->max_score <= 0) {
+                return null;
+            }
+
+            return max(0, min(100, ((float) $grade->score / (float) $grade->max_score) * 100));
+        })->filter(fn ($percentage) => $percentage !== null)->values();
+
+        $chartOnsiteAverages[] = $onsitePercentages->isNotEmpty()
+            ? round((float) $onsitePercentages->avg(), 2)
+            : 0;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chart 3: Attendance rate by week (last 6 weeks)
+    |--------------------------------------------------------------------------
+    | Attendance records with a status of Present or Late count as attended.
+    | All recorded attendance rows for active enrollments form the denominator.
+    */
+    $chartAttendanceLabels = [];
+    $chartAttendanceRates = [];
+    $attendanceWindowStart = now()->copy()->startOfWeek(\Carbon\Carbon::MONDAY)->subWeeks(5);
+    $attendanceWindowEnd = now()->copy()->endOfWeek(\Carbon\Carbon::SUNDAY);
+
+    $chartEnrollmentIds = $courseIds->isNotEmpty()
+        ? \App\Models\Enrollment_tbl::whereIn('course_id', $courseIds)
+            ->where('status', 'active')
+            ->pluck('id')
+        : collect();
+
+    $attendanceRows = $chartEnrollmentIds->isNotEmpty()
+        ? \App\Models\Attendance::whereIn('enrollment_id', $chartEnrollmentIds)
+            ->whereBetween('date', [$attendanceWindowStart->toDateString(), $attendanceWindowEnd->toDateString()])
+            ->get(['date', 'status'])
+        : collect();
+
+    for ($i = 0; $i < 6; $i++) {
+        $weekStart = $attendanceWindowStart->copy()->addWeeks($i);
+        $weekEnd = $weekStart->copy()->endOfWeek(\Carbon\Carbon::SUNDAY);
+        $weekRows = $attendanceRows->filter(function ($row) use ($weekStart, $weekEnd) {
+            $date = \Carbon\Carbon::parse($row->date);
+            return $date->betweenIncluded($weekStart->copy()->startOfDay(), $weekEnd->copy()->endOfDay());
+        });
+
+        $chartAttendanceLabels[] = $weekStart->format('M d');
+        $recordedCount = $weekRows->count();
+        $attendedCount = $weekRows->filter(function ($row) {
+            return in_array(strtolower(trim((string) $row->status)), ['present', 'late'], true);
+        })->count();
+
+        $chartAttendanceRates[] = $recordedCount > 0
+            ? round(($attendedCount / $recordedCount) * 100, 2)
+            : 0;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chart 4: Course completion rate by course name
+    |--------------------------------------------------------------------------
+    */
+    $chartCourseLabels = [];
+    $chartCourseCompletionRates = [];
+    $chartCourseCompletedCounts = [];
+    $chartCourseEnrollmentCounts = [];
+
+    foreach ($trainerCourses as $trainerCourse) {
+        $chartCourseLabels[] = $trainerCourse->title
+            ?? $trainerCourse->name
+            ?? $trainerCourse->course_name
+            ?? ('Training course ' . $trainerCourse->id);
+
+        $enrollmentQuery = \App\Models\Enrollment_tbl::where('course_id', $trainerCourse->id);
+        $enrollmentCount = (clone $enrollmentQuery)->count();
+        $completedCount = (clone $enrollmentQuery)->where('status', 'completed')->count();
+
+        $chartCourseCompletedCounts[] = $completedCount;
+        $chartCourseEnrollmentCounts[] = $enrollmentCount;
+        $chartCourseCompletionRates[] = $enrollmentCount > 0
+            ? round(($completedCount / $enrollmentCount) * 100, 2)
+            : 0;
+    }
+
+    return view('trainer.teacher', compact(
+        'totalTrainees',
+        'monthlyEnrollment',
+        'completionRate',
+        'urgentAssessments',
+        'lowPerforming',
+        'progressDistribution',
+        'attendanceTakenToday',
+        'weeklyProgressData',
+        'chartEnrollmentLabels',
+        'chartEnrollmentValues',
+        'chartAssessmentLabels',
+        'chartQuizAverages',
+        'chartOnsiteAverages',
+        'chartAttendanceLabels',
+        'chartAttendanceRates',
+        'chartCompetentCount',
+        'chartNotYetCompetentCount',
+        'chartCourseEnrollmentCounts'
+    ));
+}
+
 
 
     //forgotpassword
@@ -1063,57 +2213,127 @@ public function ResetPassword(Request $request)
         return view('trainer.courses', compact('course', 'totalStudents'));
     }
 
-    public function assessment()
-    {
-        $trainer = Auth::user();
-        $course  = Course_tbl::where('trainer_id', $trainer->id)->first();
+   public function assessment()
+{
+    $trainer = Auth::user();
 
-        if (!$course) {
-            return view('trainer.assessment', [
-                'course'       => null,
-                'results'      => collect(),
-                'totalTaken'   => 0,
-                'avgScore'     => 0,
-                'passingRate'  => 0,
-                'topPerformers'=> collect(),
-                'quizzes'      => collect(),
-            ]);
-        }
+    $course = Course_tbl::where('trainer_id', $trainer->id)->first();
 
-        // Kunin lahat ng quiz results ng course
-        $results = \App\Models\QuizResult::with(['user', 'quiz'])
-            ->whereHas('quiz', fn($q) => $q->where('course_id', $course->id))
-            ->orderByDesc('created_at')
-            ->get();
-
-        // Stats
-        $totalTaken  = $results->count();
-        $avgScore    = $totalTaken > 0 ? round($results->avg('percentage')) : 0;
-        $passed      = $results->where('status', 'passed')->count();
-        $passingRate = $totalTaken > 0 ? round(($passed / $totalTaken) * 100) : 0;
-
-        // Top performers — pinaka-mataas na average per student
-        $topPerformers = \App\Models\QuizResult::with('user')
-            ->whereHas('quiz', fn($q) => $q->where('course_id', $course->id))
-            ->select('user_id', \DB::raw('ROUND(AVG(percentage)) as avg_score'), \DB::raw('COUNT(*) as total_taken'))
-            ->groupBy('user_id')
-            ->orderByDesc('avg_score')
-            ->take(5)
-            ->get();
-
-        // Quizzes ng course
-        $quizzes = \App\Models\Quiz::where('course_id', $course->id)->get();
-
-        return view('trainer.assessment', compact(
-            'course',
-            'results',
-            'totalTaken',
-            'avgScore',
-            'passingRate',
-            'topPerformers',
-            'quizzes'
-        ));
+    // No course assigned to this trainer
+    if (!$course) {
+        return view('trainer.assessment', [
+            'course'        => null,
+            'results'       => collect(),
+            'onsiteGrades'  => collect(),
+            'totalTaken'    => 0,
+            'avgScore'      => 0,
+            'passingRate'   => 0,
+            'topPerformers' => collect(),
+            'quizzes'       => collect(),
+        ]);
     }
+
+    // =========================================
+    // QUIZ RESULTS
+    // =========================================
+    $results = \App\Models\QuizResult::with(['user', 'quiz'])
+        ->whereHas('quiz', function ($query) use ($course) {
+            $query->where('course_id', $course->id);
+        })
+        ->orderByDesc('created_at')
+        ->get();
+
+    // =========================================
+    // QUIZ STATISTICS
+    // =========================================
+    $totalTaken = $results->count();
+
+    $avgScore = $totalTaken > 0
+        ? round($results->avg(function ($result) {
+            return (float) ($result->percentage ?? 0);
+        }), 1)
+        : 0;
+
+    $passed = $results->filter(function ($result) {
+        return strtolower((string) $result->status) === 'passed';
+    })->count();
+
+    $passingRate = $totalTaken > 0
+        ? round(($passed / $totalTaken) * 100, 1)
+        : 0;
+
+    // =========================================
+    // TOP QUIZ PERFORMERS
+    // =========================================
+    $topPerformers = \App\Models\QuizResult::with('user')
+        ->whereHas('quiz', function ($query) use ($course) {
+            $query->where('course_id', $course->id);
+        })
+        ->select(
+            'user_id',
+            \Illuminate\Support\Facades\DB::raw(
+                'ROUND(AVG(percentage), 1) as avg_score'
+            ),
+            \Illuminate\Support\Facades\DB::raw(
+                'COUNT(*) as total_taken'
+            )
+        )
+        ->groupBy('user_id')
+        ->orderByDesc('avg_score')
+        ->take(5)
+        ->get();
+
+    // =========================================
+    // QUIZZES FOR THIS COURSE
+    // =========================================
+    $quizzes = \App\Models\Quiz::where('course_id', $course->id)
+        ->orderBy('id')
+        ->get();
+
+    // =========================================
+    // ONSITE ACTIVITY GRADES
+    // =========================================
+    $onsiteGrades = \Illuminate\Support\Facades\DB::table('onsite_grades as og')
+        ->join(
+            'onsite_activities as oa',
+            'oa.id',
+            '=',
+            'og.onsite_activity_id'
+        )
+        ->leftJoin('user_tbls as u', 'u.id', '=', 'og.user_id')
+        ->where('oa.course_id', $course->id)
+        ->select(
+            'og.id',
+            'og.user_id',
+            'og.enrollment_id',
+            'og.score',
+            'og.remarks',
+            'og.graded_by',
+            'og.created_at',
+            'oa.title as activity_title',
+            'oa.max_score',
+            'oa.activity_date',
+            'oa.course_id',
+            'u.firstname',
+            'u.lastname'
+        )
+        ->orderByDesc('og.created_at')
+        ->get();
+
+    // =========================================
+    // RETURN ALL DATA TO THE VIEW
+    // =========================================
+    return view('trainer.assessment', compact(
+        'course',
+        'results',
+        'onsiteGrades',
+        'totalTaken',
+        'avgScore',
+        'passingRate',
+        'topPerformers',
+        'quizzes'
+    ));
+}
 
       public function certificates()
     {
@@ -1683,221 +2903,766 @@ public function destroyQuizQuestion($id)
 
 // ── QUIZ TAKING (Student) ─────────────────────────────────────────────────
 
+
+
 public function getQuizForStudent($quizId)
 {
-    $userId = \Auth::id();
+    $userId = \Illuminate\Support\Facades\Auth::id();
 
-    // Check if already taken
-    $existing = \App\Models\QuizResult::where('quiz_id', $quizId)
-                    ->where('user_id', $userId)
-                    ->first();
+    $quiz = \App\Models\Quiz::with('questions')
+        ->findOrFail($quizId);
 
-    $quiz = \App\Models\Quiz::with('questions')->findOrFail($quizId);
-
-    return response()->json([
-        'success'  => true,
-        'quiz'     => $quiz,
-        'taken'    => $existing ? true : false,
-        'result'   => $existing,
-    ]);
-}
-
-    public function submitQuiz(Request $request)
-    {
-    $request->validate([
-        'quiz_id' => 'required|exists:quizzes,id',
-        'answers' => 'required|array',
-    ]);
-
-    $userId = \Auth::id();
-    $quiz   = \App\Models\Quiz::with('questions')->findOrFail($request->quiz_id);
-
-    // Check if already taken
-    $existing = \App\Models\QuizResult::where('quiz_id', $request->quiz_id)
-                    ->where('user_id', $userId)
-                    ->first();
-    if ($existing) {
-        return response()->json(['success' => false, 'message' => 'Already taken.']);
-    }
-
-    // Score
-    $score = 0;
-    $total = $quiz->questions->count();
-
-    foreach ($quiz->questions as $q) {
-        $answer = $request->answers[$q->id] ?? null;
-        if ($answer && strtolower($answer) === $q->correct_answer) {
-            $score++;
-        }
-    }
-
-    $percentage = $total > 0 ? round(($score / $total) * 100) : 0;
-    $status     = $percentage >= $quiz->passing_score ? 'passed' : 'failed';
-
-    $result = \App\Models\QuizResult::create([
-        'quiz_id'     => $request->quiz_id,
-        'user_id'     => $userId,
-        'score'       => $score,
-        'total_items' => $total,
-        'percentage'  => $percentage,
-        'status'      => $status,
-    ]);
-
-        // I-update ang enrollment progress
-    $enrollment = \App\Models\Enrollment_tbl::where('user_id', $userId)
-        ->where('course_id', $quiz->course_id)
+    // Keep the existing single best-result row.
+    $bestResult = \App\Models\QuizResult::where('quiz_id', $quiz->id)
+        ->where('user_id', $userId)
         ->first();
 
-    if ($enrollment) {
-        // Kunin lahat ng quizzes ng course
-        $totalQuizzes = \App\Models\Quiz::where('course_id', $quiz->course_id)->count();
-        
-        // Kunin kung ilan na ang natapos ng student
-        $completedQuizzes = \App\Models\QuizResult::where('user_id', $userId)
-            ->whereIn('quiz_id', \App\Models\Quiz::where('course_id', $quiz->course_id)->pluck('id'))
-            ->count();
+    // Load individual submission records separately.
+    $attemptHistory = \App\Models\QuizAttemptHistory::where(
+        'quiz_id',
+        $quiz->id
+    )
+        ->where('user_id', $userId)
+        ->orderBy('attempt_number')
+        ->get();
 
-        // I-compute ang progress percentage
-        $progress = $totalQuizzes > 0
-            ? round(($completedQuizzes / $totalQuizzes) * 100)
-            : 0;
+    $attemptsUsed = $bestResult
+        ? max(1, (int) ($bestResult->attempts_used ?? 1))
+        : 0;
 
-        $enrollment->progress = $progress;
+    $attemptsAllowed = max(
+        1,
+        (int) ($quiz->attempts_allowed ?? 2)
+    );
 
+    $hasPassed = $bestResult
+        && strtolower((string) $bestResult->status) === 'passed';
 
-// Check if all modules are completed
-$moduleIds = \App\Models\Module::where('course_id', $quiz->course_id)
-    ->active()
-    ->pluck('id');
+    $canAttempt = !$hasPassed
+        && $attemptsUsed < $attemptsAllowed;
 
-$completedModules = \App\Models\ModuleCompletion::where('user_id', $userId)
-    ->whereIn('module_id', $moduleIds)
-    ->count();
-
-$allModulesCompleted = $moduleIds->count() > 0
-    && $completedModules >= $moduleIds->count();
-
-// Check if Post-Test is passed
-$postTest = \App\Models\Quiz::where('course_id', $quiz->course_id)
-    ->where('quiz_type', 'post_test')
-    ->first();
-
-$postTestPassed = $postTest
-    && \App\Models\QuizResult::where('user_id', $userId)
-        ->where('quiz_id', $postTest->id)
-        ->where('status', 'passed')
-        ->exists();
-
-// Check if Hands-On Test is passed
-$handsOnPassed = \App\Models\HandsOnEvaluation::where('user_id', $userId)
-    ->where('course_id', $quiz->course_id)
-    ->where('result', 'passed')
-    ->exists();
-
-// Final completion requirement
-if ($allModulesCompleted && $postTestPassed && $handsOnPassed) {
-    $enrollment->status = 'completed';
-    $enrollment->completed_at = now();
-}
-
-        $enrollment->save();
-    }
+    // Never expose the answer key or feedback.
+    $quiz->questions->each(function ($question) {
+        $question->makeHidden([
+            'correct_answer',
+            'correct_answers',
+            'feedback',
+        ]);
+    });
 
     return response()->json([
-        'success'    => true,
-        'score'      => $score,
-        'total'      => $total,
-        'percentage' => $percentage,
-        'status'     => $status,
-        'passing'    => $quiz->passing_score,
-        'progress'   => $progress ?? 0, 
+        'success' => true,
+        'quiz' => $quiz,
+        'taken' => !$canAttempt,
+        'can_attempt' => $canAttempt,
+        'attempts_allowed' => $attemptsAllowed,
+        'attempts_used' => $attemptsUsed,
+        'attempts_remaining' => $canAttempt
+            ? max(0, $attemptsAllowed - $attemptsUsed)
+            : 0,
+        'result' => $bestResult,
+        'attempt_history' => $attemptHistory,
     ]);
+}
+
+
+public function submitQuiz(\Illuminate\Http\Request $request)
+{
+    $request->validate([
+        'quiz_id' => 'required|exists:quizzes,id',
+        'answers' => 'sometimes|array',
+        'timed_out' => 'sometimes|boolean',
+    ]);
+
+    $userId = \Illuminate\Support\Facades\Auth::id();
+    $timedOut = $request->boolean('timed_out');
+    $answers = $request->input('answers', []);
+
+    if (!is_array($answers)) {
+        $answers = [];
     }
+
+    $submission = \Illuminate\Support\Facades\DB::transaction(
+        function () use ($request, $userId, $timedOut, $answers) {
+
+            $quiz = \App\Models\Quiz::with('questions')
+                ->whereKey($request->quiz_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $bestResult = \App\Models\QuizResult::where(
+                'quiz_id',
+                $quiz->id
+            )
+                ->where('user_id', $userId)
+                ->lockForUpdate()
+                ->first();
+
+            $attemptsUsed = $bestResult
+                ? max(1, (int) ($bestResult->attempts_used ?? 1))
+                : 0;
+
+            $attemptsAllowed = max(
+                1,
+                (int) ($quiz->attempts_allowed ?? 2)
+            );
+
+            $hasPassed = $bestResult
+                && strtolower((string) $bestResult->status) === 'passed';
+
+            if ($hasPassed) {
+                return [
+                    'error' => 'You have already passed this quiz. No additional attempts are available.',
+                    'http_code' => 409,
+                ];
+            }
+
+            if ($attemptsUsed >= $attemptsAllowed) {
+                return [
+                    'error' => 'You have used all available attempts for this quiz.',
+                    'http_code' => 409,
+                ];
+            }
+
+            $normalizeAnswer = static function ($value) {
+                if (!is_scalar($value)) {
+                    return '';
+                }
+
+                return mb_strtolower(trim((string) $value));
+            };
+
+            $decodeCorrectAnswers = static function ($value): array {
+                if (is_array($value)) {
+                    return $value;
+                }
+
+                if (!is_string($value) || trim($value) === '') {
+                    return [];
+                }
+
+                $decoded = json_decode($value, true);
+
+                if (
+                    json_last_error() === JSON_ERROR_NONE
+                    && is_array($decoded)
+                ) {
+                    return $decoded;
+                }
+
+                return [$value];
+            };
+
+            // Grade this submission.
+            $score = 0;
+            $total = $quiz->questions->count();
+
+            foreach ($quiz->questions as $question) {
+                $answer = $answers[$question->id]
+                    ?? $answers[(string) $question->id]
+                    ?? null;
+
+                if ($answer === null || $answer === '') {
+                    continue;
+                }
+
+                $questionType = strtolower(
+                    (string) ($question->question_type ?? 'multiple_choice')
+                );
+
+                $correctAnswers = $decodeCorrectAnswers(
+                    $question->correct_answers ?? null
+                );
+
+                $legacyCorrectAnswer = $normalizeAnswer(
+                    $question->correct_answer ?? ''
+                );
+
+                if ($questionType === 'checkboxes') {
+                    $givenAnswers = is_array($answer)
+                        ? $answer
+                        : [$answer];
+
+                    $givenAnswers = array_map(
+                        $normalizeAnswer,
+                        $givenAnswers
+                    );
+
+                    $expectedAnswers = array_map(
+                        $normalizeAnswer,
+                        $correctAnswers
+                    );
+
+                    $givenAnswers = array_values(array_unique(
+                        array_filter(
+                            $givenAnswers,
+                            fn ($value) => $value !== ''
+                        )
+                    ));
+
+                    $expectedAnswers = array_values(array_unique(
+                        array_filter(
+                            $expectedAnswers,
+                            fn ($value) => $value !== ''
+                        )
+                    ));
+
+                    sort($givenAnswers);
+                    sort($expectedAnswers);
+
+                    $isCorrect = !empty($expectedAnswers)
+                        && $givenAnswers === $expectedAnswers;
+                } else {
+                    $givenAnswer = $normalizeAnswer($answer);
+
+                    $acceptedAnswers = array_map(
+                        $normalizeAnswer,
+                        $correctAnswers
+                    );
+
+                    // Support existing multiple-choice answer keys.
+                    if (
+                        $questionType === 'multiple_choice'
+                        && $legacyCorrectAnswer !== ''
+                    ) {
+                        $acceptedAnswers[] = $legacyCorrectAnswer;
+                    }
+
+                    $acceptedAnswers = array_values(array_unique(
+                        array_filter(
+                            $acceptedAnswers,
+                            fn ($value) => $value !== ''
+                        )
+                    ));
+
+                    $isCorrect = $givenAnswer !== ''
+                        && in_array(
+                            $givenAnswer,
+                            $acceptedAnswers,
+                            true
+                        );
+                }
+
+                if ($isCorrect) {
+                    $score++;
+                }
+            }
+
+            $percentage = $total > 0
+                ? (int) round(($score / $total) * 100)
+                : 0;
+
+            // A timed-out submission always fails.
+            $currentAttemptStatus = (
+                !$timedOut
+                && $percentage >= (int) $quiz->passing_score
+            )
+                ? 'passed'
+                : 'failed';
+
+            $newAttemptsUsed = $attemptsUsed + 1;
+            $attemptNumber = $newAttemptsUsed;
+
+            // Record EVERY accepted submission independently.
+            \App\Models\QuizAttemptHistory::create([
+                'quiz_id' => $quiz->id,
+                'user_id' => $userId,
+                'attempt_number' => $attemptNumber,
+                'score' => $score,
+                'total_items' => $total,
+                'percentage' => $percentage,
+                'status' => $currentAttemptStatus,
+                'timed_out' => $timedOut,
+            ]);
+
+            // Determine whether this submission improves the best score.
+            $isBetterScore = !$bestResult
+                || $percentage > (int) $bestResult->percentage
+                || (
+                    $percentage === (int) $bestResult->percentage
+                    && $score > (int) $bestResult->score
+                );
+
+            if (!$bestResult) {
+                $bestResult = \App\Models\QuizResult::create([
+                    'quiz_id' => $quiz->id,
+                    'user_id' => $userId,
+                    'attempt_number' => $attemptNumber,
+                    'attempts_used' => $newAttemptsUsed,
+                    'score' => $score,
+                    'total_items' => $total,
+                    'percentage' => $percentage,
+                    'status' => $currentAttemptStatus,
+                ]);
+            } else {
+                $bestResult->attempts_used = $newAttemptsUsed;
+
+                if ($isBetterScore) {
+                    $bestResult->attempt_number = $attemptNumber;
+                    $bestResult->score = $score;
+                    $bestResult->total_items = $total;
+                    $bestResult->percentage = $percentage;
+                    $bestResult->status = $currentAttemptStatus;
+                }
+
+                $bestResult->save();
+            }
+
+            // Update enrollment progress using existing quiz results.
+            $progress = 0;
+
+            $enrollment = \App\Models\Enrollment_tbl::where(
+                'user_id',
+                $userId
+            )
+                ->where('course_id', $quiz->course_id)
+                ->first();
+
+            if ($enrollment) {
+                $courseQuizIds = \App\Models\Quiz::where(
+                    'course_id',
+                    $quiz->course_id
+                )->pluck('id');
+
+                $totalQuizzes = $courseQuizIds->count();
+
+                $completedQuizzes = \App\Models\QuizResult::where(
+                    'user_id',
+                    $userId
+                )
+                    ->whereIn('quiz_id', $courseQuizIds)
+                    ->distinct()
+                    ->count('quiz_id');
+
+                $progress = $totalQuizzes > 0
+                    ? (int) round(
+                        ($completedQuizzes / $totalQuizzes) * 100
+                    )
+                    : 0;
+
+                $enrollment->progress = $progress;
+
+                $moduleIds = \App\Models\Module::where(
+                    'course_id',
+                    $quiz->course_id
+                )
+                    ->active()
+                    ->pluck('id');
+
+                $completedModules = \App\Models\ModuleCompletion::where(
+                    'user_id',
+                    $userId
+                )
+                    ->whereIn('module_id', $moduleIds)
+                    ->count();
+
+                $allModulesCompleted = $moduleIds->count() > 0
+                    && $completedModules >= $moduleIds->count();
+
+                $postTest = \App\Models\Quiz::where(
+                    'course_id',
+                    $quiz->course_id
+                )
+                    ->where('quiz_type', 'post_test')
+                    ->first();
+
+                $postTestPassed = $postTest
+                    && \App\Models\QuizResult::where(
+                        'user_id',
+                        $userId
+                    )
+                        ->where('quiz_id', $postTest->id)
+                        ->where('status', 'passed')
+                        ->exists();
+
+                $handsOnPassed = \App\Models\HandsOnEvaluation::where(
+                    'user_id',
+                    $userId
+                )
+                    ->where('course_id', $quiz->course_id)
+                    ->where('result', 'passed')
+                    ->exists();
+
+                if (
+                    $allModulesCompleted
+                    && $postTestPassed
+                    && $handsOnPassed
+                ) {
+                    $enrollment->status = 'completed';
+                    $enrollment->completed_at = now();
+                }
+
+                $enrollment->save();
+            }
+
+            $savedStatus = strtolower((string) $bestResult->status);
+
+            $attemptsRemaining = $savedStatus === 'passed'
+                ? 0
+                : max(0, $attemptsAllowed - $newAttemptsUsed);
+
+            $canAttemptAgain = $savedStatus !== 'passed'
+                && $attemptsRemaining > 0;
+
+            return [
+                'success' => true,
+
+                // Best result saved in quiz_results.
+                'score' => (int) $bestResult->score,
+                'total' => (int) $bestResult->total_items,
+                'percentage' => (int) $bestResult->percentage,
+                'status' => $bestResult->status,
+
+                'passing' => (int) $quiz->passing_score,
+                'progress' => $progress,
+
+                'attempt_number' => $attemptNumber,
+                'attempts_used' => $newAttemptsUsed,
+                'attempts_allowed' => $attemptsAllowed,
+                'attempts_remaining' => $attemptsRemaining,
+                'can_attempt_again' => $canAttemptAgain,
+
+                // Result of the submission just made.
+                'current_attempt_score' => $score,
+                'current_attempt_total' => $total,
+                'current_attempt_percentage' => $percentage,
+                'current_attempt_status' => $currentAttemptStatus,
+                'timed_out' => $timedOut,
+                'saved_as_best' => $isBetterScore,
+            ];
+        }
+    );
+
+    if (isset($submission['error'])) {
+        $httpCode = $submission['http_code'] ?? 409;
+        unset($submission['http_code']);
+
+        return response()->json($submission, $httpCode);
+    }
+
+    return response()->json($submission);
+}
+
+
 
 
 public function trainerStudents()
 {
     $trainer = Auth::user();
 
-    // Kunin ang course na naka-assign sa trainer
+    // Get the course assigned to this trainer.
     $course = Course_tbl::where('trainer_id', $trainer->id)->first();
 
-    // Kung walang course, i-return agad ng empty
+    // Default values when no course is assigned.
     if (!$course) {
         return view('trainer.students', [
-            'course'   => null,
-            'students' => collect(),
+            'course'           => null,
+            'students'         => collect(),
+            'quizzes'          => collect(),
+            'onsiteActivities' => collect(),
+            'handsOnEvaluations' => collect(),
+            'metrics' => [
+                'total_students'   => 0,
+                'quiz_attempts'    => 0,
+                'onsite_grades'    => 0,
+                'class_average'    => null,
+            ],
         ]);
     }
 
-    // Kunin lahat ng students enrolled sa course ng trainer
-    // via enrollment_tbls JOIN user_tbls
-    $students = User_tbl::join('enrollment_tbls', 'user_tbls.id', '=', 'enrollment_tbls.user_id')
+    /*
+    |--------------------------------------------------------------------------
+    | 1. Get enrolled students
+    |--------------------------------------------------------------------------
+    */
+
+    $students = User_tbl::join(
+        'enrollment_tbls',
+        'user_tbls.id',
+        '=',
+        'enrollment_tbls.user_id'
+    )
         ->where('enrollment_tbls.course_id', $course->id)
-        ->where('user_tbls.role', 'student')   // i-adjust kung iba ang role name mo
-        ->select(
-            'user_tbls.id',
-            'user_tbls.firstname',
-            'user_tbls.lastname',
-            'user_tbls.email',
-            'enrollment_tbls.status',
-            'enrollment_tbls.progress',
-            'enrollment_tbls.enrolled_at',
-        )
-        ->orderBy('enrollment_tbls.enrolled_at', 'desc')
-        ->get();
-
-    $handsOnEvaluations = HandsOnEvaluation::where('course_id', $course->id)
-    ->get()
-    ->keyBy('user_id');
-
-    return view('trainer.students', compact(
-    'course',
-    'students',
-    'handsOnEvaluations'
-    ));
-    }
-
-    public function attendance()
-{
-    $trainer = Auth::user();
-    $course = Course_tbl::where('trainer_id', $trainer->id)->first();
-
-    if (!$course) {
-        return view('trainer.attendance', [
-            'course'   => null,
-            'students' => collect(),
-            'today'    => now()->format('l, F j, Y'),
-        ]);
-    }
-    $inSessionToday = app(\App\Services\CourseScheduleService::class)->isInSessionToday($course);
-
-    $today = now()->toDateString();
-
-    // Everyone actively enrolled in the trainer's course
-    $students = User_tbl::join('enrollment_tbls', 'user_tbls.id', '=', 'enrollment_tbls.user_id')
-        ->where('enrollment_tbls.course_id', $course->id)
-        ->where('enrollment_tbls.status', 'active')
+        ->where('user_tbls.role', 'student')
         ->select(
             'user_tbls.id as user_id',
             'user_tbls.firstname',
             'user_tbls.lastname',
-            'enrollment_tbls.id as enrollment_id'
+            'user_tbls.email',
+            'enrollment_tbls.id as enrollment_id',
+            'enrollment_tbls.status',
+            'enrollment_tbls.progress',
+            'enrollment_tbls.enrolled_at'
         )
-        ->orderBy('user_tbls.lastname')
+        ->orderByDesc('enrollment_tbls.enrolled_at')
         ->get();
 
-    // Today's attendance, if the trainer already submitted (or auto-fill ran)
-    $existing = \App\Models\Attendance::where('date', $today)
-        ->whereIn('enrollment_id', $students->pluck('enrollment_id'))
-        ->pluck('status', 'enrollment_id');
+    $studentIds = $students->pluck('user_id')->unique()->values();
 
-    return view('trainer.attendance', [
-        'course'   => $course,
-        'students' => $students,
-        'existing' => $existing,
-        'today'    => now()->format('l, F j, Y'),
-        'inSessionToday' => $inSessionToday,
+    $enrollmentIds = $students->pluck('enrollment_id')
+        ->unique()
+        ->values();
+
+    /*
+    |--------------------------------------------------------------------------
+    | 2. Get quizzes for this course
+    |--------------------------------------------------------------------------
+    */
+
+    $quizzes = \Illuminate\Support\Facades\DB::table('quizzes')
+        ->where('course_id', $course->id)
+        ->orderBy('id')
+        ->get()
+        ->values()
+        ->map(function ($quiz, $index) {
+            $quiz->quiz_number = $index + 1;
+
+            return $quiz;
+        });
+
+    $quizIds = $quizzes->pluck('id');
+
+    /*
+    |--------------------------------------------------------------------------
+    | 3. Get recorded quiz results
+    |--------------------------------------------------------------------------
+    */
+
+    $quizResults = collect();
+
+    if ($studentIds->isNotEmpty() && $quizIds->isNotEmpty()) {
+        $quizResults = \Illuminate\Support\Facades\DB::table('quiz_results as qr')
+            ->join('quizzes as q', 'q.id', '=', 'qr.quiz_id')
+            ->whereIn('qr.user_id', $studentIds)
+            ->whereIn('qr.quiz_id', $quizIds)
+            ->select(
+                'qr.id',
+                'qr.user_id',
+                'qr.quiz_id',
+                'qr.score',
+                'qr.total_items',
+                'qr.percentage',
+                'qr.status',
+                'qr.created_at',
+                'q.title as quiz_title'
+            )
+            ->orderByDesc('qr.created_at')
+            ->get()
+            ->groupBy('user_id');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 4. Get onsite activities for this course
+    |--------------------------------------------------------------------------
+    */
+
+    $onsiteActivities = \Illuminate\Support\Facades\DB::table('onsite_activities')
+        ->where('course_id', $course->id)
+        ->orderByDesc('activity_date')
+        ->get();
+
+    $activityIds = $onsiteActivities->pluck('id');
+
+    /*
+    |--------------------------------------------------------------------------
+    | 5. Get onsite grades
+    |--------------------------------------------------------------------------
+    |
+    | Match grades by user_id AND enrollment_id so records remain associated
+    | with the correct trainee enrollment.
+    */
+
+    $onsiteGrades = collect();
+
+    if (
+        $studentIds->isNotEmpty()
+        && $enrollmentIds->isNotEmpty()
+        && $activityIds->isNotEmpty()
+    ) {
+        $onsiteGrades = \Illuminate\Support\Facades\DB::table('onsite_grades as og')
+            ->join(
+                'onsite_activities as oa',
+                'oa.id',
+                '=',
+                'og.onsite_activity_id'
+            )
+            ->where('oa.course_id', $course->id)
+            ->whereIn('og.user_id', $studentIds)
+            ->whereIn('og.enrollment_id', $enrollmentIds)
+            ->whereIn('og.onsite_activity_id', $activityIds)
+            ->select(
+                'og.id',
+                'og.user_id',
+                'og.enrollment_id',
+                'og.onsite_activity_id',
+                'og.score',
+                'og.remarks',
+                'og.graded_by',
+                'og.created_at',
+                'oa.title as activity_title',
+                'oa.max_score',
+                'oa.activity_date'
+            )
+            ->orderByDesc('oa.activity_date')
+            ->get()
+            ->groupBy('user_id');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 6. Attach performance records and calculate per-student averages
+    |--------------------------------------------------------------------------
+    */
+
+    foreach ($students as $student) {
+        $studentQuizResults = $quizResults->get(
+            $student->user_id,
+            collect()
+        );
+
+        $studentOnsiteGrades = $onsiteGrades->get(
+            $student->user_id,
+            collect()
+        )->where('enrollment_id', $student->enrollment_id)->values();
+
+        $quizPercentages = $studentQuizResults
+            ->map(function ($result) {
+                if (
+                    $result->percentage !== null
+                    && is_numeric($result->percentage)
+                ) {
+                    return (float) $result->percentage;
+                }
+
+                if (
+                    is_numeric($result->score)
+                    && is_numeric($result->total_items)
+                    && (float) $result->total_items > 0
+                ) {
+                    return (
+                        (float) $result->score
+                        / (float) $result->total_items
+                    ) * 100;
+                }
+
+                return null;
+            })
+            ->filter(fn ($percentage) => $percentage !== null);
+
+        $onsitePercentages = $studentOnsiteGrades
+            ->map(function ($grade) {
+                if (
+                    !is_numeric($grade->score)
+                    || !is_numeric($grade->max_score)
+                    || (float) $grade->max_score <= 0
+                ) {
+                    return null;
+                }
+
+                return (
+                    (float) $grade->score
+                    / (float) $grade->max_score
+                ) * 100;
+            })
+            ->filter(fn ($percentage) => $percentage !== null);
+
+        $student->quiz_results = $studentQuizResults->values();
+        $student->onsite_grades = $studentOnsiteGrades;
+
+        $student->quiz_average = $quizPercentages->isNotEmpty()
+            ? round($quizPercentages->avg(), 2)
+            : null;
+
+        $student->onsite_average = $onsitePercentages->isNotEmpty()
+            ? round($onsitePercentages->avg(), 2)
+            : null;
+
+        // Preserve the existing enrollment progress value.
+        $student->progress = min(
+            100,
+            max(0, (float) ($student->progress ?? 0))
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 7. Dashboard metrics
+    |--------------------------------------------------------------------------
+    */
+
+    $allQuizPercentages = $quizResults
+        ->flatten(1)
+        ->map(function ($result) {
+            if (
+                $result->percentage !== null
+                && is_numeric($result->percentage)
+            ) {
+                return (float) $result->percentage;
+            }
+
+            if (
+                is_numeric($result->score)
+                && is_numeric($result->total_items)
+                && (float) $result->total_items > 0
+            ) {
+                return (
+                    (float) $result->score
+                    / (float) $result->total_items
+                ) * 100;
+            }
+
+            return null;
+        })
+        ->filter(fn ($percentage) => $percentage !== null);
+
+    $allOnsitePercentages = $onsiteGrades
+        ->flatten(1)
+        ->map(function ($grade) {
+            if (
+                !is_numeric($grade->score)
+                || !is_numeric($grade->max_score)
+                || (float) $grade->max_score <= 0
+            ) {
+                return null;
+            }
+
+            return (
+                (float) $grade->score
+                / (float) $grade->max_score
+            ) * 100;
+        })
+        ->filter(fn ($percentage) => $percentage !== null);
+
+    $allAssessmentPercentages = $allQuizPercentages
+        ->concat($allOnsitePercentages);
+
+    $metrics = [
+        'total_students' => $students->count(),
+
+        // Counts recorded submissions, not unique quizzes.
+        'quiz_attempts' => $quizResults->flatten(1)->count(),
+
+        'onsite_grades' => $onsiteGrades->flatten(1)->count(),
+
+        'class_average' => $allAssessmentPercentages->isNotEmpty()
+            ? round($allAssessmentPercentages->avg(), 2)
+            : null,
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | 8. Return the Students view
+    |--------------------------------------------------------------------------
+    */
+
+    return view('trainer.students', [
+        'course'             => $course,
+        'students'           => $students,
+        'quizzes'            => $quizzes,
+        'onsiteActivities'   => $onsiteActivities,
+        'handsOnEvaluations' => collect(),
+        'metrics'            => $metrics,
     ]);
 }
 
@@ -2012,19 +3777,39 @@ public function storeAttendance(Request $request)
 }
 
     public function trainerSchedule()
-    {
-        $trainer = Auth::user();
-        $course = Course_tbl::where('trainer_id', $trainer->id)->first();
-        $totalStudents = $course
-            ? \App\Models\Enrollment_tbl::where('course_id', $course->id)->count()
-            : 0;
+{
+    // Get the currently logged-in trainer
+    $trainer = Auth::user();
 
-        $deadlines = $course
-            ? $course->deadlines()->orderBy('due_date', 'asc')->get()
-            : collect();
+    // Retrieve the trainer's assigned course and its related database records
+    $course = $trainer
+        ? Course_tbl::with([
+            'facility',
+            'deadlines' => function ($query) {
+                $query->orderBy('due_date', 'asc');
+            },
+        ])
+        ->where('trainer_id', $trainer->id)
+        ->first()
+        : null;
 
-        return view('trainer.schedule', compact('course', 'totalStudents', 'deadlines'));
-    }
+    // Count actual enrollment records for the assigned course
+    $totalStudents = $course
+        ? \App\Models\Enrollment_tbl::where('course_id', $course->id)->count()
+        : 0;
+
+    // Retrieve the course deadlines in chronological order
+    $deadlines = $course
+        ? $course->deadlines
+        : collect();
+
+    // Send database records to the existing Blade view
+    return view('trainer.schedule', compact(
+        'course',
+        'totalStudents',
+        'deadlines'
+    ));
+}
 
     public function storeTrainer(Request $request)
 {
@@ -2319,76 +4104,481 @@ private function validateAnnouncement(Request $request): array
         'is_active'  => 'required|boolean',
         'publish_at' => 'nullable|date',
         'expires_at' => 'nullable|date|after_or_equal:publish_at',
-    ]);
+    ]); 
 }
 
-    public function studentModules(Request $request)
-    {
-        $userId = Auth::id();
     
-        // Lahat ng enrollments ng student
-        $enrollments = \App\Models\Enrollment_tbl::with('course')
-                        ->where('user_id', $userId)
-                        ->get();
-    
-        // Piliin ang course — mula sa ?course_id= o default sa active/first
-        $selectedId  = $request->get('course_id');
-        $enrollment  = $selectedId
-            ? $enrollments->firstWhere('course_id', $selectedId)
-            : $enrollments->where('status', 'active')->first() ?? $enrollments->first();
-    
-            if ($enrollment) {
-            $modules = \App\Models\Module::where('course_id', $enrollment->course_id)
-                        ->active()
-                        ->ordered()
-                        ->get();
 
-            $unitNumbers = $modules->pluck('unit_number')->unique()->sort()->values();
 
-            $completedModuleIds = \App\Models\ModuleCompletion::where('user_id', $userId)
-                                    ->whereIn('module_id', $modules->pluck('id'))
-                                    ->pluck('module_id')
-                                    ->toArray();
 
-            $quizzes = \App\Models\Quiz::where('course_id', $enrollment->course_id)->get();
 
-            $postTest = $quizzes->firstWhere('quiz_type', 'post_test');
+public function studentModules(Request $request)
+{
+    $userId = Auth::id();
 
-            $quizResults = \App\Models\QuizResult::where('user_id', $userId)
-                ->whereIn('quiz_id', $quizzes->pluck('id'))
-                ->get();
+    // Get only courses this student is enrolled in.
+    $enrollments = \App\Models\Enrollment_tbl::with('course')
+        ->where('user_id', $userId)
+        ->get();
 
-            $handsOnEvaluation = \App\Models\HandsOnEvaluation::where('user_id', $userId)
-            ->where('course_id', $enrollment->course_id)
-            ->first();
+    // Read the selected course ID from the URL.
+    $selectedId = $request->query('course_id');
 
-            $certificate = \App\Models\Certificate::where('user_id', $userId)
-            ->where('course_id', $enrollment->course_id)
-            ->first();
+    // Select the requested enrollment, or fall back to the active/first enrollment.
+    if ($selectedId !== null && $selectedId !== '') {
+        $enrollment = $enrollments->first(function ($item) use ($selectedId) {
+            return (string) $item->course_id === (string) $selectedId;
+        });
 
-            } else {
-                $modules             = collect();
-                $unitNumbers         = collect();
-                $completedModuleIds  = [];
-                $quizzes             = collect();
-                $quizResults         = collect();
-                $handsOnEvaluation   = null;
-                $certificate         = null;
-            }
-    
-        return view('student.modules', compact(
-            'enrollments',
-            'enrollment',
-            'modules',
-            'unitNumbers',
-            'completedModuleIds',
-            'quizzes',
-            'quizResults',
-            'postTest',
-            'handsOnEvaluation',
-            'certificate'
-        ));
+        if (!$enrollment) {
+            abort(404, 'Course not found or you are not enrolled in this course.');
+        }
+    } else {
+        $enrollment = $enrollments->first(function ($item) {
+            return strtolower((string) $item->status) === 'active';
+        }) ?? $enrollments->first();
     }
+
+    // Initialize variables.
+    $modules = collect();
+    $unitNumbers = collect();
+    $completedModuleIds = [];
+    $quizzes = collect();
+
+    // Best/current summary result rows from quiz_results.
+    $quizResults = collect();
+    $latestQuizResults = collect();
+
+    // Individual submission history from quiz_attempt_histories.
+    $allQuizAttemptHistories = collect();
+
+    $onsiteGrades = collect();
+
+    $quizAverage = null;
+    $onsiteAverage = null;
+    $overallProgress = 0;
+
+    $postTest = null;
+    $handsOnEvaluation = null;
+    $certificate = null;
+
+    if ($enrollment) {
+        $courseId = $enrollment->course_id;
+
+        /*
+        |--------------------------------------------------------------------------
+        | ONSITE GRADES
+        |--------------------------------------------------------------------------
+        */
+
+        $onsiteGrades = \Illuminate\Support\Facades\DB::table('onsite_grades')
+            ->join(
+                'onsite_activities',
+                'onsite_grades.onsite_activity_id',
+                '=',
+                'onsite_activities.id'
+            )
+            ->where('onsite_grades.user_id', $userId)
+            ->where('onsite_grades.enrollment_id', $enrollment->id)
+            ->where('onsite_activities.course_id', $courseId)
+            ->select(
+                'onsite_grades.id',
+                'onsite_grades.user_id',
+                'onsite_grades.enrollment_id',
+                'onsite_grades.onsite_activity_id',
+                'onsite_grades.score',
+                'onsite_grades.remarks',
+                'onsite_activities.title as activity_title',
+                'onsite_activities.activity_date',
+                'onsite_activities.max_score'
+            )
+            ->orderByDesc('onsite_activities.activity_date')
+            ->orderByDesc('onsite_activities.id')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | MODULES
+        |--------------------------------------------------------------------------
+        */
+
+        $modules = \App\Models\Module::where('course_id', $courseId)
+            ->active()
+            ->ordered()
+            ->get();
+
+        $moduleIds = $modules->pluck('id');
+
+        $unitNumbers = $modules
+            ->pluck('unit_number')
+            ->filter(function ($number) {
+                return $number !== null;
+            })
+            ->unique()
+            ->sort()
+            ->values();
+
+        $completedModuleIds = \App\Models\ModuleCompletion::where(
+            'user_id',
+            $userId
+        )
+            ->whereIn('module_id', $moduleIds)
+            ->pluck('module_id')
+            ->toArray();
+
+        /*
+        |--------------------------------------------------------------------------
+        | COURSE QUIZZES
+        |--------------------------------------------------------------------------
+        */
+
+        $quizzes = \App\Models\Quiz::where('course_id', $courseId)
+            ->orderBy('id')
+            ->get();
+
+        $quizIds = $quizzes->pluck('id');
+
+        $postTest = $quizzes->first(function ($quiz) {
+            return strtolower((string) $quiz->quiz_type) === 'post_test';
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | QUIZ RESULTS SUMMARY
+        |--------------------------------------------------------------------------
+        | quiz_results stores one summary/best-result row per student and quiz.
+        | Do not treat this table as the source of every submission.
+        */
+
+        $quizResults = \App\Models\QuizResult::where('user_id', $userId)
+            ->whereIn('quiz_id', $quizIds)
+            ->orderBy('quiz_id')
+            ->orderByDesc('id')
+            ->get();
+
+        // One summary result per quiz for progress calculations.
+        $latestQuizResults = $quizResults
+            ->groupBy('quiz_id')
+            ->map(function ($results) {
+                return $results->first();
+            })
+            ->values();
+
+        /*
+        |--------------------------------------------------------------------------
+        | INDIVIDUAL QUIZ ATTEMPT HISTORY
+        |--------------------------------------------------------------------------
+        | This is the collection the Blade should use to display Attempt 1,
+        | Attempt 2, and any additional recorded submissions.
+        */
+
+        $allQuizAttemptHistories = \App\Models\QuizAttemptHistory::where(
+            'user_id',
+            $userId
+        )
+            ->whereIn('quiz_id', $quizIds)
+            ->orderBy('quiz_id')
+            ->orderBy('attempt_number')
+            ->orderBy('id')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | HANDS-ON EVALUATION
+        |--------------------------------------------------------------------------
+        */
+
+        $handsOnEvaluation = \App\Models\HandsOnEvaluation::where(
+            'user_id',
+            $userId
+        )
+            ->where('course_id', $courseId)
+            ->first();
+
+        /*
+        |--------------------------------------------------------------------------
+        | CERTIFICATE
+        |--------------------------------------------------------------------------
+        */
+
+        $certificate = \App\Models\Certificate::where('user_id', $userId)
+            ->where('course_id', $courseId)
+            ->whereIn('status', ['Released', 'Claimed'])
+            ->whereRaw(
+                'LOWER(TRIM(COALESCE(remarks, ""))) = ?',
+                ['competent']
+            )
+            ->first();
+
+        /*
+        |--------------------------------------------------------------------------
+        | QUIZ AVERAGE
+        |--------------------------------------------------------------------------
+        | Use the saved summary result for each quiz, not every retake.
+        */
+
+        $quizPercentages = $latestQuizResults
+            ->map(function ($result) {
+                $percentage = data_get($result, 'percentage');
+
+                if (is_numeric($percentage)) {
+                    return max(0, min(100, (float) $percentage));
+                }
+
+                $score = data_get($result, 'score');
+                $totalScore = data_get($result, 'total_score')
+                    ?? data_get($result, 'total_items');
+
+                if (
+                    is_numeric($score) &&
+                    is_numeric($totalScore) &&
+                    (float) $totalScore > 0
+                ) {
+                    return max(
+                        0,
+                        min(
+                            100,
+                            ((float) $score / (float) $totalScore) * 100
+                        )
+                    );
+                }
+
+                return null;
+            })
+            ->filter(function ($percentage) {
+                return $percentage !== null;
+            })
+            ->values();
+
+        $quizAverage = $quizPercentages->isNotEmpty()
+            ? $quizPercentages->avg()
+            : null;
+
+        /*
+        |--------------------------------------------------------------------------
+        | ONSITE ACTIVITY AVERAGE
+        |--------------------------------------------------------------------------
+        */
+
+        $onsitePercentages = $onsiteGrades
+            ->map(function ($grade) {
+                $score = $grade->score;
+                $maxScore = $grade->max_score;
+
+                if (
+                    !is_numeric($score) ||
+                    !is_numeric($maxScore) ||
+                    (float) $maxScore <= 0
+                ) {
+                    return null;
+                }
+
+                return max(
+                    0,
+                    min(100, ((float) $score / (float) $maxScore) * 100)
+                );
+            })
+            ->filter(function ($percentage) {
+                return $percentage !== null;
+            })
+            ->values();
+
+        $onsiteAverage = $onsitePercentages->isNotEmpty()
+            ? $onsitePercentages->avg()
+            : null;
+
+        /*
+        |--------------------------------------------------------------------------
+        | OVERALL PROGRESS
+        |--------------------------------------------------------------------------
+        | Average the available quiz and onsite category averages.
+        | A category without scores is not counted as zero.
+        */
+
+        $availableAverages = collect([
+            $quizAverage,
+            $onsiteAverage,
+        ])->filter(function ($average) {
+            return $average !== null;
+        });
+
+        $overallProgress = $availableAverages->isNotEmpty()
+            ? (int) round($availableAverages->avg())
+            : 0;
+
+        $overallProgress = max(0, min(100, $overallProgress));
+    }
+
+    return view('student.modules', compact(
+        'enrollments',
+        'enrollment',
+        'modules',
+        'unitNumbers',
+        'completedModuleIds',
+        'quizzes',
+        'quizResults',
+        'latestQuizResults',
+        'allQuizAttemptHistories',
+        'postTest',
+        'handsOnEvaluation',
+        'certificate',
+        'onsiteGrades',
+        'quizAverage',
+        'onsiteAverage',
+        'overallProgress'
+    ));
+}
+
+
+public function studentGrades()
+{
+    $userId = \Illuminate\Support\Facades\Auth::id();
+
+    // Courses the student is enrolled in.
+    $courseIds = \Illuminate\Support\Facades\DB::table('enrollment_tbls')
+        ->where('user_id', $userId)
+        ->pluck('course_id')
+        ->unique()
+        ->values();
+
+    // Initialize defaults.
+    $quizScores = collect();
+    $onsiteScores = collect();
+
+    $quizAverage = null;
+    $onsiteAverage = null;
+    $overallAverage = null;
+    $overallStatus = 'Pending Assessment';
+
+    /*
+    |--------------------------------------------------------------------------
+    | QUIZ RESULTS
+    |--------------------------------------------------------------------------
+    */
+    if (
+        $courseIds->isNotEmpty()
+        && \Illuminate\Support\Facades\Schema::hasTable('quizzes')
+        && \Illuminate\Support\Facades\Schema::hasTable('quiz_results')
+    ) {
+        $quizScores = \Illuminate\Support\Facades\DB::table('quiz_results as qr')
+            ->join('quizzes as q', 'q.id', '=', 'qr.quiz_id')
+            ->join('course_tbls as c', 'c.id', '=', 'q.course_id')
+            ->where('qr.user_id', $userId)
+            ->whereIn('q.course_id', $courseIds)
+            ->select(
+                'qr.id',
+                'qr.quiz_id',
+                'qr.score',
+                'qr.total_items',
+                'qr.percentage',
+                'qr.status',
+                'qr.created_at',
+                'q.title as quiz_title',
+                'c.id as course_id',
+                'c.title as course_title'
+            )
+            ->orderBy('c.title')
+            ->orderBy('q.title')
+            ->orderByDesc('qr.created_at')
+            ->orderByDesc('qr.id')
+            ->get();
+
+        $percentages = $quizScores
+            ->pluck('percentage')
+            ->filter(fn ($value) => $value !== null);
+
+        if ($percentages->isNotEmpty()) {
+            $quizAverage = round($percentages->avg(), 2);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ONSITE ACTIVITY SCORES
+    |--------------------------------------------------------------------------
+    | Ungraded activities remain visible but are excluded from the average.
+    */
+    if (
+        $courseIds->isNotEmpty()
+        && \Illuminate\Support\Facades\Schema::hasTable('onsite_activities')
+        && \Illuminate\Support\Facades\Schema::hasTable('onsite_grades')
+    ) {
+        $onsiteScores = \Illuminate\Support\Facades\DB::table('enrollment_tbls as e')
+            ->join('course_tbls as c', 'c.id', '=', 'e.course_id')
+            ->join(
+                'onsite_activities as oa',
+                'oa.course_id',
+                '=',
+                'e.course_id'
+            )
+            ->leftJoin('onsite_grades as og', function ($join) use ($userId) {
+                $join->on('og.onsite_activity_id', '=', 'oa.id')
+                    ->on('og.enrollment_id', '=', 'e.id')
+                    ->where('og.user_id', '=', $userId);
+            })
+            ->where('e.user_id', $userId)
+            ->select(
+                'e.id as enrollment_id',
+                'c.id as course_id',
+                'c.title as course_title',
+                'oa.id as activity_id',
+                'oa.title as activity_title',
+                'oa.activity_date',
+                'oa.max_score',
+                'og.id as grade_id',
+                'og.score',
+                'og.remarks'
+            )
+            ->orderBy('c.title')
+            ->orderByDesc('oa.activity_date')
+            ->orderByDesc('oa.id')
+            ->get();
+
+        $onsitePercentages = $onsiteScores
+            ->filter(function ($activity) {
+                return $activity->grade_id !== null
+                    && $activity->score !== null
+                    && (float) $activity->max_score > 0;
+            })
+            ->map(function ($activity) {
+                return (
+                    (float) $activity->score
+                    / (float) $activity->max_score
+                ) * 100;
+            });
+
+        if ($onsitePercentages->isNotEmpty()) {
+            $onsiteAverage = round($onsitePercentages->avg(), 2);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | OVERALL ASSESSMENT
+    |--------------------------------------------------------------------------
+    */
+    if ($quizAverage !== null && $onsiteAverage !== null) {
+        $overallAverage = round(
+            ($quizAverage + $onsiteAverage) / 2,
+            2
+        );
+
+        $overallStatus = $overallAverage >= 75
+            ? 'Competent'
+            : 'Not Yet Competent';
+    }
+
+    return view('student.grades', compact(
+        'quizScores',
+        'onsiteScores',
+        'quizAverage',
+        'onsiteAverage',
+        'overallAverage',
+        'overallStatus'
+    ));
+}
+
+
     
     public function updateCourseDescription(Request $request, $id)
     {

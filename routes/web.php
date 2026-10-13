@@ -74,7 +74,6 @@ Route::middleware("admin")->group(function () {
     // Courses & Trainers Assignment
     Route::post('/admin/course/store', [UserController::class, 'storeCourse']);
     Route::put('/admin/course/{courseId}', [UserController::class, 'updateCourse'])->name('admin.course.update');
-    Route::put('/admin/course/{id}', [UserController::class, 'updateCourse']);
     Route::delete('/admin/course/{id}', [UserController::class, 'destroy']);
     Route::get('/admin/course/{courseId}/content', [UserController::class, 'getCourseContent'])->name('admin.course.content');
     Route::post('/admin/course/{courseId}/assign-trainer', [UserController::class, 'assignTrainer'])->name('admin.course.assignTrainer');
@@ -115,7 +114,16 @@ Route::middleware("admin")->group(function () {
     Route::post('/admin/certificate/store', [CertificateController::class, 'store'])->name('admin.certificate.store');
     Route::delete('/admin/certificate/{id}', [CertificateController::class, 'destroy'])->name('admin.certificate.destroy');
     Route::patch('/admin/certificate/{id}/toggle-status', [CertificateController::class, 'toggleStatus'])->name('admin.certificate.toggle-status');
+    Route::patch(
+    '/admin/certificate/{id}/release',
+    [CertificateController::class, 'release']
+)->name('admin.certificate.release');
 });
+
+Route::get(
+    '/admin/module/file/{id}/{filename?}',
+    [UserController::class, 'viewModuleFile']
+)->name('admin.module.file');
 
 // ── TRAINER ROUTES ────────────────────────────────────────────────────────────
     Route::middleware("trainer")->group(function () {
@@ -147,6 +155,11 @@ Route::middleware("admin")->group(function () {
     Route::post("/trainer/quiz-question", [UserController::class, "storeQuizQuestion"])->name("trainer.quiz.question.store");
     Route::match(['POST', 'DELETE'], "/trainer/quiz-question/{id}", [UserController::class, "destroyQuizQuestion"])->name("trainer.quiz.question.destroy");
     Route::post("/trainer/course/{id}/description", [UserController::class, "updateCourseDescription"])->name("trainer.course.description");
+
+    Route::get('/trainer/attendance', [
+    \App\Http\Controllers\TrainerController::class,
+    'attendance'
+])->middleware('trainer')->name('trainer.attendance');
 });
 
 // ── STUDENT ROUTES ────────────────────────────────────────────────────────────
@@ -165,16 +178,139 @@ Route::middleware("student")->group(function () {
     Route::post("/student/profile/update", [UserController::class, "studentProfileUpdate"])->name("student.profile.update");
     Route::post("/student/profile/password", [UserController::class, "studentProfilePassword"])->name("student.profile.password");
     Route::get("/student/modules", [UserController::class, "studentModules"])->name("student.modules");
+    Route::get('/student/grades', [UserController::class, 'studentGrades'])
+    ->name('student.grades');
     Route::get('/student/announcements', function () {
-    $announcements = DB::table('announcements')
-        ->orderByRaw("FIELD(type, 'urgent', 'notice', 'reminder')")
-        ->latest('created_at')
+    $studentId = auth()->id();
+
+    // Get courses enrolled in by the current student.
+    $courseIds = DB::table('enrollment_tbls')
+        ->where('user_id', $studentId)
+        ->whereIn('status', ['active', 'completed'])
+        ->pluck('course_id');
+
+    // Fetch announcements posted by trainers for those courses.
+    $announcements = DB::table('trainer_announcements as ta')
+        ->join('course_tbls as c', 'c.id', '=', 'ta.course_id')
+        ->join('user_tbls as u', 'u.id', '=', 'ta.trainer_id')
+        ->whereIn('ta.course_id', $courseIds)
+        ->where('ta.target_audience', 'all_students')
+        ->select(
+            'ta.id',
+            'ta.course_id',
+            'ta.content',
+            'ta.target_audience',
+            'ta.created_at',
+            'c.title as course_title',
+            'u.firstname as trainer_firstname',
+            'u.lastname as trainer_lastname'
+        )
+        ->orderByDesc('ta.created_at')
         ->get();
 
     return view('student.announcements', compact('announcements'));
 })->name('student.announcements');
+
+Route::post('/student/announcements/{announcementId}/comments', function (
+    \Illuminate\Http\Request $request,
+    $announcementId
+) {
+    $validated = $request->validate([
+        'comment' => ['required', 'string', 'max:2000'],
+    ]);
+
+    $studentId = auth()->id()
+        ?? session('student_id')
+        ?? session('user_id')
+        ?? session('id');
+
+    if (!$studentId) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Your student session was not recognized. Please log in again.',
+        ], 401);
+    }
+
+    $student = \Illuminate\Support\Facades\DB::table('user_tbls')
+        ->where('id', $studentId)
+        ->first();
+
+    if (!$student) {
+        return response()->json([
+            'success' => false,
+            'message' => 'The current student account could not be found.',
+        ], 401);
+    }
+
+    $announcement = \Illuminate\Support\Facades\DB::table('trainer_announcements')
+        ->where('id', $announcementId)
+        ->first();
+
+    if (!$announcement) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Announcement not found.',
+        ], 404);
+    }
+
+    $isEnrolled = \Illuminate\Support\Facades\DB::table('enrollment_tbls')
+        ->where('user_id', $studentId)
+        ->where('course_id', $announcement->course_id)
+        ->exists();
+
+    if (!$isEnrolled) {
+        return response()->json([
+            'success' => false,
+            'message' => 'You must be enrolled in this course to comment.',
+        ], 403);
+    }
+
+    $commentText = trim(strip_tags($validated['comment']));
+
+    if ($commentText === '') {
+        return response()->json([
+            'success' => false,
+            'message' => 'Please enter a valid comment.',
+        ], 422);
+    }
+
+    $now = now();
+
+    $commentId = \Illuminate\Support\Facades\DB::table('announcement_comments')
+        ->insertGetId([
+            'announcement_id' => $announcement->id,
+            'user_id' => $studentId,
+            'comment' => $commentText,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+    $firstName = trim($student->firstname ?? '');
+    $lastName = trim($student->lastname ?? '');
+    $authorName = trim($firstName . ' ' . $lastName) ?: 'Student';
+
+    $nameParts = preg_split('/\s+/', $authorName, -1, PREG_SPLIT_NO_EMPTY);
+    $initials = collect($nameParts)
+        ->take(2)
+        ->map(fn ($part) => mb_substr($part, 0, 1))
+        ->implode('');
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Comment saved successfully.',
+        'comment_id' => $commentId,
+        'comment' => $commentText,
+        'author_name' => $authorName,
+        'initials' => $initials ?: 'S',
+        'time' => $now->format('g:i A'),
+    ], 201);
+})->name('student.announcements.comments.store');
     Route::post("/student/module/{id}/complete", [UserController::class, "markModuleDone"])->name("student.module.complete");
 });
+
+Route::get('/student/certificates', [CertificateController::class, 'studentIndex'])
+    ->name('student.certificates');
+
 
 Route::post('/trainer/course/{course}/appearance', [TrainerController::class, 'updateAppearance'])
     ->name('trainer.course.appearance')
@@ -223,4 +359,5 @@ Route::put("/trainer/quiz/{id}", [UserController::class, "updateQuiz"])
     // Grade encoding
     Route::get('/onsite-activities/{activity}/grades', [OnsiteGradeController::class, 'getGrades'])->name('onsite-activities.grades');
     Route::post('/onsite-grades/store', [OnsiteGradeController::class, 'storeGrades'])->name('onsite-grades.store');
+
 });

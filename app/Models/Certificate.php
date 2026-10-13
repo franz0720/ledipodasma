@@ -25,13 +25,11 @@ class Certificate extends Model
 
     public function user()
     {
-        // Matches App\Models\User_tbl (or UserTbl depending on your file name)
         return $this->belongsTo(User_tbl::class, 'user_id');
     }
 
     public function course()
     {
-        // Matches App\Models\Course_tbl (or CourseTbl depending on your file name)
         return $this->belongsTo(Course_tbl::class, 'course_id');
     }
 }
