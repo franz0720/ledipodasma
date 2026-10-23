@@ -12,8 +12,6 @@ class QuizQuestion extends Model
     protected $fillable = [
         'quiz_id',
         'question',
-
-        // New quiz builder fields
         'question_type',
         'options',
         'correct_answers',
@@ -21,7 +19,7 @@ class QuizQuestion extends Model
         'feedback',
         'required',
 
-        // Existing fields - kept for old quizzes
+        // Legacy fields for existing quizzes
         'choice_a',
         'choice_b',
         'choice_c',
@@ -32,13 +30,16 @@ class QuizQuestion extends Model
     ];
 
     protected $casts = [
-        'options' => 'array',
+        'quiz_id'        => 'integer',
+        'options'        => 'array',
         'correct_answers' => 'array',
-        'required' => 'boolean',
+        'points'         => 'integer',
+        'required'       => 'boolean',
+        'order'          => 'integer',
     ];
 
     public function quiz()
     {
-        return $this->belongsTo(Quiz::class);
+        return $this->belongsTo(Quiz::class, 'quiz_id');
     }
 }

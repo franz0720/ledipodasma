@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Course_tbl;
+use App\Models\AnnouncementComment;
+use App\Models\User_tbl;
 
 class TrainerAnnouncement extends Model
 {
@@ -20,11 +23,22 @@ class TrainerAnnouncement extends Model
     ];
 
     /**
+     * Relationship to the Course
+     */
+    public function course()
+    {
+        return $this->belongsTo(Course_tbl::class, 'course_id');
+    }
+
+    /**
      * Relationship to Announcement Comments
      */
     public function comments()
     {
-        return $this->hasMany(AnnouncementComment::class, 'announcement_id')->oldest();
+        return $this->hasMany(
+            AnnouncementComment::class,
+            'announcement_id'
+        )->oldest();
     }
 
     /**

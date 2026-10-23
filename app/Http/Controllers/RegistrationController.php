@@ -25,27 +25,7 @@ class RegistrationController extends Controller
      */
     public function showStep1()
     {
-        if (
-            Auth::check() &&
-            Registration::where('user_id', Auth::id())->exists() &&
-            !request()->boolean('another')
-        ) {
-            return redirect()
-                ->route('homepage')
-                ->with('info', 'You have already submitted your registration.');
-        }
-
-        if (request()->boolean('another') && Auth::check()) {
-        $previousRegistration = Registration::where('user_id', Auth::id())
-            ->latest('id')
-            ->first();
-
-        $step1 = $previousRegistration
-            ? $previousRegistration->toArray()
-            : [];
-        } else {
-            $step1 = Session::get('reg_step1', []);
-        }
+        $step1 = Session::get('reg_step1', []);
 
         return view('registrationform1', ['step1' => $step1]);
     }
@@ -101,10 +81,7 @@ class RegistrationController extends Controller
         // only the stored path (already captured above) should be kept.
         unset($validated['id_picture']);
 
-        Session::put('reg_step1', array_merge(
-        Session::get('reg_step1', []),
-        $validated
-    ));
+        Session::put('reg_step1', $validated);
 
         return redirect()->route('registration.step2.show');
     }
@@ -112,28 +89,16 @@ class RegistrationController extends Controller
     /**
      * GET /register/step-2 — show step 2, but only if step 1 was completed.
      */
+    public function showStep2()
+    {
+        if (! Session::has('reg_step1')) {
+            return redirect()
+                ->route('registration.step1')
+                ->with('error', 'Please complete page 1 first.');
+        }
 
-public function showStep2()
-{
-    if (! Session::has('reg_step1')) {
-        return redirect()
-            ->route('registration.step1')
-            ->with('error', 'Please complete page 1 first.');
+        return view('registrationform2');
     }
-
-    $previousRegistration = null;
-
-    if (Auth::check()) {
-        $previousRegistration = Registration::where('user_id', Auth::id())
-            ->latest('id')
-            ->first();
-    }
-
-    return view('registrationform2', [
-        'previousRegistration' => $previousRegistration,
-    ]);
-}
-
 
     /**
      * POST /register/submit — validate step 2, merge with step 1, save to DB.
@@ -206,7 +171,7 @@ public function showStep2()
         Session::forget('reg_step1');
 
         return redirect()
-            ->route('handle')
+            ->route('registration.step1')
             ->with('success', "Registration submitted! Reference #{$registration->id}.");
     }
 
@@ -309,6 +274,30 @@ public function showStep2()
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.registrations_pdf', compact('registration'))
             ->setPaper('a4', 'portrait');
 
-        return $pdf->download('registration_' . $registration->id . '.pdf');
+        // Filename format: first_middle_last_course_reg_form.pdf
+        $learnerName = collect([
+            $registration->first_name,
+            $registration->middle_name,
+            $registration->last_name,
+        ])->filter(fn ($part) => filled($part))->implode(' ');
+
+        $courseName = $registration->course_name ?: 'Course';
+
+        $filename = \Illuminate\Support\Str::slug(
+            $learnerName . ' ' . $courseName . ' reg form',
+            '_'
+        ) . '.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Export all registrations to a printable, paginated PDF view.
+     */
+    public function exportAllPdf()
+    {
+        $registrations = Registration::orderBy('id')->get();
+
+        return view('admin.registrations-pdf', compact('registrations'));
     }
 }

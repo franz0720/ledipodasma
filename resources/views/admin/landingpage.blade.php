@@ -297,24 +297,23 @@
         <i class="fa fa-building nav-icon"></i><span>Facilities</span>
       </a>
 
+      <a href="{{ route('admin1') }}?view=certificate" class="nav-item">
+        <i class="fa fa-award nav-icon"></i><span>Certificate</span>
+      </a>
+
       <div class="sidebar-section-label">System</div>
 
       <a href="{{ route('admin1') }}?view=announcements" class="nav-item">
         <i class="fa fa-bell nav-icon"></i><span>Announcements</span>
       </a>
 
-      <a href="{{ route('admin.landingpage') }}" class="nav-item active">
-        <i class="fa fa-layer-group nav-icon"></i><span>Landing Page</span>
-      </a>
-
-      <a href="{{ route('admin1') }}?view=analytics" class="nav-item">
-        <i class="fa fa-chart-line nav-icon"></i><span>Reports</span>
-      </a>
       <a href="{{ route('admin1') }}?view=settings" class="nav-item">
         <i class="fa fa-gear nav-icon"></i><span>Settings</span>
       </a>
-      <a href="{{ route('admin1') }}?view=certificate" class="nav-item">
-        <i class="fa fa-award nav-icon"></i><span>Certificate</span>
+      
+
+      <a href="{{ route('admin.landingpage') }}" class="nav-item active">
+        <i class="fa fa-layer-group nav-icon"></i><span>Landing Page</span>
       </a>
     </aside>
 

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\TrainerAnnouncement; // Added
+use App\Models\TrainerAnnouncement;
 
 class Course_tbl extends Model
 {
@@ -14,43 +14,44 @@ class Course_tbl extends Model
 
     protected $fillable = [
         'course_code',
+        'training_id',
         'title',
         'description',
         'objectives',
         'sector',
         'duration',
         'schedule',
+        'start_date',
+        'end_date',
+        'start_time',
+        'end_time',
+        'training_days',
         'location',
         'thumbnail',
-        'banner_image', // Added for the banner feature
+        'banner_image',
         'slots',
         'status',
         'trainer_id',
         'facility_id',
         'syllabus_title',
-    'syllabus_content',
-    'syllabus_path',
+        'syllabus_content',
+        'syllabus_path',
     ];
 
-    /**
-     * Type casting for attributes.
-     */
     protected $casts = [
         'slots' => 'integer',
         'duration' => 'integer',
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'training_days' => 'array',
     ];
 
-    /**
-     * Virtual attributes automatically included in array/JSON serialization.
-     */
     protected $appends = [
         'enrolled_count',
         'available_slots',
     ];
 
-    /* ==========================================================
-     * RELATIONSHIPS
-     * ========================================================== */
+    // RELATIONSHIPS
 
     public function trainer()
     {
@@ -67,66 +68,50 @@ class Course_tbl extends Model
         return $this->hasMany(Enrollment_tbl::class, 'course_id');
     }
 
-    /**
-     * Relationship to Enrolled Students (used by TrainerController)
-     */
     public function students()
     {
-        return $this->belongsToMany(User_tbl::class, 'enrollment_tbls', 'course_id', 'user_id')
-            ->withPivot('status')
-            ->withTimestamps();
+        return $this->belongsToMany(
+            User_tbl::class,
+            'enrollment_tbls',
+            'course_id',
+            'user_id'
+        )
+        ->withPivot('status')
+        ->withTimestamps();
     }
 
-    /**
-     * Relationship to Course Modules
-     */
     public function modules()
     {
         return $this->hasMany(Module::class, 'course_id');
     }
 
-    /**
-     * Relationship to Course Quizzes
-     */
     public function quizzes()
     {
         return $this->hasMany(Quiz::class, 'course_id');
     }
 
-    /**
-     * Relationship to Course Deadlines
-     */
     public function deadlines()
     {
         return $this->hasMany(Deadline_tbl::class, 'course_id');
     }
 
-    /**
-     * Relationship to Trainer Announcements (Ordered newest first)
-     */
     public function trainerAnnouncements()
     {
-        return $this->hasMany(TrainerAnnouncement::class, 'course_id')->latest();
+        return $this->hasMany(
+            TrainerAnnouncement::class,
+            'course_id'
+        )->latest();
     }
 
-    /**
-     * Alias for announcements
-     */
     public function announcements()
     {
         return $this->trainerAnnouncements();
     }
 
-    /* ==========================================================
-     * ACCESSORS & VIRTUAL ATTRIBUTES
-     * ========================================================== */
+    // ACCESSORS
 
-    /**
-     * Get total enrolled count.
-     */
     public function getEnrolledCountAttribute(): int
     {
-        // Avoid executing a query if count/relation is already eager loaded
         if (isset($this->attributes['enrollments_count'])) {
             return (int) $this->attributes['enrollments_count'];
         }
@@ -138,11 +123,11 @@ class Course_tbl extends Model
         return $this->enrollments()->count();
     }
 
-    /**
-     * Calculate remaining available slots.
-     */
     public function getAvailableSlotsAttribute(): int
     {
-        return max(0, (int) $this->slots - $this->enrolled_count);
+        return max(
+            0,
+            (int) $this->slots - $this->enrolled_count
+        );
     }
 }

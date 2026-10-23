@@ -1,16 +1,19 @@
 {
   "plugins": ["@shufo/prettier-plugin-blade"],
-  "overrides": [
-    {
-      "files": ["*.blade.php"],
-      "options": {
-        "parser": "blade"
-      }
-    }
-  ],
   "semi": true,
   "trailingComma": "es5",
   "singleQuote": true,
   "printWidth": 80,
-  "tabWidth": 2
+  "tabWidth": 2,
+  "overrides": [
+    {
+      "files": ["*.blade.php"],
+      "options": {
+        "parser": "blade",
+        "bladeWrapAttributes": "auto",
+        "wrapAttributesMinAttrs": 2,
+        "sortTailwindcssClasses": true
+      }
+    }
+  ]
 }

@@ -6,7 +6,15 @@ use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\OnsiteGradeController;
+use App\Http\Middleware\SuperAdminMiddleware;
 use App\Http\Controllers\SuperAdminController;
+use App\Http\Controllers\FacilityResourceController;
+use App\Http\Controllers\DatabaseBackupController;
+use App\Http\Controllers\TraineeNotificationController;
+use App\Http\Controllers\TrainerNotificationController;
+use App\Http\Controllers\AdminNotificationController;
+
+
 
 // ── PUBLIC ROUTES (walang login needed) ──────────────────────────────────────
 Route::get('/', [UserController::class, 'index'])->name('index');
@@ -48,6 +56,18 @@ Route::get("/first-reset", [UserController::class, "firstResetPage"])->name("fir
 Route::post("/first-reset", [UserController::class, "firstResetSave"])->name("first.reset.save")->middleware("auth");
 
 // ── REGISTRATION (public — TESDA Learner's Profile Form) ──────────────────────
+
+Route::get('/admin/registrations/export/pdf', [
+    RegistrationController::class,
+    'exportAllPdf'
+])->name('admin.registrations.export.pdf');
+
+// Database Backup
+Route::post(
+    '/admin/database-backup',
+    [DatabaseBackupController::class, 'download']
+)->name('superadmin.database-backup');
+
 Route::get('/registration/step1', [RegistrationController::class, 'showStep1'])->name('registration.step1');
 Route::post('/registration/step1', [RegistrationController::class, 'saveStep1'])->name('registration.step1.save');
 Route::post('/registration/step-2', [RegistrationController::class, 'saveStep1']);
@@ -74,8 +94,11 @@ Route::middleware("admin")->group(function () {
 
     // Courses & Trainers Assignment
     Route::post('/admin/course/store', [UserController::class, 'storeCourse']);
+    Route::post(
+    '/admin/course/{course}/duplicate',
+    [\App\Http\Controllers\UserController::class, 'duplicateCourse']
+)->name('admin.course.duplicate');
     Route::put('/admin/course/{courseId}', [UserController::class, 'updateCourse'])->name('admin.course.update');
-    Route::put('/admin/course/{id}', [UserController::class, 'updateCourse']);
     Route::delete('/admin/course/{id}', [UserController::class, 'destroy']);
     Route::get('/admin/course/{courseId}/content', [UserController::class, 'getCourseContent'])->name('admin.course.content');
     Route::post('/admin/course/{courseId}/assign-trainer', [UserController::class, 'assignTrainer'])->name('admin.course.assignTrainer');
@@ -84,6 +107,22 @@ Route::middleware("admin")->group(function () {
     // Facilities
     Route::post('/admin/facility/save', [UserController::class, 'saveFacility'])->name('admin.facility.save');
     Route::post('/admin/facility/delete', [UserController::class, 'deleteFacility']);
+
+    // Facility Learning Resources
+Route::post(
+    '/admin/facilities/{facility}/resources',
+    [FacilityResourceController::class, 'store']
+)->name('admin.facilities.resources.store');
+
+Route::put(
+    '/admin/facilities/{facility}/resources/{resource}',
+    [FacilityResourceController::class, 'update']
+)->name('admin.facilities.resources.update');
+
+Route::delete(
+    '/admin/facilities/{facility}/resources/{resource}',
+    [FacilityResourceController::class, 'destroy']
+)->name('admin.facilities.resources.destroy');
 
     // Modules
     Route::post("/admin/module", [UserController::class, "storeModule"])->name("admin.module.store");
@@ -112,25 +151,36 @@ Route::middleware("admin")->group(function () {
     Route::put('/admin/landingpage/carousel/{id}', [UserController::class, 'updateCarouselSlide'])->name('admin.landingpage.carousel.update');
     Route::delete('/admin/landingpage/carousel/{id}', [UserController::class, 'destroyCarouselSlide'])->name('admin.landingpage.carousel.destroy');
 
+    Route::post('/admin/registrations/import', [
+    \App\Http\Controllers\RegistrationImportController::class,
+    'store'
+])->name('admin.registrations.import');
+
+Route::get('/admin/registrations/import/template', [
+    \App\Http\Controllers\RegistrationImportController::class,
+    'template'
+])->name('admin.registrations.import.template');
+
     // Certificates (Moved inside admin group with correct /admin prefix)
     Route::post('/admin/certificate/store', [CertificateController::class, 'store'])->name('admin.certificate.store');
     Route::delete('/admin/certificate/{id}', [CertificateController::class, 'destroy'])->name('admin.certificate.destroy');
     Route::patch('/admin/certificate/{id}/toggle-status', [CertificateController::class, 'toggleStatus'])->name('admin.certificate.toggle-status');
+    Route::patch(
+    '/admin/certificate/{id}/release',
+    [CertificateController::class, 'release']
+)->name('admin.certificate.release');
 });
 
-// ── SUPERADMIN ROUTES ───────────────────────────────────
+Route::get(
+    '/admin/module/file/{id}/{filename?}',
+    [UserController::class, 'viewModuleFile']
+)->name('admin.module.file');
 
-
-Route::middleware("super_admin")->group(function () {
-
-    Route::get('/superadmin', [SuperAdminController::class, 'adminAccounts'])->name('superadmin.dashboard');
-    Route::post('/superadmin/admin-accounts', [SuperAdminController::class, 'storeAdmin'])->name('superadmin.admin.store');
-    Route::put('/superadmin/admin-accounts/{id}', [SuperAdminController::class, 'updateAdmin'])->name('superadmin.admin.update'); 
-    Route::get('/superadmin/trainer-accounts', [SuperAdminController::class, 'trainerAccounts'])->name('superadmin.trainers');
-    Route::post('/superadmin/trainer-accounts', [SuperAdminController::class, 'storeTrainer'])->name('superadmin.trainers.store');
-
+Route::middleware(['auth'])->prefix('admin')->name('admin.notifications.')->group(function () {
+    Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('index');
+    Route::post('/notifications/{id}/read', [AdminNotificationController::class, 'markRead'])->name('read');
+    Route::post('/notifications/read-all', [AdminNotificationController::class, 'markAllRead'])->name('read-all');
 });
-
 
 // ── TRAINER ROUTES ────────────────────────────────────────────────────────────
     Route::middleware("trainer")->group(function () {
@@ -142,16 +192,31 @@ Route::middleware("super_admin")->group(function () {
     Route::post("/trainer/certificate", [UserController::class, "trainerCertificateUpload"])->name("trainer.certificate.upload");
     Route::get("/reports", [UserController::class, "reports"])->name("reports");
     Route::get("/settings", [UserController::class, "settings"])->name("settings");
-    Route::get("/trainer/students", [UserController::class, "trainerStudents"])->name("trainer.students");
-    Route::post("/trainer/hands-on-evaluation", [UserController::class, "storeHandsOnEvaluation"])->name("trainer.hands-on.store");
     Route::get("/trainer/schedule", [UserController::class, "trainerSchedule"])->name("trainer.schedule");
+    Route::post('/trainer/attendance', [UserController::class, 'storeAttendance'])
+    ->name('trainer.attendance.store');
+    
+Route::get("/trainer/students", [TrainerController::class, "students"])
+    ->name("trainer.students");
+
     Route::get("/trainer/profile", [UserController::class, "trainerProfile"])->name("trainer.profile");
     Route::post("/trainer/profile/update", [UserController::class, "trainerProfileUpdate"])->name("trainer.profile.update");
     Route::post("/trainer/profile/password", [UserController::class, "trainerProfilePassword"])->name("trainer.profile.password");
-    Route::get("/trainer/attendance", [UserController::class, "attendance"])->name("trainer.attendance");
-    Route::post("/trainer/attendance", [UserController::class, "storeAttendance"])->name("trainer.attendance.store");
     Route::get("/trainer/course/{id}/preview", [UserController::class, "trainerCoursePreview"])->name("trainer.course.preview");
     Route::post("/trainer/course/{id}/objectives", [UserController::class, "updateCourseObjectives"])->name("trainer.course.objectives");
+
+    
+    // Trainer Notifications
+    Route::post(
+        '/trainer/notifications/{notification}/read',
+        [TrainerNotificationController::class, 'markRead']
+    )->name('trainer.notifications.read');
+
+    Route::post(
+        '/trainer/notifications/read-all',
+        [TrainerNotificationController::class, 'markAllRead']
+    )->name('trainer.notifications.read-all');
+
 
     // Trainer course content
     Route::get("/trainer/course/{courseId}/content", [UserController::class, "getCourseContent"])->name("trainer.course.content");
@@ -163,6 +228,11 @@ Route::middleware("super_admin")->group(function () {
     Route::post("/trainer/quiz-question", [UserController::class, "storeQuizQuestion"])->name("trainer.quiz.question.store");
     Route::match(['POST', 'DELETE'], "/trainer/quiz-question/{id}", [UserController::class, "destroyQuizQuestion"])->name("trainer.quiz.question.destroy");
     Route::post("/trainer/course/{id}/description", [UserController::class, "updateCourseDescription"])->name("trainer.course.description");
+
+    Route::get('/trainer/attendance', [
+    \App\Http\Controllers\TrainerController::class,
+    'attendance'
+])->middleware('trainer')->name('trainer.attendance');
 });
 
 // ── STUDENT ROUTES ────────────────────────────────────────────────────────────
@@ -182,19 +252,166 @@ Route::middleware("student")->group(function () {
     Route::post("/student/profile/password", [UserController::class, "studentProfilePassword"])->name("student.profile.password");
     Route::get("/student/modules", [UserController::class, "studentModules"])->name("student.modules");
 
+    // Trainee Notifications
+Route::post(
+    '/student/notifications/{announcement}/read',
+    [TraineeNotificationController::class, 'markRead']
+)->middleware('auth')->name('student.notifications.read');
+
+
+// Student Comment Notifications
+
+
+Route::post(
+    '/student/trainer-notifications/{trainerAnnouncement}/read',
+    [TraineeNotificationController::class, 'markTrainerRead']
+)->middleware('auth')->name('student.trainer-notifications.read');
+Route::post(
+    '/student/comment-notifications/{notification}/read',
+    [TraineeNotificationController::class, 'markCommentRead']
+)->name('student.comment-notifications.read');
+
+Route::post(
+    '/student/comment-notifications/{notification}/read',
+    [TraineeNotificationController::class, 'markCommentRead']
+)->middleware('auth')->name('student.comment-notifications.read');
+
+
+    Route::middleware(['web', 'student'])->group(function () {
+    Route::get('/student/grades', [UserController::class, 'studentGrades'])
+        ->name('student.grades');
+});
     Route::get('/student/announcements', function () {
-    $announcements = DB::table('announcements')
-        ->orderByRaw("FIELD(type, 'urgent', 'notice', 'reminder')")
-        ->latest('created_at')
+    $studentId = auth()->id();
+
+    // Get courses enrolled in by the current student.
+    $courseIds = DB::table('enrollment_tbls')
+        ->where('user_id', $studentId)
+        ->whereIn('status', ['active', 'completed'])
+        ->pluck('course_id');
+
+    // Fetch announcements posted by trainers for those courses.
+    $announcements = DB::table('trainer_announcements as ta')
+        ->join('course_tbls as c', 'c.id', '=', 'ta.course_id')
+        ->join('user_tbls as u', 'u.id', '=', 'ta.trainer_id')
+        ->whereIn('ta.course_id', $courseIds)
+        ->where('ta.target_audience', 'all_students')
+        ->select(
+            'ta.id',
+            'ta.course_id',
+            'ta.content',
+            'ta.target_audience',
+            'ta.created_at',
+            'c.title as course_title',
+            'u.firstname as trainer_firstname',
+            'u.lastname as trainer_lastname'
+        )
+        ->orderByDesc('ta.created_at')
         ->get();
 
     return view('student.announcements', compact('announcements'));
 })->name('student.announcements');
 
-    Route::get('/student/announcements', [UserController::class, 'studentAnnouncements'])->name('student.announcements');
+Route::post('/student/announcements/{announcementId}/comments', function (
+    \Illuminate\Http\Request $request,
+    $announcementId
+) {
+    $validated = $request->validate([
+        'comment' => ['required', 'string', 'max:2000'],
+    ]);
 
+    $studentId = auth()->id()
+        ?? session('student_id')
+        ?? session('user_id')
+        ?? session('id');
+
+    if (!$studentId) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Your student session was not recognized. Please log in again.',
+        ], 401);
+    }
+
+    $student = \Illuminate\Support\Facades\DB::table('user_tbls')
+        ->where('id', $studentId)
+        ->first();
+
+    if (!$student) {
+        return response()->json([
+            'success' => false,
+            'message' => 'The current student account could not be found.',
+        ], 401);
+    }
+
+    $announcement = \Illuminate\Support\Facades\DB::table('trainer_announcements')
+        ->where('id', $announcementId)
+        ->first();
+
+    if (!$announcement) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Announcement not found.',
+        ], 404);
+    }
+
+    $isEnrolled = \Illuminate\Support\Facades\DB::table('enrollment_tbls')
+        ->where('user_id', $studentId)
+        ->where('course_id', $announcement->course_id)
+        ->exists();
+
+    if (!$isEnrolled) {
+        return response()->json([
+            'success' => false,
+            'message' => 'You must be enrolled in this course to comment.',
+        ], 403);
+    }
+
+    $commentText = trim(strip_tags($validated['comment']));
+
+    if ($commentText === '') {
+        return response()->json([
+            'success' => false,
+            'message' => 'Please enter a valid comment.',
+        ], 422);
+    }
+
+    $now = now();
+
+    $commentId = \Illuminate\Support\Facades\DB::table('announcement_comments')
+        ->insertGetId([
+            'announcement_id' => $announcement->id,
+            'user_id' => $studentId,
+            'comment' => $commentText,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+    $firstName = trim($student->firstname ?? '');
+    $lastName = trim($student->lastname ?? '');
+    $authorName = trim($firstName . ' ' . $lastName) ?: 'Student';
+
+    $nameParts = preg_split('/\s+/', $authorName, -1, PREG_SPLIT_NO_EMPTY);
+    $initials = collect($nameParts)
+        ->take(2)
+        ->map(fn ($part) => mb_substr($part, 0, 1))
+        ->implode('');
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Comment saved successfully.',
+        'comment_id' => $commentId,
+        'comment' => $commentText,
+        'author_name' => $authorName,
+        'initials' => $initials ?: 'S',
+        'time' => $now->format('g:i A'),
+    ], 201);
+})->name('student.announcements.comments.store');
     Route::post("/student/module/{id}/complete", [UserController::class, "markModuleDone"])->name("student.module.complete");
 });
+
+Route::get('/student/certificates', [CertificateController::class, 'studentIndex'])
+    ->name('student.certificates');
+
 
 Route::post('/trainer/course/{course}/appearance', [TrainerController::class, 'updateAppearance'])
     ->name('trainer.course.appearance')
@@ -243,4 +460,15 @@ Route::put("/trainer/quiz/{id}", [UserController::class, "updateQuiz"])
     // Grade encoding
     Route::get('/onsite-activities/{activity}/grades', [OnsiteGradeController::class, 'getGrades'])->name('onsite-activities.grades');
     Route::post('/onsite-grades/store', [OnsiteGradeController::class, 'storeGrades'])->name('onsite-grades.store');
+
 });
+
+Route::middleware(['auth', \App\Http\Middleware\SuperAdminMiddleware::class])
+    ->prefix('superadmin')
+    ->name('superadmin.')
+    ->group(function () {
+        Route::get('/dashboard', [
+            \App\Http\Controllers\SuperAdminController::class,
+            'dashboard',
+        ])->name('dashboard');
+    });

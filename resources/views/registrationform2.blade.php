@@ -1,14 +1,6 @@
 {{--
 registrationform2.blade.php
 Step 2 of 2 — Learner's Profile Form (TESDA MIS 03-01), continued
-
-Wiring notes (adjust to your app):
-- This view posts to route('registration.submit'). Define that route/controller
-to merge session('reg_step1') with this request's input and persist the full record.
-- "Back" link points to route('registration.step1') so the applicant can revise page 1.
-- Signature is captured via a canvas signature pad (signature_pad.js) and submitted
-as a base64 PNG in the hidden field `signature_data`.
-- Thumbmark is intentionally left as a static placeholder for now — to be wired up later.
 --}}
 <!DOCTYPE html>
 <html lang="en">
@@ -42,9 +34,38 @@ as a base64 PNG in the hidden field `signature_data`.
       padding: 32px 16px 80px;
       }
 
-      .sheet {
+      .form-page-container {
       max-width: 880px;
       margin: 0 auto;
+      }
+
+      .btn {
+     display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #006b35;
+      color: white;
+      border: 1px solid var(--line);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      transition: all 0.2s ease;
+    }
+
+
+    .btn:hover {
+     background: var(--accent-soft);
+      border-color: var(--navy);
+      color: var(--navy-deep);
+      text-decoration: none;
+    }
+
+      .sheet {
+      width: 100%;
       background: #fff;
       border: 1px solid var(--line);
       box-shadow: 0 2px 24px rgba(13, 47, 94, 0.08);
@@ -396,13 +417,12 @@ as a base64 PNG in the hidden field `signature_data`.
       text-align: center;
       }
 
-    .photo-thumb-row {
-        display: flex;
-        gap: 40px;
-        flex-wrap: wrap;
-        margin-top: 16px;
-        align-items: flex-start;
-    }
+      .photo-thumb-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      }
 
       .photo-thumb {
       width: 100px;
@@ -454,27 +474,6 @@ as a base64 PNG in the hidden field `signature_data`.
       gap: 10px;
       }
 
-      .btn {
-      background: var(--navy);
-      color: #fff;
-      border: none;
-      padding: 12px 26px;
-      border-radius: var(--radius);
-      font-family: "Trebuchet MS", sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: .02em;
-      cursor: pointer;
-      transition: background .15s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      }
-
-      .btn:hover {
-      background: var(--navy-deep);
-      }
-
       .btn-outline {
       background: #fff;
       color: var(--navy);
@@ -496,6 +495,12 @@ as a base64 PNG in the hidden field `signature_data`.
   </head>
 
   <body>
+
+  <div class="form-page-container">
+    
+    <div style="margin-bottom: 16px;">
+      <a href="{{ route('registration.step1') }}" class="btn">&larr; Back to Page 1</a>
+    </div>
 
     <form class="sheet" id="learnerForm2" method="POST"
       action="{{ route('registration.submit') }}" enctype="multipart/form-data" novalidate>
@@ -536,55 +541,48 @@ as a base64 PNG in the hidden field `signature_data`.
             <span class="num">4</span>
             <h2>Learner / Trainee / Student (Clients) Classification <span class="optional">(optional)</span></h2>
           </div>
-        @php
-            $previousClassifications = $previousRegistration?->classification ?? [];
-
-            if (is_string($previousClassifications)) {
-                $previousClassifications = json_decode($previousClassifications, true) ?? [];
-            }
-
+          @php
             $classifications = [
-                '4Ps Beneficiary',
-                'Agrarian Reform Beneficiary',
-                'Balik Probinsya',
-                'Displaced Workers',
-                'Drug Dependents Surrenderees/Surrenderers',
-                'Family Members of AFP and PNP Wounded-in-Action',
-                'Family Members of AFP and PNP Killed-in-Action',
-                'Farmers and Fishermen',
-                'Indigenous People & Cultural Communities',
-                'Industry Workers',
-                'Inmates and Detainees',
-                'MILF Beneficiary',
-                'Out-of-School Youth',
-                'Overseas Filipino Workers (OFW) Dependents',
-                'RCEF-RESP',
-                'Rebel Returnees/Decommissioned Combatants',
-                'Returning/Repatriated OFW',
-                'Student',
-                'TESDA Alumni',
-                'TVET Trainers',
-                'Uniformed Personnel',
-                'Victim of Natural Disasters and Calamities',
-                'Wounded-in-Action AFP & PNP Personnel',
+            '4Ps Beneficiary',
+            'Agrarian Reform Beneficiary',
+            'Balik Probinsya',
+            'Displaced Workers',
+            'Drug Dependents Surrenderees/Surrenderers',
+            'Family Members of AFP and PNP Wounded-in-Action',
+            'Family Members of AFP and PNP Killed-in-Action',
+            'Farmers and Fishermen',
+            'Indigenous People & Cultural Communities',
+            'Industry Workers',
+            'Inmates and Detainees',
+            'MILF Beneficiary',
+            'Out-of-School Youth',
+            'Overseas Filipino Workers (OFW) Dependents',
+            'RCEF-RESP',
+            'Rebel Returnees/Decommissioned Combatants',
+            'Returning/Repatriated OFW',
+            'Student',
+            'TESDA Alumni',
+            'TVET Trainers',
+            'Uniformed Personnel',
+            'Victim of Natural Disasters and Calamities',
+            'Wounded-in-Action AFP & PNP Personnel',
             ];
-        @endphp
+          @endphp
           <div class="check-grid">
             @foreach ($classifications as $i => $c)
               <label class="choice">
                 <input type="checkbox" name="classification[]"
                 value="{{ $c }}"
-               @if (in_array($c, old('classification', $previousClassifications))) checked @endif>
+                @if (is_array(old('classification')) && in_array($c, old('classification'))) checked @endif>
                   {{ $c }}
                 </label>
-              @endforeach
+            @endforeach
               <label class="choice">
                 <input type="checkbox" name="classification[]" value="Others"
-                    id="classOthersCheck"
-                    @if (in_array('Others', old('classification', $previousClassifications))) checked @endif>
+                id="classOthersCheck">
                 Others (please specify):
                 <input type="text" name="classification_other" class="inline-input"
-                value="{{ old('classification_other', $previousRegistration?->classification_other ?? '') }}">
+                value="{{ old('classification_other') }}">
               </label>
             </div>
           </div>
@@ -616,7 +614,7 @@ as a base64 PNG in the hidden field `signature_data`.
                   @if (is_array(old('disability_type')) && in_array($d, old('disability_type'))) checked @endif>
                     {{ $d }}
                   </label>
-                @endforeach
+              @endforeach
                 <label class="choice">
                   Multiple Disabilities, specify:
                   <input type="text" name="disability_multiple_specify"
@@ -660,7 +658,7 @@ as a base64 PNG in the hidden field `signature_data`.
                       </div>
                       <div class="row">
                         <div class="field wide"><input type="text" name="course_name"
-                         value="{{ old('course_name', $previousRegistration?->course_name ?? '') }}" required></div>
+                          value="{{ old('course_name') }}" required></div>
                         </div>
                       </div>
 
@@ -674,7 +672,7 @@ as a base64 PNG in the hidden field `signature_data`.
                           <div class="field wide">
                             <label>TWSP, PESFA, STEP, others</label>
                             <input type="text" name="scholarship_package"
-                            value="{{ old('scholarship_package', $previousRegistration?->scholarship_package ?? '') }}">
+                            value="{{ old('scholarship_package') }}">
                           </div>
                         </div>
                       </div>
@@ -752,7 +750,6 @@ as a base64 PNG in the hidden field `signature_data`.
                                       <input type="file" id="idPhoto1x1" name="photo_1x1"
                                       accept="image/*" required>
                                     </label>
-                                    {{-- Thumbmark capture is not yet implemented — placeholder left as-is. --}}
                                     <div class="photo-thumb" style="border-style:solid; cursor:default;">
                                       Right Thumbmark
                                     </div>
@@ -765,99 +762,91 @@ as a base64 PNG in the hidden field `signature_data`.
                                 </div>
                                 <div class="footer-note" style="padding-top:0;">
                                   <div class="btn-row">
-                                    <a href="{{ route('registration.step1') }}"
-                                      class="btn btn-outline">&larr; Back</a>
-                                      <button type="submit" class="btn">Submit Registration</button>
-                                    </div>
+                                    <button type="submit" class="btn">Submit Registration</button>
                                   </div>
+                                </div>
 
-                                </form>
+    </form>
+  </div>
 
-                                <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.7/signature_pad.umd.min.js"></script>
-                                <script>
-                                  // ── 1x1 photo preview ─────────────────────────────────────────────────
-                                  const photoInput = document.getElementById('idPhoto1x1');
-                                  const photoPreview = document.getElementById('photoPreview1x1');
-                                  const photoText = document.getElementById('photoText1x1');
-                                  photoInput.addEventListener('change', (e) => {
-                                  const file = e.target.files[0];
-                                  if (!file) return;
-                                  const reader = new FileReader();
-                                  reader.onload = (ev) => {
-                                  photoPreview.src = ev.target.result;
-                                  photoPreview.style.display = 'block';
-                                  photoText.style.display = 'none';
-                                  };
-                                  reader.readAsDataURL(file);
-                                  });
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.7/signature_pad.umd.min.js"></script>
+  <script>
+    const photoInput = document.getElementById('idPhoto1x1');
+    const photoPreview = document.getElementById('photoPreview1x1');
+    const photoText = document.getElementById('photoText1x1');
+    photoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+    photoPreview.src = ev.target.result;
+    photoPreview.style.display = 'block';
+    photoText.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+    });
 
-                                  // ── Signature pad ────────────────────────────────────────────────────
-                                  const sigCanvas = document.getElementById('signaturePad');
-                                  const signaturePad = new SignaturePad(sigCanvas, {
-                                  backgroundColor: 'rgba(255,255,255,1)',
-                                  penColor: '#1c2420',
-                                  });
-                                  const sigStatus = document.getElementById('sigStatus');
-                                  const sigDataInput = document.getElementById('signatureData');
+    const sigCanvas = document.getElementById('signaturePad');
+    const signaturePad = new SignaturePad(sigCanvas, {
+    backgroundColor: 'rgba(255,255,255,1)',
+    penColor: '#1c2420',
+    });
+    const sigStatus = document.getElementById('sigStatus');
+    const sigDataInput = document.getElementById('signatureData');
 
-                                  // Keep the canvas crisp on high-DPI screens and resize responsively.
-                                  function resizeCanvas() {
-                                  const ratio = Math.max(window.devicePixelRatio || 1, 1);
-                                  const rect = sigCanvas.getBoundingClientRect();
-                                  sigCanvas.width = rect.width * ratio;
-                                  sigCanvas.height = rect.height * ratio;
-                                  sigCanvas.getContext('2d').scale(ratio, ratio);
-                                  signaturePad.clear();
-                                  }
-                                  window.addEventListener('resize', resizeCanvas);
-                                  resizeCanvas();
+    function resizeCanvas() {
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    const rect = sigCanvas.getBoundingClientRect();
+    sigCanvas.width = rect.width * ratio;
+    sigCanvas.height = rect.height * ratio;
+    sigCanvas.getContext('2d').scale(ratio, ratio);
+    signaturePad.clear();
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
-                                  signaturePad.addEventListener('endStroke', () => {
-                                  if (!signaturePad.isEmpty()) {
-                                  sigStatus.textContent = 'Signature captured';
-                                  sigStatus.classList.add('filled');
-                                  }
-                                  });
+    signaturePad.addEventListener('endStroke', () => {
+    if (!signaturePad.isEmpty()) {
+    sigStatus.textContent = 'Signature captured';
+    sigStatus.classList.add('filled');
+    }
+    });
 
-                                  document.getElementById('clearSigBtn').addEventListener('click', () => {
-                                  signaturePad.clear();
-                                  sigStatus.textContent = 'Not signed yet';
-                                  sigStatus.classList.remove('filled');
-                                  sigDataInput.value = '';
-                                  });
+    document.getElementById('clearSigBtn').addEventListener('click', () => {
+    signaturePad.clear();
+    sigStatus.textContent = 'Not signed yet';
+    sigStatus.classList.remove('filled');
+    sigDataInput.value = '';
+    });
 
-                                  // ── Submit: validate required fields + signature, then encode signature ─
-                                  const form = document.getElementById('learnerForm2');
-                                  form.addEventListener('submit', (e) => {
-                                  let blocked = false;
+    const form = document.getElementById('learnerForm2');
+    form.addEventListener('submit', (e) => {
+    let blocked = false;
 
-                                  if (!form.checkValidity()) {
-                                  blocked = true;
-                                  }
+    if (!form.checkValidity()) {
+    blocked = true;
+    }
 
-                                  // The 1x1 photo input is visually hidden (display:none) behind the styled
-                                  // label, so the browser can't show its native validation bubble on it.
-                                  // Check it manually so submission doesn't fail silently.
-                                  if (!photoInput.files || photoInput.files.length === 0) {
-                                  blocked = true;
-                                  alert('Please upload a 1x1 picture before submitting.');
-                                  document.getElementById('idPhoto1x1').closest('.photo-thumb').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                  }
+    if (!photoInput.files || photoInput.files.length === 0) {
+    blocked = true;
+    alert('Please upload a 1x1 picture before submitting.');
+    document.getElementById('idPhoto1x1').closest('.photo-thumb').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 
-                                  if (signaturePad.isEmpty()) {
-                                  blocked = true;
-                                  alert('Please sign in the signature box before submitting.');
-                                  } else {
-                                  sigDataInput.value = signaturePad.toDataURL('image/png');
-                                  }
+    if (signaturePad.isEmpty()) {
+    blocked = true;
+    alert('Please sign in the signature box before submitting.');
+    } else {
+    sigDataInput.value = signaturePad.toDataURL('image/png');
+    }
 
-                                  if (blocked) {
-                                  e.preventDefault();
-                                  form.reportValidity();
-                                  }
-                                  });
-                                </script>
+    if (blocked) {
+    e.preventDefault();
+    form.reportValidity();
+    }
+    });
+  </script>
 
-                              </body>
+</body>
 
-                            </html>
+</html>

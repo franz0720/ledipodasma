@@ -5,7 +5,8 @@
 @section('css')
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <style>
-    [contenteditable="true"]:empty:before {
+    #quizInstructionsEditor[contenteditable="true"]:empty::before,
+    [contenteditable="true"][data-placeholder]:empty::before {
       content: attr(data-placeholder);
       color: #94a3b8;
       cursor: text;
@@ -1022,7 +1023,7 @@
                                     font-size: 11px;
                                     font-weight: 700;
                                 ">
-                        Unit
+                        Competency
                       </span>
 
                       <span
@@ -1030,7 +1031,17 @@
                                     font-size: 11px;
                                     color: #4d7c5a;
                                 ">
-                        {{ $quiz->module->unit_number ?? '—' }}
+                        @php
+    $quizUnitNumber = (int) ($quiz->module->unit_number ?? 0);
+
+    $quizUnitNames = [
+        1 => 'Basic Competencies',
+        2 => 'Common Competencies',
+        3 => 'Core Competencies',
+    ];
+@endphp
+
+{{ $quizUnitNames[$quizUnitNumber] ?? ($quizUnitNumber ? 'Unit ' . $quizUnitNumber : '—') }}
                       </span>
 
                     </div>
@@ -1338,6 +1349,14 @@
           </div>
 
           @php
+            // Display names for each competency group. Keep numeric unit_number values
+            // unchanged because the database and JavaScript use them for linking.
+            $unitNames = [
+                1 => 'Basic Competencies',
+                2 => 'Common Competencies',
+                3 => 'Core Competencies',
+            ];
+
             // Group modules by unit_number and sort unit keys ascending
             $groupedUnits = collect($modules)
                 ->groupBy(function ($mod) {
@@ -1372,6 +1391,9 @@
         {{-- Units & Lessons Accordion List --}}
         <div style="display: flex; flex-direction: column; gap: 20px;">
           @forelse ($groupedUnits as $unitNum => $unitModules)
+            @php
+                $unitTitle = $unitNames[(int) $unitNum] ?? 'Unit ' . $unitNum;
+            @endphp
             <div id="unit-section-{{ $unitNum }}"
               style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
 
@@ -1389,7 +1411,7 @@
                   <div style="display: flex; align-items: center; gap: 10px;">
                     <span
                       style="background: #025628; color: #ffffff; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;">
-                      Unit {{ $unitNum }}
+                      {{ $unitNames[(int) $unitNum] ?? 'Unit ' . $unitNum }}
                     </span>
                     <span
                       style="font-size: 13px; font-weight: 600; color: #475569;">
@@ -1407,7 +1429,7 @@
                     onmouseover="this.style.background='#f0fdf4'; this.style.borderColor='#86efac';"
                     onmouseout="this.style.background='#ffffff'; this.style.borderColor='#bbf7d0';">
                     <i class="fa-solid fa-plus" style="font-size: 10px;"></i>
-                    <span>Add to Unit {{ $unitNum }}</span>
+                    <span>Add to {{ $unitNames[(int) $unitNum] ?? 'Unit ' . $unitNum }}</span>
                   </button>
                 </div>
               </div>
@@ -1504,8 +1526,7 @@
                           style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
                           <span
                             style="font-size: 11px; font-weight: 700; color: #025628; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">
-                            Unit {{ $unitNum }} • Lesson
-                            {{ $lessonNumber }}
+                            {{ $unitTitle }} • Lesson {{ $lessonNumber }}
                           </span>
                         </div>
 
@@ -1775,7 +1796,7 @@
                     <option value="">Select a unit</option>
                     @foreach ($groupedUnits as $unitNum => $unitModules)
                       <option value="{{ $unitNum }}">
-                        Unit {{ $unitNum }}
+                        {{ $unitNames[(int) $unitNum] ?? 'Unit ' . $unitNum }}
                       </option>
                     @endforeach
                   </select>
@@ -1951,17 +1972,26 @@
                   Instructions
                 </label>
 
-                <div id="quizInstructionsEditor" contenteditable="true"
-                  data-placeholder="Add instructions for your trainees..."
-                  style="min-height:72px;
-              outline:none;
-              color:#334155;
-              font-size:13px;
-              line-height:1.55;
-              padding:4px 0;"
-                  onfocus="if(this.innerText.trim()==='Add instructions for your trainees...') this.innerHTML='';">
-                  Add instructions for your trainees...
-                </div>
+                <div
+    id="quizInstructionsEditor"
+    contenteditable="true"
+    role="textbox"
+    aria-label="Quiz instructions"
+    aria-multiline="true"
+    data-placeholder="Add instructions for your trainees..."
+    style="min-height:72px;
+           outline:none;
+           color:#334155;
+           font-size:13px;
+           line-height:1.55;
+           padding:4px 0;">
+</div>
+
+<input
+    type="hidden"
+    id="quizInstructionsHidden"
+    name="instructions"
+    value="">
 
                 {{-- Formatting Toolbar --}}
                 <div
@@ -2414,20 +2444,24 @@
           <div
             style="padding: 22px 24px; display: flex; flex-direction: column; gap: 16px;">
             <div>
-              <label for="moduleUnitInput"
-                style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">
-                Unit / Chapter Number <span style="color: #e11d48;">*</span>
-              </label>
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <span
-                  style="font-size: 13px; font-weight: 600; color: #64748b;">Unit</span>
-                <input type="number" id="moduleUnitInput" min="1"
-                  value="1" required
-                  style="width: 80px; box-sizing: border-box; font-size: 13.5px; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; outline: none;">
-                <span style="font-size: 12px; color: #94a3b8;">(Groups lessons
-                  into Units for trainees)</span>
-              </div>
-            </div>
+    <label for="moduleUnitInput"
+        style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">
+        Competency Category <span style="color: #e11d48;">*</span>
+    </label>
+
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <select id="moduleUnitInput" required
+            style="min-width: 240px; box-sizing: border-box; font-size: 13.5px; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; outline: none; background: #fff;">
+            <option value="1">Basic Competencies</option>
+            <option value="2">Common Competencies</option>
+            <option value="3">Core Competencies</option>
+        </select>
+
+        <span style="font-size: 12px; color: #94a3b8;">
+            Select the category for this lesson.
+        </span>
+    </div>
+</div>
 
             <div>
               <label for="moduleTitleInput"
@@ -3198,567 +3232,573 @@
 
     const quizLessonOptions = @json($quizLessonOptions);
 
-    function openAddQuizModal() {
+    
+function openAddQuizModal() {
+    // Reset edit state
+    window.editingQuizId = null;
 
-      // Reset edit state
-      window.editingQuizId = null;
+    // Reset quiz questions
+    quizQuestions = [newQuestion('multiple_choice')];
+    answerKeyOpen = null;
 
-      // Reset quiz questions
-      quizQuestions = [newQuestion('multiple_choice')];
-      answerKeyOpen = null;
+    // Reset title
+    const titleInput = document.getElementById('quizTitleInput');
 
-      // Reset title
-      const titleInput = document.getElementById('quizTitleInput');
-      if (titleInput) {
+    if (titleInput) {
         titleInput.value = '';
-      }
+    }
 
-      // Reset placement
-      const unitInput = document.getElementById('quizUnitInput');
-      if (unitInput) {
+    // Reset instructions editor
+    // Keep it empty so the CSS placeholder appears
+    
+const instructionsEditor = document.getElementById('quizInstructionsEditor');
+const instructionsTextarea = document.getElementById('quizInstructionsInput');
+
+let instructions = '';
+
+if (instructionsEditor) {
+    instructions = (
+        instructionsEditor.innerText ||
+        instructionsEditor.textContent ||
+        ''
+    ).replace(/\u00a0/g, ' ').trim();
+}
+
+// Use the textarea only when the rich-text editor is empty.
+if (!instructions && instructionsTextarea) {
+    instructions = instructionsTextarea.value.trim();
+}
+
+// Ignore placeholder text.
+if (instructions === 'Add instructions for your trainees...') {
+    instructions = '';
+}
+
+console.log('Instructions editor text:', instructionsEditor?.innerText);
+console.log('Instructions textarea value:', instructionsTextarea?.value);
+console.log('Final instructions being saved:', instructions);
+
+
+    // Reset unit selection
+    const unitInput = document.getElementById('quizUnitInput');
+
+    if (unitInput) {
         unitInput.value = '';
-      }
+    }
 
-      const lessonInput = document.getElementById('quizLessonInput');
+    // Reset lesson selection
+    const lessonInput = document.getElementById('quizLessonInput');
 
-      if (lessonInput) {
+    if (lessonInput) {
         lessonInput.innerHTML =
-          '<option value="">Select a unit first</option>';
+            '<option value="">Select a unit first</option>';
 
         lessonInput.disabled = true;
         lessonInput.value = '';
-      }
+    }
 
-      const placementHint =
-        document.getElementById('quizPlacementHint');
+    // Reset placement hint
+    const placementHint = document.getElementById('quizPlacementHint');
 
-      if (placementHint) {
+    if (placementHint) {
         placementHint.textContent =
-          'Choose the Unit and Lesson where this quiz should appear.';
-      }
+            'Choose the Unit and Lesson where this quiz should appear.';
+    }
 
-      // RESET QUIZ SETTINGS
-      const passingScoreInput =
+    // Reset quiz settings
+    const passingScoreInput =
         document.getElementById('quizPassingScore');
 
-      const timeLimitInput =
+    const timeLimitInput =
         document.getElementById('quizTimeLimit');
 
-      if (passingScoreInput) {
+    if (passingScoreInput) {
         passingScoreInput.value = '';
-      }
+    }
 
-      if (timeLimitInput) {
+    if (timeLimitInput) {
         timeLimitInput.value = '';
-      }
+    }
 
-      // Reset instructions
-      const instructionsEditor =
-        document.getElementById('quizInstructionsEditor');
+    // Reset modal title
+    const modalTitle = document.getElementById('quizModalTitle');
 
-      if (instructionsEditor) {
-        instructionsEditor.innerHTML =
-          'Add instructions for your trainees...';
-      }
-
-      // Modal title
-      const modalTitle =
-        document.getElementById('quizModalTitle');
-
-      if (modalTitle) {
+    if (modalTitle) {
         modalTitle.textContent = 'Create Quiz';
-      }
+    }
 
-      // Save button
-      const saveBtn =
-        document.getElementById('saveQuizBtn');
+    // Reset save button
+    const saveBtn = document.getElementById('saveQuizBtn');
 
-      if (saveBtn) {
+    if (saveBtn) {
         saveBtn.disabled = false;
 
         saveBtn.innerHTML =
-          '<i class="fa-solid fa-check"></i>' +
-          '<span>Create Quiz</span>';
-      }
-
-      // Show modal
-      document.getElementById('addQuizModal').style.display = 'flex';
-
-      // Scroll to top
-      const scrollArea =
-        document.querySelector('#addQuizForm > div');
-
-      if (scrollArea) {
-        scrollArea.scrollTop = 0;
-      }
-
-      renderQuizQuestions();
-
-      setTimeout(() => {
-        titleInput?.focus();
-      }, 50);
+            '<i class="fa-solid fa-check"></i>' +
+            '<span>Create Quiz</span>';
     }
 
-    function openEditQuizModal(quizId) {
+    // Show modal
+    const modal = document.getElementById('addQuizModal');
 
-      if (!quizId) {
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+
+    // Scroll form to the top
+    const scrollArea = document.querySelector('#addQuizForm > div');
+
+    if (scrollArea) {
+        scrollArea.scrollTop = 0;
+    }
+
+    // Render the initial question
+    renderQuizQuestions();
+
+    // Focus the title input
+    setTimeout(() => {
+        titleInput?.focus();
+    }, 50);
+}
+
+
+    
+async function openEditQuizModal(quizId) {
+    if (!quizId) {
         showAlert('Invalid quiz ID.');
         return;
-      }
+    }
 
-      const modal = document.getElementById('addQuizModal');
+    const modal = document.getElementById('addQuizModal');
+    const container = document.getElementById('quizQuestionsContainer');
+    const saveBtn = document.getElementById('saveQuizBtn');
 
-      if (!modal) {
+    if (!modal || !container) {
         showAlert('Quiz editor could not be found.');
         return;
-      }
+    }
 
-      // =========================================================
-      // OPEN MODAL
-      // =========================================================
+    window.editingQuizId = quizId;
+    modal.style.display = 'flex';
 
-      modal.style.display = 'flex';
-
-      // Store quiz ID globally
-      window.editingQuizId = quizId;
-
-      // Also update hidden input if it exists
-      const quizIdInput = document.getElementById('quizIdInput');
-
-      if (quizIdInput) {
-        quizIdInput.value = quizId;
-      }
-
-      // =========================================================
-      // SHOW LOADING STATE
-      // =========================================================
-
-      const container =
-        document.getElementById('quizQuestionsContainer');
-
-      if (container) {
-
-        container.innerHTML = `
-            <div style="
-                padding:40px 20px;
-                text-align:center;
-                color:#64748b;
-            ">
-                <i class="fa-solid fa-spinner fa-spin"
-                   style="
-                       font-size:24px;
-                       color:#15803d;
-                       margin-bottom:10px;
-                   ">
-                </i>
-
-                <div style="
-                    font-size:13px;
-                    font-weight:600;
-                ">
-                    Loading quiz...
-                </div>
-            </div>
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span>Loading Quiz...</span>
         `;
-      }
+    }
 
-      // =========================================================
-      // FETCH QUIZ
-      // =========================================================
+    container.innerHTML = `
+        <div style="padding:32px;text-align:center;color:#64748b;">
+            <i class="fa-solid fa-spinner fa-spin"
+               style="font-size:24px;color:#15803d;"></i>
+            <p>Loading saved quiz...</p>
+        </div>
+    `;
 
-      fetch(`/trainer/quiz/${quizId}/edit`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        })
+    // Parse JSON values safely.
+    function parseValue(value, fallback = []) {
+        if (value === null || value === undefined || value === '') {
+            return fallback;
+        }
 
-        .then(async response => {
+        if (Array.isArray(value) || typeof value === 'object') {
+            return value;
+        }
 
-          const data = await response.json().catch(() => ({}));
+        if (typeof value === 'string') {
+            try {
+                return JSON.parse(value);
+            } catch (error) {
+                return fallback;
+            }
+        }
 
-          if (!response.ok) {
+        return fallback;
+    }
+
+    
+// Convert an existing answer into its matching option index.
+function resolveAnswerIndex(answer, options) {
+    if (
+        answer === null ||
+        answer === undefined ||
+        answer === ''
+    ) {
+        return -1;
+    }
+
+    const value = String(answer).trim();
+
+    if (!Array.isArray(options) || options.length === 0) {
+        return -1;
+    }
+
+    // 1. Support stored numeric option indexes FIRST.
+    // "0" = first option, "1" = second option, etc.
+    if (/^\d+$/.test(value)) {
+        const index = Number(value);
+
+        if (index >= 0 && index < options.length) {
+            return index;
+        }
+    }
+
+    // 2. Support legacy A, B, C, D answer keys.
+    const letters = {
+        a: 0,
+        b: 1,
+        c: 2,
+        d: 3
+    };
+
+    const lowerValue = value.toLowerCase();
+
+    if (
+        Object.prototype.hasOwnProperty.call(letters, lowerValue) &&
+        letters[lowerValue] < options.length
+    ) {
+        return letters[lowerValue];
+    }
+
+    // 3. Match the answer against the actual option text.
+    const textIndex = options.findIndex(option =>
+        String(option ?? '').trim().toLowerCase() ===
+        value.toLowerCase()
+    );
+
+    if (textIndex !== -1) {
+        return textIndex;
+    }
+
+    return -1;
+}
+
+    try {
+        const response = await fetch(
+            `/trainer/quiz/${encodeURIComponent(quizId)}/edit`,
+            {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            }
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
             throw new Error(
-              data.message || 'Failed to load quiz.'
+                data.message ||
+                `Unable to load quiz. HTTP ${response.status}`
             );
-          }
+        }
 
-          if (!data.success || !data.quiz) {
+        if (data.success === false || !data.quiz) {
             throw new Error(
-              data.message || 'Quiz data was not found.'
+                data.message || 'Quiz data was not found.'
             );
-          }
+        }
 
-          return data.quiz;
-        })
+        const quiz = data.quiz;
 
-        .then(quiz => {
+        console.log('Loaded quiz:', quiz);
 
-          console.log('Loaded quiz:', quiz);
+        // Store the correct quiz ID.
+        window.editingQuizId = quiz.id ?? quizId;
 
-          // =====================================================
-          // STORE EDITING ID
-          // =====================================================
+        if (typeof editingQuizId !== 'undefined') {
+            editingQuizId = window.editingQuizId;
+        }
 
-          window.editingQuizId = quiz.id;
+        const quizIdInput = document.getElementById('quizIdInput');
 
-          if (typeof editingQuizId !== 'undefined') {
-            editingQuizId = quiz.id;
-          }
+        if (quizIdInput) {
+            quizIdInput.value = window.editingQuizId;
+        }
 
-          if (quizIdInput) {
-            quizIdInput.value = quiz.id;
-          }
+        // Restore the modal title.
+        const modalTitle = document.getElementById('quizModalTitle');
 
-          // =====================================================
-          // MODAL TITLE
-          // =====================================================
-
-          const modalTitle =
-            document.getElementById('quizModalTitle');
-
-          if (modalTitle) {
+        if (modalTitle) {
             modalTitle.textContent = 'Edit Quiz';
-          }
+        }
 
-          // =====================================================
-          // SAVE BUTTON
-          // =====================================================
+        // Restore quiz title.
+        const titleInput = document.getElementById('quizTitleInput');
 
-          const saveBtn =
-            document.getElementById('saveQuizBtn');
+        if (titleInput) {
+            titleInput.value = quiz.title ?? '';
+        }
 
-          if (saveBtn) {
-
-            saveBtn.disabled = false;
-
-            saveBtn.innerHTML = `
-                <i class="fa-solid fa-floppy-disk"></i>
-                <span>Save Changes</span>
-            `;
-          }
-
-          // =====================================================
-          // QUIZ TITLE
-          // =====================================================
-
-          const titleInput =
-            document.getElementById('quizTitleInput');
-
-          if (titleInput) {
-            titleInput.value = quiz.title || '';
-          }
-
-          // =====================================================
-          // PASSING SCORE
-          // =====================================================
-
-          const passingScoreInput =
+        // Restore passing score.
+        const passingScoreInput =
             document.getElementById('quizPassingScore');
 
-          if (passingScoreInput) {
+        if (passingScoreInput) {
+            passingScoreInput.value = quiz.passing_score ?? 75;
+        }
 
-            passingScoreInput.value =
-              quiz.passing_score !== null &&
-              quiz.passing_score !== undefined ?
-              quiz.passing_score :
-              75;
-          }
-
-          // =====================================================
-          // TIME LIMIT
-          // =====================================================
-
-          const timeLimitInput =
+        // Restore time limit.
+        const timeLimitInput =
             document.getElementById('quizTimeLimit');
 
-          if (timeLimitInput) {
+        if (timeLimitInput) {
+            timeLimitInput.value = quiz.time_limit ?? 30;
+        }
 
-            timeLimitInput.value =
-              quiz.time_limit !== null &&
-              quiz.time_limit !== undefined ?
-              quiz.time_limit :
-              30;
-          }
-
-          // =====================================================
-          // INSTRUCTIONS
-          // =====================================================
-
-          const instructionsEditor =
+        // Restore instructions / guidelines.
+        const instructionsEditor =
             document.getElementById('quizInstructionsEditor');
 
-          if (instructionsEditor) {
+        if (instructionsEditor) {
+            const savedInstructions =
+                quiz.instructions ??
+                quiz.guidelines ??
+                quiz.instruction ??
+                '';
+
+            const instructionsText = String(savedInstructions);
 
             instructionsEditor.innerHTML =
-              quiz.instructions || '';
-          }
+                instructionsText.trim() ===
+                'Add instructions for your trainees...'
+                    ? ''
+                    : instructionsText;
 
-          // =====================================================
-          // UNIT / LESSON
-          // =====================================================
+            console.log(
+                'Instructions received from Laravel:',
+                savedInstructions
+            );
+        }
 
-          const lessonInput =
-            document.getElementById('quizLessonInput');
+        // Restore unit and lesson.
+        const unitInput = document.getElementById('quizUnitInput');
+        const lessonInput = document.getElementById('quizLessonInput');
 
-          const unitInput =
-            document.getElementById('quizUnitInput');
+        const lessonId = quiz.module_id ?? quiz.module?.id ?? '';
 
-          let selectedUnit = '';
+        let selectedUnit =
+            quiz.module?.unit_number ??
+            quiz.unit_number ??
+            '';
 
-          if (
-            quiz.module &&
-            quiz.module.unit_number !== undefined &&
-            quiz.module.unit_number !== null
-          ) {
+        // If the response does not include the unit, find it
+        // using the existing lesson options when available.
+        if (!selectedUnit && typeof quizLessonOptions !== 'undefined') {
+            const lessonMeta = quizLessonOptions.find(
+                item => String(item.id) === String(lessonId)
+            );
 
-            selectedUnit =
-              quiz.module.unit_number;
-          }
+            selectedUnit = lessonMeta?.unit ?? '';
+        }
 
-          if (
-            !selectedUnit &&
-            quiz.unit_number !== undefined &&
-            quiz.unit_number !== null
-          ) {
+        if (unitInput) {
+            unitInput.value = selectedUnit === null
+                ? ''
+                : String(selectedUnit);
+        }
 
-            selectedUnit =
-              quiz.unit_number;
-          }
-
-          // Set Unit
-          if (unitInput) {
-
-            unitInput.value =
-              selectedUnit || '';
-          }
-
-          // Enable lesson dropdown
-          if (lessonInput) {
-
-            lessonInput.disabled = !selectedUnit;
-          }
-
-          // Populate lessons
-          if (
+        if (
             selectedUnit &&
             typeof populateQuizLessons === 'function'
-          ) {
-
+        ) {
             populateQuizLessons(selectedUnit);
-          }
+        }
 
-          // Select lesson after options have been populated
-          setTimeout(() => {
+        if (lessonInput) {
+            lessonInput.disabled = !selectedUnit;
+        }
 
-            if (
-              lessonInput &&
-              quiz.module_id
-            ) {
+        // Wait for the lesson dropdown to repopulate.
+        await new Promise(resolve => setTimeout(resolve, 200));
 
-              lessonInput.value =
-                quiz.module_id;
+        if (lessonInput && lessonId !== '') {
+            lessonInput.value = String(lessonId);
+        }
+
+        if (typeof quizPlacementChanged === 'function') {
+            quizPlacementChanged();
+        }
+
+        // Restore saved questions.
+        let savedQuestions = parseValue(quiz.questions, []);
+
+        if (!Array.isArray(savedQuestions)) {
+            savedQuestions = [];
+        }
+
+        quizQuestions = savedQuestions.map((question, index) => {
+            const questionType =
+                question.question_type ??
+                question.type ??
+                'multiple_choice';
+
+            // Restore choices from JSON or legacy A-D fields.
+            let options = parseValue(question.options, []);
+
+            if (!Array.isArray(options)) {
+                options = [];
             }
 
             if (
-              typeof quizPlacementChanged === 'function'
+                options.length === 0 &&
+                ['multiple_choice', 'checkboxes'].includes(questionType)
             ) {
-
-              quizPlacementChanged();
-            }
-
-          }, 150);
-
-          // =====================================================
-          // CONVERT QUESTIONS
-          // =====================================================
-
-          quizQuestions =
-            (quiz.questions || []).map(
-              (question, index) => {
-
-                let options = [];
-
-                // -----------------------------------------
-                // NEW JSON OPTIONS
-                // -----------------------------------------
-
-                if (Array.isArray(question.options)) {
-
-                  options =
-                    question.options;
-                }
-
-                // -----------------------------------------
-                // FALLBACK TO OLD A-D FIELDS
-                // -----------------------------------------
-
-                if (!options.length) {
-
-                  options = [
+                options = [
                     question.choice_a,
                     question.choice_b,
                     question.choice_c,
                     question.choice_d
-                  ].filter(option =>
+                ].filter(option =>
                     option !== null &&
                     option !== undefined &&
                     String(option).trim() !== ''
-                  );
-                }
-
-                // -----------------------------------------
-                // CORRECT ANSWERS
-                // -----------------------------------------
-
-                let correctAnswers = [];
-
-                if (
-                  Array.isArray(
-                    question.correct_answers
-                  )
-                ) {
-
-                  correctAnswers =
-                    question.correct_answers.map(
-                      answer => Number(answer)
-                    );
-
-                } else if (
-                  question.correct_answer
-                ) {
-
-                  const oldAnswerMap = {
-                    a: 0,
-                    b: 1,
-                    c: 2,
-                    d: 3
-                  };
-
-                  const oldAnswer =
-                    String(
-                      question.correct_answer
-                    ).toLowerCase();
-
-                  if (
-                    oldAnswerMap[oldAnswer] !== undefined
-                  ) {
-
-                    correctAnswers = [
-                      oldAnswerMap[oldAnswer]
-                    ];
-                  }
-                }
-
-                // -----------------------------------------
-                // RETURN BUILDER FORMAT
-                // -----------------------------------------
-
-                return {
-
-                  id: 'q_' +
-                    Date.now() +
-                    '_' +
-                    index,
-
-                  type: question.question_type ||
-                    'multiple_choice',
-
-                  text: question.question || '',
-
-                  required: Boolean(question.required),
-
-                  points: Number(
-                    question.points || 1
-                  ),
-
-                  options: options,
-
-                  correctAnswers: correctAnswers,
-
-                  feedback: question.feedback || ''
-                };
-              }
-            );
-
-          // =====================================================
-          // IF NO QUESTIONS
-          // =====================================================
-
-          if (!quizQuestions.length) {
-
-            quizQuestions = [
-              newQuestion('multiple_choice')
-            ];
-          }
-
-          // =====================================================
-          // RESET ANSWER KEY
-          // =====================================================
-
-          answerKeyOpen = null;
-
-          // =====================================================
-          // RENDER QUESTIONS
-          // =====================================================
-
-          renderQuizQuestions();
-
-          // =====================================================
-          // SCROLL TO TOP
-          // =====================================================
-
-          const scrollArea =
-            document.querySelector(
-              '#addQuizForm > div'
-            );
-
-          if (scrollArea) {
-
-            scrollArea.scrollTop = 0;
-          }
-
-          // =====================================================
-          // FOCUS TITLE
-          // =====================================================
-
-          setTimeout(() => {
-
-            if (titleInput) {
-
-              titleInput.focus();
-
-              // Put cursor at the end
-              try {
-
-                titleInput.setSelectionRange(
-                  titleInput.value.length,
-                  titleInput.value.length
                 );
-
-              } catch (e) {}
             }
 
-          }, 200);
+            // Ensure the builder receives option strings.
+            options = options.map(option => {
+                if (option && typeof option === 'object') {
+                    return String(
+                        option.text ??
+                        option.label ??
+                        option.value ??
+                        ''
+                    );
+                }
 
-        })
+                return String(option ?? '');
+            });
 
-        .catch(error => {
+            // Read answer keys from supported field names.
+            let savedAnswers =
+                question.correct_answers ??
+                question.correctAnswers ??
+                question.answer_key ??
+                question.answer_keys ??
+                [];
 
-          console.error(
-            'Error loading quiz:',
-            error
-          );
+            savedAnswers = parseValue(savedAnswers, []);
 
-          modal.style.display = 'none';
+            if (!Array.isArray(savedAnswers)) {
+                savedAnswers = [savedAnswers];
+            }
 
-          showAlert(
-            error.message ||
-            'Unable to load quiz.'
-          );
+            // Support legacy single-answer fields.
+            if (
+                savedAnswers.length === 0 &&
+                question.correct_answer !== null &&
+                question.correct_answer !== undefined &&
+                question.correct_answer !== ''
+            ) {
+                savedAnswers = [question.correct_answer];
+            }
+
+            const correctAnswers = [
+                ...new Set(
+                    savedAnswers
+                        .map(answer =>
+                            resolveAnswerIndex(answer, options)
+                        )
+                        .filter(index => index >= 0)
+                )
+            ];
+
+            const questionText =
+                question.question ??
+                question.question_text ??
+                question.text ??
+                '';
+
+            if (
+                ['multiple_choice', 'checkboxes'].includes(questionType) &&
+                savedAnswers.length > 0 &&
+                correctAnswers.length === 0
+            ) {
+                console.warn(
+                    `Could not match the saved answer key for Question ${index + 1}.`,
+                    {
+                        savedAnswers,
+                        options
+                    }
+                );
+            }
+
+            return {
+                id: question.id ?? (
+                    'q_' + Date.now() + '_' + index
+                ),
+                type: questionType,
+                text: questionText,
+                required: question.required ?? true,
+                points: Number(question.points ?? 1),
+                options: options,
+                correctAnswers: correctAnswers,
+                feedback: question.feedback ?? ''
+            };
         });
+
+        // Only create a blank question if the quiz has none.
+        if (quizQuestions.length === 0) {
+            quizQuestions = [
+                newQuestion('multiple_choice')
+            ];
+        }
+
+        answerKeyOpen = null;
+
+        // Render the restored questions.
+        renderQuizQuestions();
+
+        // Scroll the editor to the top.
+        const scrollArea =
+            document.querySelector('#addQuizForm > div');
+
+        if (scrollArea) {
+            scrollArea.scrollTop = 0;
+        }
+
+        // Enable Save only after successful loading.
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = `
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Save Changes</span>
+            `;
+        }
+
+        if (titleInput) {
+            setTimeout(() => titleInput.focus(), 200);
+        }
+
+        console.log('Restored quiz questions:', quizQuestions);
+
+    } catch (error) {
+        console.error('Error loading quiz:', error);
+
+        container.innerHTML = `
+            <div style="padding:24px;text-align:center;color:#b91c1c;">
+                <strong>Unable to load this quiz.</strong>
+                <p>${escapeHtml(
+                    error.message || 'An unexpected error occurred.'
+                )}</p>
+            </div>
+        `;
+
+        if (saveBtn) {
+            saveBtn.disabled = true;
+        }
+
+        showAlert(
+            error.message || 'Unable to load quiz.'
+        );
     }
+}
+
 
 
 
@@ -4185,439 +4225,326 @@
       };
     }
 
-    async function submitTrainerQuiz(event) {
-
-      event.preventDefault();
-
-      const saveBtn =
-        document.getElementById('saveQuizBtn');
-
-      try {
-
-        // ==========================================
-        // FORM ELEMENTS
-        // ==========================================
-
-        const titleInput =
-          document.getElementById('quizTitleInput');
-
-        const instructionsEditor =
-          document.getElementById('quizInstructionsEditor');
-
-        const unitInput =
-          document.getElementById('quizUnitInput');
-
-        const lessonInput =
-          document.getElementById('quizLessonInput');
+    
 
 
-        // ==========================================
-        // BASIC VALUES
-        // ==========================================
+async function submitTrainerQuiz(event) {
+    event?.preventDefault();
 
-        const title =
-          titleInput?.value.trim() || '';
+    const saveBtn = document.getElementById('saveQuizBtn');
+    if (saveBtn?.disabled) return;
+
+    const originalButtonHTML = saveBtn?.innerHTML;
+    const quizId = window.editingQuizId ?? null;
+    const isEditing = quizId !== null && String(quizId).trim() !== '';
+
+    let saved = false;
+
+    try {
+        const titleInput = document.getElementById('quizTitleInput');
+        const instructionsEditor = document.getElementById('quizInstructionsEditor');
+        const unitInput = document.getElementById('quizUnitInput');
+        const lessonInput = document.getElementById('quizLessonInput');
+
+        const title = String(titleInput?.value ?? '').trim();
+        const unitNumber = String(unitInput?.value ?? '').trim();
+        const moduleId = String(lessonInput?.value ?? '').trim();
+
+        // Read instructions without including placeholder text.
+        const instructionsText = String(
+            instructionsEditor?.innerText ??
+            instructionsEditor?.textContent ??
+            ''
+        ).replace(/\u00a0/g, ' ').trim();
 
         const instructions =
-          instructionsEditor?.innerHTML.trim() || '';
+            instructionsText === 'Add instructions for your trainees...'
+                ? ''
+                : instructionsText;
 
-        const unitNumber =
-          unitInput?.value || '';
-
-        const moduleId =
-          lessonInput?.value || '';
-
-
-        // ==========================================
-        // CREATE / EDIT
-        // ==========================================
-
-        const quizId =
-          window.editingQuizId || null;
-
-        const isEditing =
-          quizId !== null &&
-          String(quizId).trim() !== '';
-
-
-        // ==========================================
-        // BASIC VALIDATION
-        // ==========================================
-
+        // Validate quiz title.
         if (!title) {
-
-          showAlert(
-            'Please provide a quiz title.'
-          );
-
-          titleInput?.focus();
-
-          return;
+            showAlert('Please provide a quiz title.');
+            titleInput?.focus();
+            return;
         }
 
-
+        // Validate Unit and Lesson.
         if (!unitNumber) {
-
-          showAlert(
-            'Please select the Unit for this quiz.'
-          );
-
-          unitInput?.focus();
-
-          return;
+            showAlert('Please select the Unit for this quiz.');
+            unitInput?.focus();
+            return;
         }
 
-
-        if (!moduleId) {
-
-          showAlert(
-            'Please select the Lesson for this quiz.'
-          );
-
-          lessonInput?.focus();
-
-          return;
+        if (!moduleId || !Number.isInteger(Number(moduleId))) {
+            showAlert('Please select a valid Lesson for this quiz.');
+            lessonInput?.focus();
+            return;
         }
 
+        const settings = getQuizSettings();
+        if (!settings) return;
 
-        // ==========================================
-        // QUIZ SETTINGS
-        // ==========================================
-
-        const settings =
-          getQuizSettings();
-
-        if (!settings) {
-          return;
-        }
-
-
-        const passingScore =
-          settings.passing_score;
-
-        const timeLimit =
-          settings.time_limit;
-
-
-        console.log(
-          'Passing Score:',
-          passingScore
-        );
-
-        console.log(
-          'Time Limit:',
-          timeLimit
-        );
-
-
-        // ==========================================
-        // QUESTIONS
-        // ==========================================
+        const passingScore = Number(settings.passing_score);
+        const timeLimit = Number(settings.time_limit);
 
         if (
-          !Array.isArray(quizQuestions) ||
-          quizQuestions.length === 0
+            !Number.isFinite(passingScore) ||
+            passingScore < 0 ||
+            passingScore > 100
         ) {
-
-          showAlert(
-            'Please add at least one question.'
-          );
-
-          return;
-        }
-
-
-        for (
-          let i = 0; i < quizQuestions.length; i++
-        ) {
-
-          const question =
-            quizQuestions[i];
-
-
-          // Question text
-          if (
-            !question.text ||
-            !question.text.trim()
-          ) {
-
-            showAlert(
-              'Please enter text for Question ' +
-              (i + 1) +
-              '.'
-            );
-
+            showAlert('Passing score must be between 0 and 100.');
             return;
-          }
-
-
-          // Multiple choice / checkboxes
-          if (
-            question.type === 'multiple_choice' ||
-            question.type === 'checkboxes'
-          ) {
-
-            const options =
-              Array.isArray(question.options) ?
-              question.options : [];
-
-
-            if (options.length === 0) {
-
-              showAlert(
-                'Please add options for Question ' +
-                (i + 1) +
-                '.'
-              );
-
-              return;
-            }
-
-
-            const hasEmptyOption =
-              options.some(
-                option =>
-                !String(option || '').trim()
-              );
-
-
-            if (hasEmptyOption) {
-
-              showAlert(
-                'Please fill in all options for Question ' +
-                (i + 1) +
-                '.'
-              );
-
-              return;
-            }
-
-
-            const correctAnswers =
-              Array.isArray(
-                question.correctAnswers
-              ) ?
-              question.correctAnswers : [];
-
-
-            if (correctAnswers.length === 0) {
-
-              showAlert(
-                'Choose at least one correct answer for Question ' +
-                (i + 1) +
-                '.'
-              );
-
-              return;
-            }
-          }
         }
 
+        if (
+            !Number.isFinite(timeLimit) ||
+            timeLimit < 0 ||
+            timeLimit > 300
+        ) {
+            showAlert('Time limit must be between 0 and 300 minutes.');
+            return;
+        }
 
-        // ==========================================
-        // PREPARE QUESTIONS
-        // ==========================================
+        if (!Array.isArray(quizQuestions) || quizQuestions.length === 0) {
+            showAlert('Please add at least one question.');
+            return;
+        }
 
-        const questions =
-          quizQuestions.map(question => ({
-            text: question.text || '',
+        // Validate every question before building the payload.
+        for (let i = 0; i < quizQuestions.length; i++) {
+            const question = quizQuestions[i];
+            const number = i + 1;
+            const questionText = String(question.text ?? '').trim();
+            const type = String(
+                question.type ?? 'multiple_choice'
+            ).trim().toLowerCase();
 
-            type: question.type ||
-              'multiple_choice',
+            if (!questionText) {
+                showAlert(`Please enter text for Question ${number}.`);
+                return;
+            }
 
-            options: Array.isArray(question.options) ?
-              question.options : [],
+            if (!Number.isFinite(Number(question.points ?? 1)) ||
+                Number(question.points ?? 1) < 0) {
+                showAlert(`Please enter valid points for Question ${number}.`);
+                return;
+            }
 
-            correctAnswers: Array.isArray(
-                question.correctAnswers
-              ) ?
-              question.correctAnswers : [],
+            if (['multiple_choice', 'checkboxes'].includes(type)) {
+                const options = Array.isArray(question.options)
+                    ? question.options
+                    : [];
 
-            points: Number(question.points || 1),
+                if (
+                    options.length < 2 ||
+                    options.some(option => !String(option ?? '').trim())
+                ) {
+                    showAlert(
+                        `Question ${number} must have at least two completed options.`
+                    );
+                    return;
+                }
 
-            feedback: question.feedback || '',
+                const normalizedOptions = options.map(
+                    option => String(option).trim().toLowerCase()
+                );
 
+                if (new Set(normalizedOptions).size !== options.length) {
+                    showAlert(
+                        `Question ${number} contains duplicate options.`
+                    );
+                    return;
+                }
+
+                const correctAnswers = Array.isArray(question.correctAnswers)
+                    ? question.correctAnswers
+                    : [];
+
+                if (correctAnswers.length === 0) {
+                    showAlert(
+                        `Choose at least one correct answer for Question ${number}.`
+                    );
+                    return;
+                }
+
+                const validAnswers = correctAnswers.every(answer =>
+                    Number.isInteger(Number(answer)) &&
+                    Number(answer) >= 0 &&
+                    Number(answer) < options.length
+                );
+
+                const uniqueAnswers = new Set(
+                    correctAnswers.map(Number)
+                );
+
+                if (
+                    !validAnswers ||
+                    uniqueAnswers.size !== correctAnswers.length
+                ) {
+                    showAlert(
+                        `Question ${number} has invalid or duplicate correct answers.`
+                    );
+                    return;
+                }
+
+                if (
+                    type === 'multiple_choice' &&
+                    correctAnswers.length !== 1
+                ) {
+                    showAlert(
+                        `Question ${number} must have exactly one correct answer.`
+                    );
+                    return;
+                }
+            }
+
+            if (
+                ['short_answer', 'paragraph'].includes(type) &&
+                !String(question.correctAnswer ?? '').trim()
+            ) {
+                showAlert(
+                    `Please provide an accepted answer for Question ${number}.`
+                );
+                return;
+            }
+        }
+
+        // Build a consistent payload and preserve existing question IDs.
+        const questions = quizQuestions.map(question => ({
+            id: question.id ?? null,
+            text: String(question.text ?? '').trim(),
+            type: question.type || 'multiple_choice',
+
+            options: Array.isArray(question.options)
+                ? question.options.map(option =>
+                    String(option ?? '').trim()
+                )
+                : [],
+
+            correctAnswers: Array.isArray(question.correctAnswers)
+                ? question.correctAnswers.map(Number)
+                : [],
+
+            // Used for written-answer questions.
+            correctAnswer: String(question.correctAnswer ?? '').trim(),
+
+            points: Number(question.points ?? 1),
+            feedback: String(question.feedback ?? ''),
             required: Boolean(question.required)
-          }));
+        }));
 
+        const csrfToken = document.querySelector(
+            'meta[name="csrf-token"]'
+        )?.content || '';
 
-        // ==========================================
-        // DISABLE SAVE BUTTON
-        // ==========================================
+        if (!csrfToken) {
+            showAlert(
+                'CSRF token is missing. Please check your Blade layout.'
+            );
+            return;
+        }
+
+        const url = isEditing
+            ? `/trainer/quiz/${encodeURIComponent(quizId)}`
+            : '/trainer/quiz';
+
+        const payload = {
+            course_id: {{ $course->id }},
+            module_id: Number(moduleId),
+            title,
+            instructions,
+            passing_score: passingScore,
+            time_limit: timeLimit,
+            questions
+        };
+
+        console.log('Submitting quiz payload:', payload);
 
         if (saveBtn) {
-
-          saveBtn.disabled = true;
-
-          saveBtn.innerHTML = isEditing ?
-            `
-                    <i class="fa-solid fa-spinner fa-spin"></i>
-                    <span>Saving Changes...</span>
-                  ` :
-            `
-                    <i class="fa-solid fa-spinner fa-spin"></i>
-                    <span>Creating Quiz...</span>
-                  `;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = isEditing
+                ? '<i class="fa-solid fa-spinner fa-spin"></i> <span>Saving Changes...</span>'
+                : '<i class="fa-solid fa-spinner fa-spin"></i> <span>Creating Quiz...</span>';
         }
-
-
-        // ==========================================
-        // URL / METHOD
-        // ==========================================
-
-        const url = isEditing ?
-          `/trainer/quiz/${quizId}` :
-          '/trainer/quiz';
-
-        const method = isEditing ?
-          'PUT' :
-          'POST';
-
-
-        // ==========================================
-        // SEND TO LARAVEL
-        // ==========================================
 
         const response = await fetch(url, {
-
-          method: method,
-
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest'
-          },
-
-          body: JSON.stringify({
-
-            course_id: {{ $course->id }},
-
-            module_id: moduleId || null,
-
-            title: title,
-
-            instructions: instructions,
-
-            // IMPORTANT
-            passing_score: passingScore,
-
-            // IMPORTANT
-            time_limit: timeLimit,
-
-            questions: questions
-          })
+            method: isEditing ? 'PUT' : 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(payload)
         });
 
+        const result = await response.json().catch(() => ({}));
 
-        // ==========================================
-        // RESPONSE
-        // ==========================================
-
-        const data =
-          await response.json()
-          .catch(() => ({}));
-
-
-        if (!response.ok) {
-
-          // Laravel validation errors
-          if (data.errors) {
-
-            const firstError =
-              Object.values(data.errors)
-              .flat()[0];
+        if (!response.ok || result.success === false) {
+            const validationErrors = result.errors
+                ? Object.values(result.errors)
+                    .flat()
+                    .filter(Boolean)
+                    .join('\n')
+                : '';
 
             throw new Error(
-              firstError ||
-              'Validation failed.'
+                validationErrors ||
+                result.message ||
+                `Unable to save the quiz (HTTP ${response.status}).`
             );
-          }
-
-          throw new Error(
-            data.message ||
-            'Failed to save quiz.'
-          );
         }
 
+        saved = true;
 
-        if (data.success === false) {
-
-          throw new Error(
-            data.message ||
-            'Failed to save quiz.'
-          );
-        }
-
-
-        // ==========================================
-        // SUCCESS
-        // ==========================================
-
-        sessionStorage.setItem(
-          'courseActiveTab',
-          'classwork'
-        );
-
+        sessionStorage.setItem('courseActiveTab', 'classwork');
 
         if (isEditing) {
-
-          sessionStorage.setItem(
-            'lastEditedQuizId',
-            String(quizId)
-          );
+            sessionStorage.setItem('lastEditedQuizId', String(quizId));
         }
-
 
         window.editingQuizId = null;
 
-
-        closeAddQuizModal();
-
-
-        showAlert(
-          isEditing ?
-          'Quiz updated successfully.' :
-          'Quiz created successfully.'
-        );
-
-
-        setTimeout(() => {
-          window.location.reload();
-        }, 700);
-
-
-      } catch (error) {
-
-        console.error(
-          'Quiz save error:',
-          error
-        );
-
-
-        if (saveBtn) {
-
-          saveBtn.disabled = false;
-
-          saveBtn.innerHTML =
-            window.editingQuizId ?
-            `
-                        <i class="fa-solid fa-floppy-disk"></i>
-                        <span>Save Changes</span>
-                      ` :
-            `
-                        <i class="fa-solid fa-check"></i>
-                        <span>Create Quiz</span>
-                      `;
+        if (typeof closeAddQuizModal === 'function') {
+            closeAddQuizModal();
         }
 
+        showAlert(
+            result.message ||
+            (isEditing
+                ? 'Quiz updated successfully.'
+                : 'Quiz created successfully.')
+        );
+
+        window.setTimeout(() => window.location.reload(), 700);
+
+    } catch (error) {
+        console.error('Quiz save error:', error);
 
         showAlert(
-          error.message ||
-          'Something went wrong while saving the quiz.'
+            error.message ||
+            'Something went wrong while saving the quiz.'
         );
-      }
+
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+
+            if (!saved) {
+                saveBtn.innerHTML = isEditing
+                    ? '<i class="fa-solid fa-floppy-disk"></i> <span>Save Changes</span>'
+                    : (
+                        originalButtonHTML ||
+                        '<i class="fa-solid fa-check"></i> <span>Create Quiz</span>'
+                    );
+            }
+        }
     }
+}
+
+
 
     function openDeleteQuizModal(id, title) {
       targetQuizIdToDelete = id;
@@ -4849,6 +4776,26 @@
             '<i class="fa-solid fa-trash-can" style="font-size: 12px;"></i> <span>Delete</span>';
         });
     }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const editor = document.getElementById('quizInstructionsEditor');
+    const hiddenInput = document.getElementById('quizInstructionsHidden');
+    const form = document.getElementById('addQuizForm');
+
+    if (!editor || !hiddenInput || !form) {
+        console.warn('Quiz instructions elements not found.');
+        return;
+    }
+
+    function syncQuizInstructions() {
+        hiddenInput.value = editor.innerText.trim();
+    }
+
+    editor.addEventListener('input', syncQuizInstructions);
+
+    form.addEventListener('submit', syncQuizInstructions, true);
+});
+
 
     document.addEventListener('DOMContentLoaded', function() {
 
