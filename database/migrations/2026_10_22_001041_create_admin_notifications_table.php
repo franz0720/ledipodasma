@@ -8,28 +8,30 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('admin_notifications', function (Blueprint $table) {
-            $table->id();
+        if (!Schema::hasTable('admin_notifications')) {
+            Schema::create('admin_notifications', function (Blueprint $table) {
+                $table->id();
 
-            $table->unsignedBigInteger('user_id');
-            $table->string('event_key')->unique();
+                $table->unsignedBigInteger('user_id');
+                $table->string('event_key')->unique();
 
-            $table->string('type')->default('info');
-            $table->string('title');
-            $table->text('message');
-            $table->string('url')->nullable();
-            $table->string('icon_class')->nullable();
+                $table->string('type')->default('info');
+                $table->string('title');
+                $table->text('message');
+                $table->string('url')->nullable();
+                $table->string('icon_class')->nullable();
 
-            $table->timestamp('read_at')->nullable();
-            $table->timestamps();
+                $table->timestamp('read_at')->nullable();
+                $table->timestamps();
 
-            $table->foreign('user_id')
-                ->references('id')
-                ->on('user_tbls')
-                ->onDelete('cascade');
+                $table->foreign('user_id')
+                    ->references('id')
+                    ->on('user_tbls')
+                    ->onDelete('cascade');
 
-            $table->index(['user_id', 'read_at']);
-        });
+                $table->index(['user_id', 'read_at']);
+            });
+        }
     }
 
     public function down(): void
