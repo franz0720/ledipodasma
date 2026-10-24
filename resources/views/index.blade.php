@@ -1651,6 +1651,828 @@
         transform: translateY(0) !important;
       }
     }
+
+
+    /* Authentication links are duplicated inside the collapsed menu for touch layouts. */
+    .main-nav .mobile-auth-links {
+      display: none;
+    }
+
+    .main-nav .mobile-auth-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      color: #ffffff;
+      text-decoration: none;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.4;
+      box-sizing: border-box;
+      transition: background-color .2s ease, color .2s ease;
+    }
+
+    .main-nav .mobile-auth-link i {
+      width: 18px;
+      text-align: center;
+    }
+
+    .main-nav .mobile-auth-login {
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid rgba(255, 255, 255, .28);
+    }
+
+    .main-nav .mobile-auth-signup {
+      margin-top: 4px;
+      background: #fff200;
+      color: #06381e;
+      border: 1px solid #fff200;
+    }
+
+    .main-nav .mobile-auth-link:hover,
+    .main-nav .mobile-auth-link:focus-visible {
+      background: #e1dc36;
+      color: #06381e;
+      text-decoration: none;
+      outline: none;
+    }
+
+    @media (max-width: 768px) {
+      /* On phones and tablets, show Login and Sign Up only in the hamburger menu. */
+      .main-nav .nav-actions > .btn-signin,
+      .main-nav .nav-actions > .btn-signup {
+        display: none !important;
+      }
+
+      .main-nav .nav-links .mobile-auth-links {
+        display: block !important;
+        width: 100%;
+        padding: 4px 0;
+        border-top: 1px solid rgba(255, 255, 255, .12);
+      }
+
+      .main-nav .nav-links .mobile-auth-links:first-of-type {
+        margin-top: 6px;
+      }
+
+      .main-nav .nav-links .mobile-auth-links a {
+        display: flex !important;
+        width: 100%;
+        min-height: 44px;
+        box-sizing: border-box;
+      }
+    }
+
+    /* =========================================================
+       FINAL RESPONSIVE SAFETY LAYER
+       Added without removing existing styles, content, or scripts.
+       ========================================================= */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      max-width: 100%;
+      scroll-behavior: smooth;
+      scroll-padding-top: 84px;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      overflow-x: clip;
+    }
+
+    img,
+    video,
+    iframe,
+    svg {
+      max-width: 100%;
+    }
+
+    img {
+      height: auto;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      max-width: 100%;
+      font: inherit;
+    }
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    a,
+    td,
+    th,
+    label,
+    span {
+      overflow-wrap: break-word;
+    }
+
+    section[id],
+    div[id="schedule"] {
+      scroll-margin-top: 84px;
+    }
+
+    .main-nav {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .main-nav .nav-logo,
+    .main-nav .nav-actions,
+    .main-nav .nav-links,
+    .hero-content,
+    .courses-wrapper,
+    .courses-grid,
+    .course-card,
+    .course-body,
+    .course-meta,
+    .footer-content,
+    .footer-col,
+    .contact-container,
+    .contact-info-list,
+    .contact-container > div {
+      min-width: 0;
+    }
+
+    .main-nav .nav-logo img,
+    .footer-brand-top img,
+    .footer-badges img {
+      flex-shrink: 0;
+    }
+
+    .schedule-wrapper-section {
+      padding-left: clamp(12px, 3vw, 24px);
+      padding-right: clamp(12px, 3vw, 24px);
+    }
+
+    .schedule-table-card {
+      width: 100%;
+      min-width: 0;
+      padding: clamp(12px, 2.5vw, 20px);
+    }
+
+    /* Keep every schedule column available on narrow screens. */
+    .schedule-table-card {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .schedule-table {
+      width: 100%;
+      min-width: 560px;
+    }
+
+    .schedule-table th,
+    .schedule-table td {
+      vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+
+    .instructors-container {
+      width: 100%;
+      min-width: 0;
+      gap: clamp(6px, 2vw, 20px);
+    }
+
+    .instructors-track {
+      min-width: 0;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x proximity;
+    }
+
+    .instructor-card {
+      scroll-snap-align: center;
+    }
+
+    .contact-section {
+      overflow: visible;
+    }
+
+    .contact-form-grid,
+    .contact-form-grid > div,
+    .contact-form-textarea-wrapper {
+      min-width: 0;
+    }
+
+    .policy-modal-overlay,
+    .logout-modal-overlay {
+      padding: max(10px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom));
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .policy-modal-container,
+    .logout-modal-box,
+    .instructor-modal-content {
+      width: 100%;
+      min-width: 0;
+      max-height: calc(100dvh - 24px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .policy-modal-header,
+    .policy-modal-footer,
+    .policy-footer-left-group,
+    .policy-footer-right-group,
+    .logout-modal-actions {
+      flex-wrap: wrap;
+    }
+
+    .policy-modal-header h2 {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .custom-toast {
+      left: max(12px, env(safe-area-inset-left));
+      right: max(12px, env(safe-area-inset-right));
+      bottom: max(12px, env(safe-area-inset-bottom));
+      width: auto;
+      max-width: 560px;
+      margin-left: auto;
+      padding: 12px 16px;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 1024px) {
+      .footer-content {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 28px;
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+
+      .contact-container {
+        gap: 24px;
+      }
+
+      .about-story {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .hero-content {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      html {
+        scroll-padding-top: 72px;
+      }
+
+      .main-nav {
+        gap: 10px;
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+      }
+
+      .main-nav .nav-logo {
+        gap: 8px;
+        max-width: calc(100% - 100px);
+      }
+
+      .main-nav .nav-logo span {
+        font-size: clamp(12px, 3.2vw, 16px);
+      }
+
+      .main-nav .nav-logo .logo {
+        width: clamp(32px, 8vw, 44px);
+        height: auto;
+      }
+
+      /* Keep the mobile navigation accessible instead of hiding its toggle. */
+      .main-nav .hamburger {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        margin: 0;
+        position: relative;
+        z-index: 2147483001;
+        touch-action: manipulation;
+      }
+
+      .main-nav .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 10px;
+        right: 10px;
+        width: auto;
+        max-height: calc(100dvh - 100px);
+        overflow-y: auto;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 8px !important;
+        margin: 0 !important;
+        background: #06381e;
+        border: 1px solid rgba(255,255,255,.15);
+        border-radius: 12px;
+        box-shadow: 0 12px 30px rgba(0,0,0,.22);
+        z-index: 2147483000;
+      }
+
+      .main-nav .nav-links.active {
+        display: flex !important;
+      }
+
+      .main-nav .nav-links li {
+        width: 100%;
+        list-style: none;
+      }
+
+      .main-nav .nav-links a {
+        display: block;
+        width: 100%;
+        padding: 12px 14px;
+        line-height: 1.4;
+      }
+
+      .main-nav .nav-actions {
+        margin-left: auto !important;
+        gap: 8px;
+      }
+
+      .main-nav .nav-actions .btn-signin,
+      .main-nav .nav-actions .btn-signup {
+        padding: 8px 10px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .hero {
+        min-height: 0;
+        padding: 64px 18px 44px;
+        background-position: center;
+      }
+
+      .hero-content {
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .hero-content h1 {
+        font-size: clamp(30px, 6.5vw, 46px);
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+      }
+
+      .hero-content > p {
+        font-size: clamp(14px, 2.2vw, 16px);
+        line-height: 1.7;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .hero-actions a {
+        max-width: 100%;
+      }
+
+      .hero-stats {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .hero-stats .stat-divider {
+        display: none;
+      }
+
+      .schedule-table-card h3 {
+        font-size: clamp(14px, 3vw, 16px);
+        line-height: 1.5;
+      }
+
+      .instructor-nav-btn {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
+      }
+
+      .footer-content {
+        grid-template-columns: minmax(0, 1fr);
+        padding-left: 20px;
+        padding-right: 20px;
+        gap: 24px;
+      }
+
+      .footer-partnership {
+        flex-wrap: wrap;
+      }
+
+      .footer-bottom {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .policy-modal-container {
+        max-height: calc(100dvh - 20px);
+        border-width: 2px;
+      }
+
+      .policy-modal-header {
+        padding: 14px 16px;
+      }
+
+      .policy-modal-header h2 {
+        font-size: 16px;
+      }
+
+      .policy-modal-body {
+        padding: 16px;
+        font-size: 13px;
+      }
+
+      .policy-modal-footer {
+        padding: 12px 14px;
+        align-items: stretch;
+      }
+
+      .policy-footer-left-group,
+      .policy-footer-right-group {
+        width: 100%;
+      }
+
+      .policy-footer-left-group > *,
+      .policy-footer-right-group > * {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+
+      .logout-modal-box {
+        padding: 22px 18px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .main-nav {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+      }
+
+      .main-nav .nav-logo {
+        gap: 5px;
+        max-width: calc(100% - 88px);
+      }
+
+      .main-nav .nav-logo span {
+        font-size: 11px;
+      }
+
+      .main-nav .nav-logo .logo {
+        width: 30px;
+      }
+
+      .main-nav .nav-actions {
+        margin-left: auto !important;
+      }
+
+      .main-nav .landing-avatar-btn {
+        width: 34px !important;
+        height: 34px !important;
+        min-width: 34px !important;
+        font-size: 11px !important;
+      }
+
+      .main-nav .landing-profile-dropdown {
+        top: 70px !important;
+        right: 8px !important;
+        width: min(250px, calc(100vw - 16px)) !important;
+      }
+
+      .hero {
+        padding: 48px 14px 34px;
+      }
+
+      .hero-content h1 {
+        font-size: clamp(27px, 8vw, 34px);
+      }
+
+      .hero-badge {
+        max-width: 100%;
+        font-size: 11px;
+        line-height: 1.5;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .hero-actions a {
+        width: 100%;
+        text-align: center;
+      }
+
+      .schedule-wrapper-section {
+        padding: 18px 10px 14px;
+      }
+
+      .schedule-table-card {
+        padding: 12px;
+        border-radius: 12px;
+      }
+
+      .schedule-table {
+        min-width: 520px;
+        font-size: 11px;
+      }
+
+      .schedule-table th,
+      .schedule-table td {
+        padding: 8px;
+      }
+
+      .instructors-container {
+        gap: 4px;
+      }
+
+      .instructor-nav-btn {
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px;
+        font-size: 14px;
+      }
+
+      .instructor-card {
+        flex-basis: 210px;
+        max-width: 210px;
+      }
+
+      .contact-info-item {
+        align-items: flex-start;
+      }
+
+      .footer-brand-top {
+        align-items: flex-start;
+      }
+
+      .footer-badges {
+        flex-wrap: wrap;
+      }
+
+      .policy-modal-overlay,
+      .logout-modal-overlay {
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      .policy-btn-download,
+      .policy-btn-decline,
+      .policy-btn-accept,
+      .btn-logout-yes,
+      .btn-logout-no {
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+
+      .logout-modal-actions {
+        flex-wrap: wrap;
+      }
+
+      .logout-modal-actions button {
+        flex: 1 1 110px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .main-nav .nav-logo span {
+        display: none;
+      }
+
+      .main-nav .nav-actions .btn-signin,
+      .main-nav .nav-actions .btn-signup {
+        padding: 7px 8px;
+        font-size: 11px;
+      }
+
+      .contact-section {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .contact-icon-wrapper {
+        flex-basis: 32px;
+        width: 32px;
+        height: 32px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+
+    /* =========================================================
+       POLISHED MOBILE / TABLET NAVIGATION MENU
+       Visual-only overrides: preserves existing links and behavior.
+       ========================================================= */
+    @media (max-width: 768px) {
+      .main-nav .nav-links {
+        left: 12px !important;
+        right: 12px !important;
+        top: calc(100% + 10px) !important;
+        width: auto !important;
+        max-height: calc(100dvh - 92px) !important;
+        padding: 12px !important;
+        gap: 3px !important;
+        background: #073b25 !important;
+        border: 1px solid rgba(255, 255, 255, .18) !important;
+        border-radius: 18px !important;
+        box-shadow: 0 18px 45px rgba(0, 0, 0, .38),
+                    0 4px 12px rgba(0, 0, 0, .16) !important;
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+      }
+
+      .main-nav .nav-links > li:not(.mobile-auth-links) {
+        padding: 0 !important;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .main-nav .nav-links > li:not(.mobile-auth-links) > .nav-link {
+        display: flex !important;
+        align-items: center;
+        min-height: 46px;
+        padding: 12px 15px !important;
+        color: rgba(255, 255, 255, .92) !important;
+        background: transparent !important;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px !important;
+        font-weight: 500;
+        letter-spacing: .1px;
+        text-decoration: none !important;
+        transition: background .18s ease, color .18s ease,
+                    border-color .18s ease;
+      }
+
+      .main-nav .nav-links > li:not(.mobile-auth-links) > .nav-link:hover,
+      .main-nav .nav-links > li:not(.mobile-auth-links) > .nav-link:focus-visible {
+        color: #fff200 !important;
+        background: rgba(255, 255, 255, .07) !important;
+        border-color: rgba(255, 255, 255, .08);
+        outline: none;
+      }
+
+      .main-nav .nav-links > li:not(.mobile-auth-links) > .nav-link.active {
+        color: #fff200 !important;
+        background: rgba(255, 242, 0, .09) !important;
+        border-color: rgba(255, 242, 0, .18);
+        font-weight: 700;
+      }
+
+      .main-nav .nav-links .mobile-auth-links {
+        display: block !important;
+        width: 100%;
+        padding: 0 !important;
+        margin: 0;
+        border: 0 !important;
+        background: transparent;
+      }
+
+      .main-nav .nav-links .mobile-auth-links:first-of-type {
+        margin-top: 10px;
+        padding-top: 10px !important;
+        border-top: 1px solid rgba(255, 255, 255, .16) !important;
+      }
+
+      .main-nav .nav-links .mobile-auth-links a.mobile-auth-link {
+        display: flex !important;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 11px;
+        width: 100%;
+        min-height: 48px;
+        padding: 13px 16px !important;
+        border-radius: 11px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px !important;
+        font-weight: 700;
+        line-height: 1.35;
+        text-decoration: none !important;
+        box-shadow: none;
+        transition: transform .18s ease, background .18s ease,
+                    color .18s ease, box-shadow .18s ease;
+      }
+
+      .main-nav .nav-links .mobile-auth-link i {
+        width: 20px;
+        font-size: 15px;
+        text-align: center;
+      }
+
+      .main-nav .nav-links .mobile-auth-links a.mobile-auth-login {
+        margin-top: 0;
+        color: #fff !important;
+        background: rgba(255, 255, 255, .075) !important;
+        border: 1px solid rgba(255, 255, 255, .28) !important;
+      }
+
+      .main-nav .nav-links .mobile-auth-links a.mobile-auth-signup {
+        margin-top: 8px;
+        color: #073b25 !important;
+        background: #fff200 !important;
+        border: 1px solid #fff200 !important;
+        box-shadow: 0 5px 14px rgba(255, 242, 0, .13);
+      }
+
+      .main-nav .nav-links .mobile-auth-links a.mobile-auth-login:hover,
+      .main-nav .nav-links .mobile-auth-links a.mobile-auth-login:focus-visible {
+        color: #fff200 !important;
+        background: rgba(255, 255, 255, .13) !important;
+        border-color: rgba(255, 242, 0, .45) !important;
+      }
+
+      .main-nav .nav-links .mobile-auth-links a.mobile-auth-signup:hover,
+      .main-nav .nav-links .mobile-auth-links a.mobile-auth-signup:focus-visible {
+        color: #073b25 !important;
+        background: #e1dc36 !important;
+        border-color: #e1dc36 !important;
+        box-shadow: 0 6px 16px rgba(255, 242, 0, .2);
+      }
+
+      .main-nav .nav-links .mobile-auth-links a:active {
+        transform: scale(.99);
+      }
+
+      .main-nav .nav-links a:focus-visible {
+        outline: 2px solid #fff200 !important;
+        outline-offset: 2px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .main-nav .nav-links {
+        left: 8px !important;
+        right: 8px !important;
+        padding: 9px !important;
+        border-radius: 15px !important;
+      }
+
+      .main-nav .nav-links > li:not(.mobile-auth-links) > .nav-link {
+        min-height: 43px;
+        padding: 10px 12px !important;
+        font-size: 13px !important;
+      }
+
+      .main-nav .nav-links .mobile-auth-links a.mobile-auth-link {
+        min-height: 46px;
+        padding: 12px 13px !important;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .main-nav .nav-links *,
+      .main-nav .nav-links {
+        transition: none !important;
+      }
+    }
+
 </style>
 </head>
 
@@ -1672,6 +2494,22 @@
       <li><a href="#about" class="nav-link">About</a></li>
       <li><a href="#courses" class="nav-link">Courses</a></li>
       <li><a href="#contact" class="nav-link">Contact</a></li>
+
+      {{-- Show authentication links inside the hamburger menu on mobile/tablet. --}}
+      @guest
+        <li class="mobile-auth-links">
+          <a href="{{ route('Login') }}" class="mobile-auth-link mobile-auth-login">
+            <i class="fas fa-right-to-bracket" aria-hidden="true"></i>
+            <span>Login</span>
+          </a>
+        </li>
+        <li class="mobile-auth-links">
+          <a href="{{ route('SignupPage') }}" class="mobile-auth-link mobile-auth-signup">
+            <i class="fas fa-user-plus" aria-hidden="true"></i>
+            <span>Sign Up</span>
+          </a>
+        </li>
+      @endguest
     </ul>
 
     <div class="nav-actions">
