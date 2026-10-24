@@ -197,6 +197,367 @@
     .error-box div+div {
       margin-top: 4px;
     }
+
+
+    /* =========================================================
+       RESPONSIVE LAYOUT OVERRIDES
+       Existing form fields, routes, validation and scripts kept.
+       ========================================================= */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      width: 100%;
+      min-width: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: clamp(12px, 2.5vw, 28px);
+      overflow-x: hidden;
+      background-attachment: scroll;
+    }
+
+    body > .container-fluid {
+      width: 100%;
+      min-width: 0;
+      min-height: calc(100vh - 40px);
+      min-height: calc(100dvh - 40px);
+      padding: 0 !important;
+    }
+
+    .parent-login {
+      width: 100%;
+      max-width: 950px;
+      min-width: 0;
+      margin: auto;
+    }
+
+    .login-image,
+    .login-form {
+      min-width: 0;
+    }
+
+    .login-image {
+      flex: 0 0 50% !important;
+      width: 50% !important;
+      max-width: 50% !important;
+      min-height: 560px;
+      background-position: center;
+      background-size: cover;
+    }
+
+    .login-form {
+      flex: 0 0 50% !important;
+      width: 50% !important;
+      max-width: 50% !important;
+      padding: clamp(22px, 3.2vw, 40px) !important;
+    }
+
+    .forms,
+    .forms form,
+    .forms .row,
+    .forms .row > div {
+      min-width: 0;
+    }
+
+    .forms .row {
+      --bs-gutter-x: 0.75rem;
+    }
+
+    .form-control {
+      width: 100%;
+      min-width: 0;
+      min-height: 42px;
+      font-size: 14px;
+    }
+
+    .form-label {
+      display: block;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+
+    .password-wrapper .form-control {
+      padding-right: 38px !important;
+    }
+
+    .password-toggle-icon {
+      width: 20px;
+      min-height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+    }
+
+    .btn-submit {
+      min-height: 44px;
+    }
+
+    .error-box {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .error-box div {
+      align-items: flex-start;
+    }
+
+    .error-box i {
+      flex: 0 0 auto;
+      margin-top: 2px;
+    }
+
+    .back-home-btn {
+      max-width: calc(100% - 32px);
+      white-space: normal;
+    }
+
+    @media (max-width: 991.98px) {
+      body {
+        padding: 18px;
+      }
+
+      .parent-login {
+        max-width: 760px;
+      }
+
+      .login-image {
+        min-height: 520px;
+      }
+
+      .login-form {
+        padding: 28px 24px !important;
+      }
+
+      .card-logo img {
+        width: 52px;
+        height: 52px;
+      }
+
+      .card-logo h2 {
+        font-size: clamp(18px, 2.4vw, 20px);
+      }
+    }
+
+    @media (max-width: 767.98px) {
+      body {
+        align-items: flex-start;
+        padding: 16px;
+        background-attachment: scroll;
+      }
+
+      body > .container-fluid {
+        min-height: calc(100vh - 32px);
+        min-height: calc(100dvh - 32px);
+        align-items: flex-start !important;
+      }
+
+      .parent-login {
+        max-width: 560px;
+        flex-direction: column;
+        border-radius: 16px;
+      }
+
+      .login-image {
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 150px;
+        height: 150px;
+        background-position: center 45%;
+      }
+
+      .login-form {
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 26px clamp(18px, 5vw, 32px) !important;
+      }
+
+      .back-home-btn {
+        top: 12px;
+        left: 12px;
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+      .card-logo {
+        margin-bottom: 14px;
+      }
+
+      .card-logo img {
+        width: 50px;
+        height: 50px;
+      }
+
+      .card-logo h2 {
+        font-size: 21px;
+      }
+
+      .form-label {
+        font-size: 13px;
+        margin-bottom: 5px;
+      }
+
+      .form-control {
+        min-height: 44px;
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+
+      .btn-submit {
+        padding: 12px;
+        font-size: 14px;
+      }
+
+      .login-link {
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .error-box {
+        font-size: 12px;
+        line-height: 1.5;
+      }
+    }
+
+    @media (max-width: 575.98px) {
+      body {
+        padding: 10px;
+      }
+
+      body > .container-fluid {
+        min-height: calc(100vh - 20px);
+        min-height: calc(100dvh - 20px);
+      }
+
+      .parent-login {
+        max-width: 100%;
+        border-radius: 14px;
+      }
+
+      .login-image {
+        height: 118px;
+        min-height: 118px;
+      }
+
+      .login-form {
+        padding: 22px 18px !important;
+      }
+
+      /* Keep every field readable on narrow phones. */
+      .forms .row.gx-2 > .col-6 {
+        flex: 0 0 100%;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .forms .row.gx-2 > .col-6 + .col-6 {
+        margin-top: 10px;
+      }
+
+      .forms .row.gx-2 {
+        row-gap: 0;
+      }
+
+      .forms .mt-2 {
+        margin-top: 12px !important;
+      }
+
+      .card-logo img {
+        width: 46px;
+        height: 46px;
+      }
+
+      .card-logo h2 {
+        font-size: 20px;
+      }
+
+      .form-control {
+        font-size: 16px;
+      }
+
+      .password-toggle-icon {
+        right: 9px;
+        font-size: 14px;
+      }
+
+      .back-home-btn {
+        top: 10px;
+        left: 10px;
+        gap: 5px;
+        padding: 8px 10px;
+        font-size: 11px;
+      }
+
+      .error-box {
+        padding: 9px 10px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      body {
+        padding: 7px;
+      }
+
+      .login-form {
+        padding: 18px 13px !important;
+      }
+
+      .card-logo h2 {
+        font-size: 18px;
+      }
+
+      .back-home-btn {
+        font-size: 10px;
+        padding: 7px 9px;
+      }
+
+      .login-link {
+        font-size: 12px;
+      }
+    }
+
+    @media (max-height: 650px) and (min-width: 768px) {
+      body {
+        align-items: flex-start;
+      }
+
+      body > .container-fluid {
+        min-height: auto;
+      }
+
+      .parent-login {
+        margin-top: 12px;
+        margin-bottom: 12px;
+      }
+
+      .login-image {
+        min-height: 500px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+
   </style>
 </head>
 
