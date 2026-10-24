@@ -161,10 +161,26 @@
       top: 50%;
       right: 12px;
       transform: translateY(-50%);
-      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 40px;
+      padding: 0;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
       color: #1a4d2e;
-      font-size: 13px;
+      font-size: 15px;
+      line-height: 1;
+      cursor: pointer;
+      touch-action: manipulation;
       z-index: 5;
+    }
+
+    .password-toggle-icon:focus-visible {
+      outline: 2px solid #1a4d2e;
+      outline-offset: 2px;
     }
 
     .btn-submit {
@@ -290,6 +306,321 @@
       color: #0d471d;
       text-decoration: underline;
     }
+
+
+    /* =========================================================
+       RESPONSIVE LOGIN LAYOUT: TABLETS AND PHONES
+       Keep desktop split layout, use a more spacious form on tablets,
+       and stack the image banner above the form on small screens.
+       ========================================================= */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .parent-login {
+      min-width: 0;
+    }
+
+    .login-image,
+    .login-form,
+    .forms {
+      min-width: 0;
+    }
+
+    .form-control {
+      width: 100%;
+      min-width: 0;
+      min-height: 42px;
+      box-sizing: border-box;
+    }
+
+    .remember-forgot-row {
+      gap: 10px 14px;
+    }
+
+    .remember-label,
+    .forgot-link {
+      overflow-wrap: anywhere;
+    }
+
+    .password-wrapper .form-control {
+      padding-right: 42px !important;
+    }
+
+    .password-toggle-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 40px;
+      right: 5px;
+      touch-action: manipulation;
+    }
+
+    /* Tablet landscape and smaller laptops */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      body {
+        padding: 24px !important;
+        background-attachment: scroll;
+      }
+
+      .parent-login {
+        max-width: 900px;
+        border-radius: 18px;
+      }
+
+      .login-image {
+        flex: 0 0 40% !important;
+        width: 40% !important;
+        max-width: 40% !important;
+        min-height: 520px;
+      }
+
+      .login-form {
+        flex: 0 0 60% !important;
+        width: 60% !important;
+        max-width: 60% !important;
+        padding: 32px clamp(24px, 4vw, 42px) !important;
+      }
+
+      .card-logo img {
+        width: 56px;
+        height: 56px;
+      }
+
+      .login-form h2,
+      .login-form h2 span {
+        font-size: 21px !important;
+      }
+
+      .form-label {
+        font-size: 12px;
+        margin-bottom: 5px;
+      }
+
+      .form-control {
+        min-height: 46px;
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+
+      .btn-submit {
+        min-height: 46px;
+        font-size: 14px;
+      }
+    }
+
+    /* Phones and portrait tablets */
+    @media (max-width: 768px) {
+      body {
+        display: block !important;
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: 12px !important;
+        background-attachment: scroll !important;
+      }
+
+      .container-fluid.p-0.d-flex.justify-content-center.align-items-center {
+        display: flex !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
+        width: 100% !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 auto !important;
+      }
+
+      .parent-login {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        max-width: 480px !important;
+        margin: 0 auto !important;
+        border-radius: 18px !important;
+        overflow: hidden !important;
+      }
+
+      /* Retain the image as a compact banner so Back to Homepage stays visible. */
+      .login-image {
+        display: block !important;
+        flex: 0 0 112px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 112px !important;
+        height: 112px !important;
+        background-position: center 45% !important;
+      }
+
+      .back-home-btn {
+        top: 14px !important;
+        left: 14px !important;
+        max-width: calc(100% - 28px);
+        padding: 9px 13px !important;
+        font-size: 12px !important;
+        line-height: 1.3;
+      }
+
+      .login-form {
+        display: flex !important;
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 26px clamp(20px, 6vw, 30px) 28px !important;
+        justify-content: flex-start !important;
+      }
+
+      .forms {
+        width: 100% !important;
+        max-width: 420px;
+        margin: 0 auto;
+      }
+
+      .card-logo {
+        margin-bottom: 8px;
+      }
+
+      .card-logo img {
+        width: 58px;
+        height: 58px;
+      }
+
+      .login-form span.welcome-sub {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+      }
+
+      .login-form h2,
+      .login-form h2 span {
+        font-size: clamp(21px, 5vw, 25px) !important;
+        line-height: 1.35;
+      }
+
+      .login-form h2 {
+        margin-top: 6px;
+        margin-bottom: 20px;
+      }
+
+      .form-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+
+      .form-control {
+        min-height: 48px;
+        padding: 12px 13px;
+        border-radius: 10px;
+        font-size: 16px !important; /* Prevents iOS focus zoom. */
+        line-height: 1.4;
+      }
+
+      .password-wrapper .form-control {
+        padding-right: 44px !important;
+      }
+
+      .password-toggle-icon {
+        width: 36px;
+        height: 44px;
+        right: 4px;
+        font-size: 16px;
+      }
+
+      .remember-forgot-row {
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 16px;
+        gap: 12px;
+      }
+
+      .remember-label,
+      .forgot-link {
+        font-size: 12px;
+      }
+
+      .remember-label {
+        gap: 8px;
+      }
+
+      .remember-label input[type="checkbox"] {
+        flex: 0 0 18px;
+        width: 18px;
+        height: 18px;
+      }
+
+      .forgot-link {
+        text-align: right;
+      }
+
+      .btn-submit {
+        min-height: 49px;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 15px;
+      }
+
+      .login-link {
+        margin-top: 18px;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .error-box {
+        padding: 10px 12px;
+        font-size: 12px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+      }
+
+      .alert[role="alert"] {
+        font-size: 13px !important;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+      }
+    }
+
+    /* Very narrow phones */
+    @media (max-width: 380px) {
+      body {
+        padding: 8px !important;
+      }
+
+      .parent-login {
+        border-radius: 15px !important;
+      }
+
+      .login-image {
+        flex-basis: 100px !important;
+        min-height: 100px !important;
+        height: 100px !important;
+      }
+
+      .login-form {
+        padding: 22px 16px 24px !important;
+      }
+
+      .remember-forgot-row {
+        align-items: flex-start;
+      }
+
+      .remember-label,
+      .forgot-link {
+        font-size: 11.5px;
+      }
+    }
+
   </style>
 </head>
 
@@ -369,10 +700,13 @@
               <div class="password-wrapper">
                 <input type="password" id="password" name="password"
                   class="form-control" placeholder="Enter password" required
-                  autocomplete="current-password" style="padding-right: 32px;">
-                <i class="fa-solid fa-eye password-toggle-icon"
-                  id="togglePassword"
-                  onclick="toggleVisibility('password', 'togglePassword')"></i>
+                  autocomplete="current-password">
+                <button type="button" class="password-toggle-icon"
+                  id="togglePassword" aria-label="Show password"
+                  aria-controls="password"
+                  onclick="toggleVisibility('password', 'togglePassword')">
+                  <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                </button>
               </div>
               @error('password')
                 <div class="text-danger small mt-1" style="font-size: 11px;">
@@ -384,7 +718,7 @@
             <div class="remember-forgot-row">
               <label class="remember-label" for="remember">
                 <input type="checkbox" name="remember" id="remember"
-                  value="1">
+                  value="1" @checked(old('remember'))>
                 <span>Remember Me</span>
               </label>
 
@@ -400,11 +734,13 @@
 
           </form>
 
-          <!-- Signup Redirect (with preserved course_id query) -->
+          <!-- Signup Redirect: preserve the course ID from the URL or enrollment session. -->
           <div class="login-link">
             Don't have an account?
-            <a
-              href="{{ route('SignupPage', request('course_id') ? ['course_id' => request('course_id')] : []) }}">Signup</a>
+            @php
+              $signupCourseId = request('course_id', session('enroll_course_id'));
+            @endphp
+            <a href="{{ route('SignupPage', $signupCourseId ? ['course_id' => $signupCourseId] : []) }}">Signup</a>
           </div>
 
         </div>
@@ -415,19 +751,21 @@
 
   <!-- JavaScript for Password Toggle -->
   <script>
-    function toggleVisibility(fieldId, iconId) {
+    function toggleVisibility(fieldId, toggleId) {
       const field = document.getElementById(fieldId);
-      const icon = document.getElementById(iconId);
+      const toggle = document.getElementById(toggleId);
+      const icon = toggle ? toggle.querySelector('i') : null;
 
-      if (field.type === 'password') {
-        field.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-      } else {
-        field.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-      }
+      if (!field || !toggle || !icon) return;
+
+      const shouldShowPassword = field.type === 'password';
+      field.type = shouldShowPassword ? 'text' : 'password';
+      toggle.setAttribute(
+        'aria-label',
+        shouldShowPassword ? 'Hide password' : 'Show password'
+      );
+      icon.classList.toggle('fa-eye', !shouldShowPassword);
+      icon.classList.toggle('fa-eye-slash', shouldShowPassword);
     }
   </script>
 
