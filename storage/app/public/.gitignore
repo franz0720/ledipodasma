@@ -1,2 +1,8 @@
 *
 !.gitignore
+!courses/
+!courses/**
+!course_banners/
+!course_banners/**
+!modules/
+!modules/**
