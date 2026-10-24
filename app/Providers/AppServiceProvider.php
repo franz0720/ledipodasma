@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Observers\AttendanceObserver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -18,6 +19,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Force HTTPS in production environments or when behind Railway's SSL proxy
+        if (config('app.env') === 'production' || request()->header('x-forwarded-proto') === 'https') {
+            URL::forceScheme('https');
+        }
+
         // Preserve the existing attendance observer.
         Attendance::observe(AttendanceObserver::class);
 
