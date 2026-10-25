@@ -3501,6 +3501,36 @@ html body #contact.contact-section .alertSuccess {
       }
     }
 
+    /* FIX: Show every course on mobile */
+@media screen and (max-width: 768px) {
+    #courses .courses-grid {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 20px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    #courses .course-card {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        margin: 0 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    #courses .course-card:nth-child(n) {
+        display: flex !important;
+    }
+}
+
 </style>
 </head>
 

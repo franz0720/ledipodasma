@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -13,7 +14,7 @@ return new class extends Migration
                 $table->id();
 
                 $table->unsignedBigInteger('user_id');
-                $table->string('event_key')->unique();
+                $table->string('event_key');
 
                 $table->string('type')->default('info');
                 $table->string('title');
@@ -23,6 +24,12 @@ return new class extends Migration
 
                 $table->timestamp('read_at')->nullable();
                 $table->timestamps();
+
+                // Prevent duplicate events for the same administrator.
+                $table->unique(
+                    ['user_id', 'event_key'],
+                    'admin_notifications_user_event_unique'
+                );
 
                 $table->foreign('user_id')
                     ->references('id')

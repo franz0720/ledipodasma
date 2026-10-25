@@ -42,36 +42,222 @@ class UserController extends Controller
     }
 
     public function SignUp(Request $request)
-    {
-        // dd($request->all());
+{
+    $validated = $request->validate([
+        'firstname' => 'required|string|max:100',
+        'lastname'  => 'required|string|max:100',
+        'email'     => ['required', 'email', Rule::unique('user_tbls', 'email')],
+        'username'  => ['required', 'string', 'max:100', Rule::unique('user_tbls', 'username')],
+        'password'  => [
+            'required',
+            'string',
+            'min:8',
+            'max:12',
+            'confirmed',
+            'regex:/[A-Z]/',
+            'regex:/[a-z]/',
+            'regex:/[0-9]/',
+            'regex:/[^A-Za-z0-9]/',
+        ],
+        'role'      => 'required|in:student',
+        'course_id' => 'nullable|integer',
+    ]);
 
-        try {
-            $request->validate(rules: [
-                "firstname" => "required",
-                "lastname" => "required",
-                "email" => ["required", Rule::unique("user_tbls", "email")],
-                "username" => "required",
-                "password" => "required|confirmed",
-                "role" => "in:student",
+    $otp = (string) random_int(100000, 999999);
+
+    $pending = [
+        'firstname'  => $validated['firstname'],
+        'lastname'   => $validated['lastname'],
+        'email'      => $validated['email'],
+        'username'   => $validated['username'],
+        'password'   => Hash::make($validated['password']),
+        'role'       => 'student',
+        'course_id'  => $validated['course_id'] ?? null,
+        'otp_hash'   => Hash::make($otp),
+        'expires_at' => now()->addMinutes(10)->timestamp,
+        'sent_at'    => now()->timestamp,
+        'attempts'   => 0,
+    ];
+
+    try {
+        Mail::raw(
+            "Your LEDIPO signup verification code is: {$otp}\n\n"
+            . "This code expires in 10 minutes. Do not share it with anyone.",
+            function ($message) use ($validated) {
+                $message->to($validated['email'])
+                    ->subject('LEDIPO Signup Verification Code');
+            }
+        );
+    } catch (\Throwable $e) {
+        report($e);
+
+        return back()
+            ->withInput($request->except([
+                'password',
+                'password_confirmation',
+            ]))
+            ->withErrors([
+                'email' => 'The verification email could not be sent. Please try again.',
             ]);
-
-            $user = User_tbl::create([
-                "firstname" => $request->firstname,
-                "lastname"  => $request->lastname,
-                "email"     => $request->email,
-                "username"  => $request->username,
-                "password"  => bcrypt($request->password),
-                "role"      => $request->role,
-            ]);
-
-            $user->sendEmailVerificationNotification();
-
-            return redirect()->route("Login")->with('status', 'Account created! Please check your email to verify your account.');
-
-        } catch (\Exception $e) {
-            dd($e->getMessage(), $e->getLine(), $e->getFile());
-        }
     }
+
+    $request->session()->put('signup_pending', $pending);
+
+    return redirect()->route('SignupOtpPage')
+        ->with('status', 'A verification code has been sent to your email.');
+}
+
+
+public function showSignupOtp(Request $request)
+{
+    if (!$request->session()->has('signup_pending')) {
+        return redirect()->route('SignupPage')
+            ->withErrors([
+                'email' => 'Please complete the signup form first.',
+            ]);
+    }
+
+    return view('student.sign_up');
+}
+
+
+public function verifySignupOtp(Request $request)
+{
+    $pending = $request->session()->get('signup_pending');
+
+    if (!$pending) {
+        return redirect()->route('SignupPage')
+            ->withErrors([
+                'otp' => 'Your signup session has expired. Please sign up again.',
+            ]);
+    }
+
+    if (now()->timestamp > $pending['expires_at']) {
+        $request->session()->forget('signup_pending');
+
+        return redirect()->route('SignupPage')
+            ->withErrors([
+                'otp' => 'Your verification code has expired. Please sign up again.',
+            ]);
+    }
+
+    if ($pending['attempts'] >= 5) {
+        $request->session()->forget('signup_pending');
+
+        return redirect()->route('SignupPage')
+            ->withErrors([
+                'otp' => 'Too many incorrect attempts. Please sign up again.',
+            ]);
+    }
+
+    $validated = $request->validate([
+        'otp' => ['required', 'digits:6'],
+    ]);
+
+    if (!Hash::check($validated['otp'], $pending['otp_hash'])) {
+        $pending['attempts']++;
+        $request->session()->put('signup_pending', $pending);
+
+        if ($pending['attempts'] >= 5) {
+            $request->session()->forget('signup_pending');
+
+            return redirect()->route('SignupPage')
+                ->withErrors([
+                    'otp' => 'Too many incorrect attempts. Please sign up again.',
+                ]);
+        }
+
+        return back()->withErrors([
+            'otp' => 'Incorrect verification code. Please try again.',
+        ]);
+    }
+
+    // Recheck uniqueness in case another account used these values
+    // while this signup was waiting for OTP verification.
+    if (
+        User_tbl::where('email', $pending['email'])->exists()
+        || User_tbl::where('username', $pending['username'])->exists()
+    ) {
+        $request->session()->forget('signup_pending');
+
+        return redirect()->route('SignupPage')
+            ->withErrors([
+                'email' => 'The email or username is already registered. Please sign up again.',
+            ]);
+    }
+
+    // Create the student account only after successful OTP verification.
+    User_tbl::create([
+        'firstname' => $pending['firstname'],
+        'lastname'  => $pending['lastname'],
+        'email'     => $pending['email'],
+        'username'  => $pending['username'],
+        'password'  => $pending['password'],
+        'role'      => 'student',
+        'status'    => 'Active',
+    ]);
+
+    $request->session()->forget('signup_pending');
+
+    return redirect()->route('SignupPage')
+        ->with('signup_success', true);
+}
+
+
+public function resendSignupOtp(Request $request)
+{
+    $pending = $request->session()->get('signup_pending');
+
+    if (!$pending) {
+        return redirect()->route('SignupPage')
+            ->withErrors([
+                'otp' => 'Your signup session has expired. Please sign up again.',
+            ]);
+    }
+
+    // Allow one resend every 60 seconds.
+    $secondsSinceSent = now()->timestamp - $pending['sent_at'];
+
+    if ($secondsSinceSent < 60) {
+        $remaining = 60 - $secondsSinceSent;
+
+        return back()->withErrors([
+            'otp' => "Please wait {$remaining} seconds before requesting another code.",
+        ]);
+    }
+
+    $otp = (string) random_int(100000, 999999);
+
+    try {
+        Mail::raw(
+            "Your new LEDIPO signup verification code is: {$otp}\n\n"
+            . "This code expires in 10 minutes. Do not share it with anyone.",
+            function ($message) use ($pending) {
+                $message->to($pending['email'])
+                    ->subject('LEDIPO Signup Verification Code');
+            }
+        );
+    } catch (\Throwable $e) {
+        report($e);
+
+        return back()->withErrors([
+            'otp' => 'The verification email could not be sent. Please try again.',
+        ]);
+    }
+
+    // Replace the previous code only after the email is sent successfully.
+    $pending['otp_hash'] = Hash::make($otp);
+    $pending['expires_at'] = now()->addMinutes(10)->timestamp;
+    $pending['sent_at'] = now()->timestamp;
+    $pending['attempts'] = 0;
+
+    $request->session()->put('signup_pending', $pending);
+
+    return back()->with(
+        'status',
+        'A new verification code has been sent to your email.'
+    );
+}
 
     public function LoginUser(Request $request)
     {

@@ -199,6 +199,87 @@
     }
 
 
+    /* Password Strength Indicator */
+    .password-strength {
+      font-size: 10px;
+    }
+
+    .strength-bars {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .strength-bar {
+      height: 4px;
+      flex: 1;
+      background: #e2e8e4;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+    }
+
+    .strength-label {
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 2px;
+    }
+
+    .strength-hint {
+      display: block;
+      color: #64748b;
+      line-height: 1.4;
+    }
+
+    .password-strength.low .strength-bar:nth-child(1) {
+      background: #dc2626;
+    }
+
+    .password-strength.low .strength-label {
+      color: #dc2626;
+    }
+
+    .password-strength.medium .strength-bar:nth-child(-n+2) {
+      background: #d97706;
+    }
+
+    .password-strength.medium .strength-label {
+      color: #d97706;
+    }
+
+    .password-strength.strong .strength-bar {
+      background: #16a34a;
+    }
+
+    .password-strength.strong .strength-label {
+      color: #16a34a;
+    }
+
+
+.strength-hint {
+  display: block;
+  text-align: left;
+  margin-top: 6px;
+  line-height: 1.6;
+  font-size: 10px;
+}
+
+.requirement {
+  color: #dc2626;
+  transition: color 0.2s ease;
+}
+
+ .requirement.met {
+  color: #16a34a;
+}
+
+.otp-panel { text-align: center; padding-top: 8px; }
+.otp-panel p { color: #4a5568; font-size: 12px; line-height: 1.6; margin: 10px 0 16px; }
+.otp-input { text-align: center; font-size: 22px; font-weight: 700; letter-spacing: 8px; padding: 12px !important; margin-bottom: 14px; }
+.status-box { background: #dcfce7; color: #166534; padding: 9px 12px; border-radius: 6px; font-size: 11px; margin-bottom: 10px; }
+.success-icon { color: #16a34a; font-size: 48px; margin: 10px 0 14px; }
+.secondary-action { display: block; width: 100%; margin-top: 12px; border: 1px solid #0d471d; background: #fff; color: #0d471d; border-radius: 8px; padding: 9px; font-weight: 700; font-size: 12px; text-decoration: none; cursor: pointer; }
+.secondary-action:hover { background: #f0fdf4; color: #143c24; }
+
     /* =========================================================
        RESPONSIVE LAYOUT OVERRIDES
        Existing form fields, routes, validation and scripts kept.
@@ -583,102 +664,108 @@
             <h2>Create an Account</h2>
           </div>
 
-          <!-- Validation Errors -->
+          @if (session('status'))
+            <div class="status-box" role="status">
+              <i class="fa-solid fa-circle-check me-1"></i> {{ session('status') }}
+            </div>
+          @endif
+
           @if ($errors->any())
-            <div class="error-box">
+            <div class="error-box" role="alert">
               @foreach ($errors->all() as $error)
-                <div>
-                  <i class="fa-solid fa-triangle-exclamation"></i>
-                  <span>{{ $error }}</span>
-                </div>
+                <div><i class="fa-solid fa-triangle-exclamation"></i><span>{{ $error }}</span></div>
               @endforeach
             </div>
           @endif
 
-          <form action="{{ route('SignUp') }}" method="POST">
-            @csrf
-
-            <!-- Hidden Role & Preserved Course ID -->
-            <input type="hidden" name="role" value="student">
-            <input type="hidden" name="course_id"
-              value="{{ request('course_id', session('enroll_course_id')) }}">
-
-            <!-- First Name & Last Name -->
-            <div class="row gx-2 mt-2">
-              <div class="col-6">
-                <label for="firstname" class="form-label">First Name</label>
-                <input type="text" id="firstname" name="firstname"
-                  class="form-control" placeholder="Juan" required
-                  value="{{ old('firstname') }}" autocomplete="given-name">
-              </div>
-              <div class="col-6">
-                <label for="lastname" class="form-label">Last Name</label>
-                <input type="text" id="lastname" name="lastname"
-                  class="form-control" placeholder="Dela Cruz" required
-                  value="{{ old('lastname') }}" autocomplete="family-name">
-              </div>
+          @if (session('signup_success'))
+            <div class="otp-panel">
+              <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+              <h3 style="color:#1a4d2e;font-size:18px;font-weight:700;">Account Created!</h3>
+              <p>Your email has been verified and your LEDIPO student account has been created successfully.</p>
+              <a class="btn-submit d-block text-decoration-none" href="{{ route('Login', request('course_id') ? ['course_id' => request('course_id')] : []) }}">
+                <i class="fa-solid fa-right-to-bracket me-1"></i> Go to Login
+              </a>
             </div>
+          @elseif (session()->has('signup_pending'))
+            <div class="otp-panel">
+              <div style="color:#1a4d2e;font-size:36px;margin:8px 0 10px;"><i class="fa-solid fa-envelope-circle-check"></i></div>
+              <h3 style="color:#1a4d2e;font-size:18px;font-weight:700;">Verify Your Email</h3>
+              <p>Enter the six-digit verification code sent to<br><strong>{{ session('signup_pending.email') }}</strong>.<br>The code expires in 10 minutes.</p>
 
-            <!-- Email Address -->
-            <div class="mt-2">
-              <label for="email" class="form-label">Email Address</label>
-              <input type="email" id="email" name="email"
-                class="form-control" placeholder="juandelacruz@gmail.com"
-                required value="{{ old('email') }}" autocomplete="email">
+              <form action="{{ route('VerifySignupOtp') }}" method="POST">
+                @csrf
+                <label for="otp" class="form-label d-block text-start">Verification Code</label>
+                <input type="text" id="otp" name="otp" class="form-control otp-input" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" placeholder="000000" aria-label="Six-digit verification code" required autofocus>
+                <button type="submit" class="btn-submit"><i class="fa-solid fa-shield-halved me-1"></i> Verify Code</button>
+              </form>
+
+              <form action="{{ route('ResendSignupOtp') }}" method="POST">
+                @csrf
+                <button type="submit" class="secondary-action"><i class="fa-solid fa-rotate me-1"></i> Resend Verification Code</button>
+              </form>
+
             </div>
+          @else
+            <form action="{{ route('SignUp') }}" method="POST">
+              @csrf
+              <input type="hidden" name="role" value="student">
+              <input type="hidden" name="course_id" value="{{ request('course_id', session('enroll_course_id')) }}">
 
-            <!-- Username -->
-            <div class="mt-2">
-              <label for="username" class="form-label">Username</label>
-              <input type="text" id="username" name="username"
-                class="form-control" placeholder="juan_dc12" required
-                value="{{ old('username') }}" autocomplete="username">
-            </div>
-
-            <!-- Password & Confirm Password -->
-            <div class="row gx-2 mt-2">
-              <div class="col-6">
-                <label for="password" class="form-label">Password</label>
-                <div class="password-wrapper">
-                  <input type="password" id="password" name="password"
-                    class="form-control" placeholder="New password" required
-                    autocomplete="new-password" style="padding-right: 32px;">
-                  <i class="fa-solid fa-eye password-toggle-icon"
-                    id="togglePassword"
-                    onclick="toggleVisibility('password', 'togglePassword')"></i>
+              <div class="row gx-2 mt-2">
+                <div class="col-6">
+                  <label for="firstname" class="form-label">First Name</label>
+                  <input type="text" id="firstname" name="firstname" class="form-control" placeholder="Juan" required value="{{ old('firstname') }}" autocomplete="given-name">
+                </div>
+                <div class="col-6">
+                  <label for="lastname" class="form-label">Last Name</label>
+                  <input type="text" id="lastname" name="lastname" class="form-control" placeholder="Dela Cruz" required value="{{ old('lastname') }}" autocomplete="family-name">
                 </div>
               </div>
-              <div class="col-6">
-                <label for="password_confirmation" class="form-label">Confirm
-                  Password</label>
-                <div class="password-wrapper">
-                  <input type="password" id="password_confirmation"
-                    name="password_confirmation" class="form-control"
-                    placeholder="Re-enter password" required
-                    autocomplete="new-password" style="padding-right: 32px;">
-                  <i class="fa-solid fa-eye password-toggle-icon"
-                    id="toggleConfirm"
-                    onclick="toggleVisibility('password_confirmation', 'toggleConfirm')"></i>
+
+              <div class="mt-2">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="juandelacruz@gmail.com" required value="{{ old('email') }}" autocomplete="email">
+              </div>
+
+              <div class="mt-2">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="juan_dc12" required value="{{ old('username') }}" autocomplete="username">
+              </div>
+
+              <div class="row gx-2 mt-2">
+                <div class="col-6">
+                  <label for="password" class="form-label">Password</label>
+                  <div class="password-wrapper">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="New password" required autocomplete="new-password" style="padding-right:32px;">
+                    <i class="fa-solid fa-eye password-toggle-icon" id="togglePassword" onclick="toggleVisibility('password', 'togglePassword')"></i>
+                  </div>
+                  <div class="password-strength mt-2" id="passwordStrength" aria-live="polite">
+                    <div class="strength-bars"><span class="strength-bar"></span><span class="strength-bar"></span><span class="strength-bar"></span></div>
+                    <div class="strength-label" id="passwordStrengthText">Enter a password</div>
+                    <div class="strength-hint" id="passwordRequirements">
+                      <div class="requirement" data-rule="length">✗ At least 8 characters</div>
+                      <div class="requirement" data-rule="uppercase">✗ One uppercase letter (A–Z)</div>
+                      <div class="requirement" data-rule="lowercase">✗ One lowercase letter (a–z)</div>
+                      <div class="requirement" data-rule="number">✗ One number (0–9)</div>
+                      <div class="requirement" data-rule="symbol">✗ One special character (!@#$...)</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label for="password_confirmation" class="form-label">Confirm Password</label>
+                  <div class="password-wrapper">
+                    <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" placeholder="Re-enter password" required autocomplete="new-password" style="padding-right:32px;">
+                    <i class="fa-solid fa-eye password-toggle-icon" id="toggleConfirm" onclick="toggleVisibility('password_confirmation', 'toggleConfirm')"></i>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Submit Button -->
-            <div class="mt-3">
-              <button type="submit" class="btn-submit">
-                <i class="fa-solid fa-user-plus me-1"></i> Create Account
-              </button>
-            </div>
-          </form>
+              <div class="mt-3"><button type="submit" class="btn-submit"><i class="fa-solid fa-user-plus me-1"></i> Create Account</button></div>
+            </form>
 
-          <!-- Login Link (Forwarding Course ID) -->
-          <div class="login-link">
-            Already have an account?
-            <a
-              href="{{ route('Login', request('course_id') ? ['course_id' => request('course_id')] : []) }}">
-              Login here
-            </a>
-          </div>
+            <div class="login-link">Already have an account? <a href="{{ route('Login', request('course_id') ? ['course_id' => request('course_id')] : []) }}">Login here</a></div>
+          @endif
 
         </div>
       </div>
@@ -702,7 +789,75 @@
         icon.classList.add('fa-eye');
       }
     }
+
+    
+    const passwordInput = document.getElementById('password');
+    const strengthContainer = document.getElementById('passwordStrength');
+    const strengthText = document.getElementById('passwordStrengthText');
+
+    if (passwordInput && strengthContainer && strengthText) {
+      passwordInput.addEventListener('input', function () {
+      const password = this.value;
+
+      const checks = [
+        password.length >= 8,
+        /[A-Z]/.test(password),
+        /[a-z]/.test(password),
+        /[0-9]/.test(password),
+        /[^A-Za-z0-9]/.test(password)
+      ];
+
+      const score = checks.filter(Boolean).length;
+
+      
+const requirementRules = [
+  { rule: 'length', passed: checks[0] },
+  { rule: 'uppercase', passed: checks[1] },
+  { rule: 'lowercase', passed: checks[2] },
+  { rule: 'number', passed: checks[3] },
+  { rule: 'symbol', passed: checks[4] }
+];
+
+requirementRules.forEach(function (item) {
+  const requirement = document.querySelector(
+    '[data-rule="' + item.rule + '"]'
+  );
+
+  if (!requirement) return;
+
+  requirement.classList.toggle('met', item.passed);
+
+  const originalText = requirement.textContent
+    .replace(/^✓ |^✗ /, '');
+
+  requirement.textContent =
+    (item.passed ? '✓ ' : '✗ ') + originalText;
+});
+
+
+      strengthContainer.classList.remove('low', 'medium', 'strong');
+
+      if (password.length === 0) {
+        strengthText.textContent = 'Enter a password';
+        return;
+      }
+
+      if (score === 5) {
+        strengthContainer.classList.add('strong');
+        strengthText.textContent = 'Strong password';
+      } else if (password.length >= 8 && score >= 3) {
+        strengthContainer.classList.add('medium');
+        strengthText.textContent = 'Medium password';
+      } else {
+        strengthContainer.classList.add('low');
+        strengthText.textContent = 'Low password strength';
+      }
+      });
+    }
+
   </script>
+
+  
 
   <!-- JavaScript Files -->
   <script defer src="{{ asset('bootstrap_folder/js/bootstrap.bundle.min.js') }}">

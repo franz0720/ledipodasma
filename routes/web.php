@@ -30,6 +30,16 @@ Route::get("/contact-us", [UserController::class, "landingContact"])->name("land
 Route::post("/contact-us", [UserController::class, "landingContactSend"])->name("landing.contact.send");
 Route::get("/our-courses/{id}", [UserController::class, "landingCourseDetail"])->name("landing.course.detail");
 
+// Sign Up Email OTP Verification
+Route::get('/signup/verify-otp', [UserController::class, 'showSignupOtp'])
+    ->name('SignupOtpPage');
+
+Route::post('/signup/verify-otp', [UserController::class, 'verifySignupOtp'])
+    ->name('VerifySignupOtp');
+
+Route::post('/signup/resend-otp', [UserController::class, 'resendSignupOtp'])
+    ->name('ResendSignupOtp');
+
 // Email Verification
 Route::get('/email/verify', function () {
     return view('student.verify_email');
