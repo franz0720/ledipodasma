@@ -715,11 +715,11 @@
               <div class="row gx-2 mt-2">
                 <div class="col-6">
                   <label for="firstname" class="form-label">First Name</label>
-                  <input type="text" id="firstname" name="firstname" class="form-control" placeholder="Juan" required value="{{ old('firstname') }}" autocomplete="given-name">
+                  <input type="text" id="firstname" name="firstname" class="form-control name-letters-only" placeholder="Juan" required value="{{ old('firstname') }}" autocomplete="given-name" pattern="[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[ '-][A-Za-zÀ-ÖØ-öø-ÿ]+)*" title="Use letters only. Spaces, hyphens, and apostrophes are allowed between name parts." maxlength="100">
                 </div>
                 <div class="col-6">
                   <label for="lastname" class="form-label">Last Name</label>
-                  <input type="text" id="lastname" name="lastname" class="form-control" placeholder="Dela Cruz" required value="{{ old('lastname') }}" autocomplete="family-name">
+                  <input type="text" id="lastname" name="lastname" class="form-control name-letters-only" placeholder="Dela Cruz" required value="{{ old('lastname') }}" autocomplete="family-name" pattern="[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[ '-][A-Za-zÀ-ÖØ-öø-ÿ]+)*" title="Use letters only. Spaces, hyphens, and apostrophes are allowed between name parts." maxlength="100">
                 </div>
               </div>
 
@@ -772,6 +772,23 @@
 
     </div>
   </div>
+
+  <!-- Name fields: allow letters with spaces, hyphens, and apostrophes between name parts -->
+  <script>
+    (function () {
+      const nameFields = document.querySelectorAll('.name-letters-only');
+
+      nameFields.forEach(function (field) {
+        field.addEventListener('input', function () {
+          this.value = this.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ' -]/g, '');
+        });
+
+        field.addEventListener('blur', function () {
+          this.value = this.value.trim().replace(/\s+/g, ' ');
+        });
+      });
+    })();
+  </script>
 
   <!-- JavaScript for Password Toggles -->
   <script>
